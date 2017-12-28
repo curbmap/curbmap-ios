@@ -76,7 +76,7 @@
                             </connections>
                         </button>
                     </subviews>
-                    <color key="backgroundColor" red="0.1843137255" green="0.65098039220000004" blue="0.75686274509999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <constraints>
                         <constraint firstItem="ZTI-Kg-9QH" firstAttribute="leading" secondItem="ru4-tP-rKp" secondAttribute="leading" constant="16" id="2xp-Dz-syP"/>
                         <constraint firstItem="Gtx-v2-mI3" firstAttribute="top" secondItem="aBi-mg-hkT" secondAttribute="top" id="BYE-yM-7Xr"/>
@@ -96,7 +96,7 @@
                     <state key="normal" image="photo"/>
                 </button>
             </subviews>
-            <color key="backgroundColor" red="0.1843137255" green="0.65098039220000004" blue="0.75686274509999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="fm3-QU-OtW" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="72" id="1Ol-Xx-LX4"/>
                 <constraint firstItem="BhH-OF-1di" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="5hz-R5-6F0"/>

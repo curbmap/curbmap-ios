@@ -9,24 +9,47 @@
 import UIKit
 import KeychainAccess
 import UserNotifications
+import AudioToolbox
+import AVFoundation
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     let user: User = User(username: "curbmaptest", password: "TestCurbm@p1")
     let keychain = Keychain(service: "com.curbmap.keys")
     var timer: Timer!
+    var timerController: AlarmViewController!
     var timerAlloted: Int64 = 0
     var timerIsRunning: Bool = false
     var mapController: MapViewController!
     var token: String!
     var window: UIWindow?
     var windowLocation = 0;
+    var error : Error!
     @objc func tick() {
         self.timerAlloted -= 1
+        if (timerController != nil) {
+            timerController.setRemainingTime(timerAlloted)
+        }
+        if (self.timerAlloted == 0) {
+            //sound the alarm
+            print("The ALARM")
+        }
     }
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         registerForPushNotifications()
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
+        } catch let error1 as NSError{
+            error = error1
+            print("could not set session. err:\(error!.localizedDescription)")
+        }
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch let error1 as NSError{
+            error = error1
+            print("could not active session. err:\(error!.localizedDescription)")
+        }
         return true
     }
     func registerForPushNotifications() {

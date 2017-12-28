@@ -13,7 +13,7 @@ import OpenLocationCode
 import Mapbox
 import SwiftyCam
 
-class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate {
+class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var tempGestureRecognizers: [UIGestureRecognizer] = []
     var menuTableViewController: UITableViewController!
@@ -26,6 +26,12 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.menuTableViewController.tableView.reloadData()
     }
     @IBOutlet weak var searchBar: UISearchBar!
+    @IBAction func iconPressed(_ sender: Any) {
+        self.trackUser = true
+        self.locationManager.startUpdatingLocation()
+        self.icon.isHidden = true
+    }
+    @IBOutlet weak var icon: UIButton!
     
     var mapView: MGLMapView!
     var locationManager: CLLocationManager!
@@ -45,12 +51,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         mapView.setCenter(location.coordinate, zoomLevel: 15.0, animated: true)
     }
     
-    func mapView(_ mapView: MGLMapView, shouldChangeFrom oldCamera: MGLMapCamera, to newCamera: MGLMapCamera) -> Bool {
-        // put something here to stop tracking
-        self.trackUser = false;
-        return true;
-    }
-
     func mapView(_ mapView: MGLMapView, regionDidChangeAnimated animated: Bool) {
         var code: [Character] = try! OpenLocationCode.encode(latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude, codeLength: 10).filter { $0 != "+" }
 
@@ -190,10 +190,26 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name:NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name:NSNotification.Name.UIKeyboardWillHide, object: nil)
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        view.addGestureRecognizer(tap)
+        let pan: UIPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(userPanned))
+        pan.delegate = self
+        view.addGestureRecognizer(pan)
         tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
         self.searchBar.delegate = self
         setupViews(portrait_oriented)
+        
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+
+    @objc func userPanned(_ gestureRecognizer: UIPanGestureRecognizer) {
+        if (gestureRecognizer.state == UIGestureRecognizerState.ended) {
+            self.trackUser = false
+            self.icon.isHidden = false
+            // display something so they can turn it back on
+        }
     }
     
     @objc func determineLongPressAction(gestureRecognizer:UIGestureRecognizer) {

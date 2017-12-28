@@ -92,6 +92,8 @@ class PhotoController: SwiftyCamViewController, SwiftyCamViewControllerDelegate 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        self.view.layoutIfNeeded()
+        self.view.layoutSubviews()
         captureButton.delegate = self
     }
     
@@ -106,8 +108,7 @@ class PhotoController: SwiftyCamViewController, SwiftyCamViewControllerDelegate 
         var imageViewCenter = self.preview.center
         imageViewCenter.x = CGRect(origin: self.view.frame.origin, size: self.view.frame.size).midX
         self.preview.center = imageViewCenter
-        self.preview.layer.backgroundColor = UIColorFromRGB(rgbValue: 0x2FA6C1).cgColor
-        self.preview.layer.cornerRadius = 96.0
+        self.preview.layer.backgroundColor = UIColor.black.cgColor
         self.preview.clipsToBounds = true
         self.previewView.isHidden = false
         self.captureButton.isEnabled = false
