@@ -1,0 +1,34 @@
+PODS:
+  - Alamofire (4.6.0)
+  - KeychainAccess (3.1.0)
+  - Mapbox-iOS-SDK (3.7.0)
+  - OpenLocationCode (0.0.5.2)
+  - SwiftyCam (2.7.0)
+
+DEPENDENCIES:
+  - Alamofire
+  - KeychainAccess
+  - Mapbox-iOS-SDK (~> 3.7)
+  - OpenLocationCode
+  - SwiftyCam (from `https://github.com/Awalz/SwiftyCam.git`, branch `Swift4`)
+
+EXTERNAL SOURCES:
+  SwiftyCam:
+    :branch: Swift4
+    :git: https://github.com/Awalz/SwiftyCam.git
+
+CHECKOUT OPTIONS:
+  SwiftyCam:
+    :commit: 85d713d643159cda72db2f3e230777af50cded94
+    :git: https://github.com/Awalz/SwiftyCam.git
+
+SPEC CHECKSUMS:
+  Alamofire: f41a599bd63041760b26d393ec1069d9d7b917f4
+  KeychainAccess: 94c5540b32eabf7bc32bfb976a268e8ea05fd6da
+  Mapbox-iOS-SDK: 699818d30e1ed4985d3efc6a06c40b90907c586d
+  OpenLocationCode: 9fcfb120d9e11a91842b91e3517ab432a3c23c3b
+  SwiftyCam: 7c826b73a5b208677aee29390582c771bf748661
+
+PODFILE CHECKSUM: f6af77e46de2aec79ccb1e3e7ef9bf96e36d4ef5
+
+COCOAPODS: 1.4.0.beta.2

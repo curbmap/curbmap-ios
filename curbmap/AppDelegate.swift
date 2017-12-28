@@ -7,16 +7,58 @@
 //
 
 import UIKit
+import KeychainAccess
+import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
+    let user: User = User(username: "curbmaptest", password: "TestCurbm@p1")
+    let keychain = Keychain(service: "com.curbmap.keys")
+    var timer: Timer!
+    var timerAlloted: Int64 = 0
+    var timerIsRunning: Bool = false
+    var mapController: MapViewController!
+    var token: String!
     var window: UIWindow?
-
-
+    var windowLocation = 0;
+    @objc func tick() {
+        self.timerAlloted -= 1
+    }
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        registerForPushNotifications()
         return true
+    }
+    func registerForPushNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+            (granted, error) in
+            print("Permission granted: \(granted)")
+            
+            guard granted else { return }
+            self.getNotificationSettings()
+        }
+    }
+    
+    func getNotificationSettings() {
+        UNUserNotificationCenter.current().getNotificationSettings { (settings) in
+            print("Notification settings: \(settings)")
+            guard settings.authorizationStatus == .authorized else { return }
+            UIApplication.shared.registerForRemoteNotifications()
+        }
+    }
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenParts = deviceToken.map { data -> String in
+            return String(format: "%02.2hhx", data)
+        }
+        
+        self.token = tokenParts.joined()
+        print("Device Token: \(token)")
+    }
+    
+    func application(_ application: UIApplication,
+                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("Failed to register: \(error)")
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -35,6 +77,57 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        do {
+            let username_token = try keychain.get("user_curbmap")
+            if (username_token != nil) {
+                let password_token = try keychain.get("pass_curbmap")
+                if (password_token != nil) {
+                    user.set_username(username: username_token!)
+                    user.set_password(password: password_token!)
+                    user.set_remember(remember: true)
+                    user.login(callback: self.finishedLogin)
+                }
+            }
+            let mapstyle = try! keychain.get("settings_mapstyle")
+            if (mapstyle != nil) {
+                self.user.settings.updateValue(mapstyle!, forKey: "mapstyle")
+                if (self.mapController != nil) {
+                    self.mapController.changeStyle(style: mapstyle!)
+                }
+            }
+            
+            let follow = try! keychain.get("settings_follow")
+            if (follow != nil) {
+                self.user.settings.updateValue(follow!, forKey: "follow")
+                if (self.mapController != nil) {
+                    self.mapController.trackUser = false
+                }
+            }
+            
+            let push = try! keychain.get("settings_push")
+            if (push != nil) {
+                self.user.settings.updateValue(push!, forKey: "push")
+            }
+            
+            let units = try! keychain.get("settings_units")
+            if (units != nil) {
+                self.user.settings.updateValue(units!, forKey: "units")
+            }
+            
+            let offline = try! keychain.get("settings_offline")
+            if (offline != nil) {
+                self.user.settings.updateValue(offline!, forKey: "offline")
+                self.mapController.changeOffline(offline: offline!)
+            }
+        } catch _ {
+            print("cannot get username")
+        }
+    }
+    @objc func changePushStatus(status: String) {
+        
+    }
+    @objc func finishedLogin() {
+        print("finished login")
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
