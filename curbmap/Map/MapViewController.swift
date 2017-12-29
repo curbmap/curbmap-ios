@@ -15,8 +15,60 @@ import SwiftyCam
 
 class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    var tempGestureRecognizers: [UIGestureRecognizer] = []
+    var tempGestureRecognizers: [UIGestureRecognizer]!
+    var tempViewGestureRecognizers: [UIGestureRecognizer]!
     var menuTableViewController: UITableViewController!
+    var photoAnnotation: MapMarker!
+    var movingPhotoAnnotation: Bool = false
+    var photoToPlace: UIImage!
+    var lastTouchPosition:CGPoint!
+    var firstTouchPosition:CGPoint!
+    @IBOutlet weak var cancelButton: UIButton!
+    @IBAction func cancel(_ sender: Any) {
+        self.cancelled()
+    }
+    @IBOutlet weak var looksGreatButton: UIButton!
+    @IBAction func looksGreat(_ sender: Any) {
+        if (self.appDelegate.user.get_location() != nil) {
+            let olc = try? OpenLocationCode.encode(latitude: self.photoAnnotation.coordinate.latitude, longitude: self.photoAnnotation.coordinate.longitude, codeLength: 12)
+            let heading = self.photoAnnotation.heading
+            if (olc != nil) {
+                let headers = [
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "username": self.appDelegate.user.get_username(),
+                    "session": self.appDelegate.user.get_session()
+                ]
+                Alamofire.upload(multipartFormData: { MultipartFormData in
+                    MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
+                    print(heading)
+                    print(heading.magnitude)
+                    var heading_magnitude = heading.magnitude
+                    MultipartFormData.append(Data(buffer: UnsafeBufferPointer(start: &heading_magnitude, count:1)), withName: "bearing")
+                    MultipartFormData.append(UIImageJPEGRepresentation(self.photoToPlace, 1.0)!, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+                }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
+                    switch encodingResult {
+                    case .success(let upload, _, _):
+                        upload.responseJSON { response in
+                            if let result = response.result.value {
+                                if let success = result as? NSDictionary {
+                                    print(success["success"]! as! Bool)
+                                    self.uploadComplete()
+                                    return
+                                }
+                                
+                            }
+                        }
+                        break
+                    case .failure(let encodingError):
+                        print("failed to send \(encodingError.localizedDescription)")
+                        self.navigationController?.popViewController(animated: true)
+                        break
+                    }
+                })
+            }
+      }
+    }
+    var zoomLevel: Double = 15.0
     @IBOutlet weak var containerView: UIView!
     var menuOpen = false
     // Hide table view tap on map or button
@@ -48,7 +100,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     // for mapCache [ 10digitcode : [ 2017-07-26@10AM: [lines] ]]]]
     
     func centerMapOnLocation(location: CLLocation) {
-        mapView.setCenter(location.coordinate, zoomLevel: 15.0, animated: true)
+        mapView.setCenter(location.coordinate, zoomLevel: self.zoomLevel, animated: true)
     }
     
     func mapView(_ mapView: MGLMapView, regionDidChangeAnimated animated: Bool) {
@@ -235,6 +287,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         } else {
             //create photo view controller and push onto navigation
             self.trackUser = false
+            self.appDelegate.user.set_location(location: locationManager.location!)
             let vc = PhotoController(nibName: "PhotoController", bundle: nil)
             self.navigationController?.pushViewController(vc, animated: true)
         }
@@ -283,8 +336,35 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     
     @objc func uploadComplete() {
         print("completed upload!")
+        self.cancelled()
     }
-    
+    @objc func cancelled() {
+        self.cancelButton.isHidden = true
+        self.looksGreatButton.isHidden = true
+        self.zoomLevel = 15.0
+        if (self.appDelegate.user.settings["follow"] == "y"){
+            self.trackUser = true
+        }
+        self.mapView.gestureRecognizers = self.tempGestureRecognizers
+        self.view.gestureRecognizers = []
+        for listedGestureRecognizer in tempViewGestureRecognizers {
+            if (listedGestureRecognizer.isKind(of: UIPanGestureRecognizer.self)) {
+                let gestureToAdd: UIPanGestureRecognizer = listedGestureRecognizer as! UIPanGestureRecognizer
+                self.view.addGestureRecognizer(gestureToAdd)
+            }
+            else if (listedGestureRecognizer.isKind(of: UILongPressGestureRecognizer.self)) {
+                let gestureToAdd: UILongPressGestureRecognizer = listedGestureRecognizer as! UILongPressGestureRecognizer
+                self.view.addGestureRecognizer(gestureToAdd)
+            } else if (listedGestureRecognizer.isKind(of: UITapGestureRecognizer.self)) {
+                let gestureToAdd: UITapGestureRecognizer = listedGestureRecognizer as! UITapGestureRecognizer
+                self.view.addGestureRecognizer(gestureToAdd)
+                
+            }
+        }
+        self.movingPhotoAnnotation = false
+        self.photoToPlace = nil
+        self.photoAnnotation = nil
+    }
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .authorizedWhenInUse {
             if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
@@ -301,17 +381,68 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let latest:CLLocation = locations[locations.count - 1]
         if (self.trackUser) {
-            self.appDelegate.user.set_location(location: latest.coordinate)
+            self.appDelegate.user.set_location(location: latest)
             self.centerMapOnLocation(location: latest)
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         if newHeading.headingAccuracy < 0 { return }
-        let heading = newHeading.trueHeading > 0 ? newHeading.trueHeading : newHeading.magneticHeading
-        userHeading = heading
-        self.appDelegate.user.set_location(location: (manager.location?.coordinate)!)
+        self.userHeading = newHeading.trueHeading > 0 ? newHeading.trueHeading : newHeading.magneticHeading
+        self.appDelegate.user.set_location(location: manager.location!)
     }
+    @objc func movePhotoMarker(_ photoMoved: UITapGestureRecognizer) {
+        // point teleportation!
+        let lastMovedTo = photoMoved.location(in: self.mapView)
+        let photoAnnotationLocation = mapView.convert(lastMovedTo, toCoordinateFrom: self.mapView)
+        self.mapView.removeAnnotation(photoAnnotation)
+        self.photoAnnotation.coordinate = photoAnnotationLocation
+        self.mapView.addAnnotation(photoAnnotation)
+    }
+    @objc func moveMap(_ mapMoved: UIPanGestureRecognizer) {
+        if (mapMoved.state == .began) {
+            self.firstTouchPosition = mapMoved.location(in: self.mapView)
+        }
+        if (mapMoved.state == .ended) {
+            self.lastTouchPosition = mapMoved.location(in: self.mapView)
+            let origin = self.mapView.convert(self.firstTouchPosition, toCoordinateFrom: self.mapView)
+            let ending = self.mapView.convert(self.lastTouchPosition, toCoordinateFrom: self.mapView)
+            var center = self.mapView.centerCoordinate
+            let dist_lng = origin.longitude - ending.longitude
+            let dist_lat = origin.latitude - ending.latitude
+            center.longitude += dist_lng
+            center.latitude += dist_lat
+            let center_location = CLLocation(latitude: center.latitude, longitude: center.longitude)
+            self.centerMapOnLocation(location: center_location)
+        }
+    }
+    
+    @objc func placePhoto() {
+        // Display mapmarker
+        // on mapMarker show little photo?
+        // Then turn off dragging of map and add a pan gesture which moves the marker only
+        self.zoomLevel = 17
+        centerMapOnLocation(location: self.appDelegate.user.get_location()!)
+        if (self.userHeading != nil) {
+            self.photoAnnotation = MapMarker(coordinate: self.appDelegate.user.get_location()!.coordinate, heading: self.userHeading!)
+        } else {
+            self.photoAnnotation = MapMarker(coordinate: self.appDelegate.user.get_location()!.coordinate)
+        }
+        self.movingPhotoAnnotation = true
+        self.mapView.addAnnotation(self.photoAnnotation)
+        self.tempGestureRecognizers = self.mapView.gestureRecognizers! // copy the gesture recognizers to replace later
+        self.mapView.gestureRecognizers = []
+        self.tempViewGestureRecognizers = self.view.gestureRecognizers!
+        let tapGestureMarker = UITapGestureRecognizer(target: self, action: #selector(movePhotoMarker))
+        tapGestureMarker.delegate = self
+        let panGestureMarker = UIPanGestureRecognizer(target: self, action: #selector(moveMap))
+        panGestureMarker.delegate = self
+        self.view.gestureRecognizers = [panGestureMarker, tapGestureMarker]
+        self.looksGreatButton.isHidden = false
+        self.cancelButton.isHidden = false
+        self.icon.isHidden = true
+    }
+
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc = segue.destination as? UITableViewController,

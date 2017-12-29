@@ -20,7 +20,7 @@ class User {
     var session: String
     var score: Int64
     var badge: String
-    var currentLocation: CLLocationCoordinate2D?
+    var currentLocation: CLLocation!
     var settings: [String: String] = [
         "mapstyle": "d",
         "follow": "y",
@@ -36,10 +36,10 @@ class User {
         self.score = 0
         self.session = ""
     }
-    func set_location(location: CLLocationCoordinate2D) {
+    func set_location(location: CLLocation) {
         self.currentLocation = location
     }
-    func get_location() -> CLLocationCoordinate2D? {
+    func get_location() -> CLLocation? {
         return self.currentLocation
     }
     func set_badge(badge: String) {

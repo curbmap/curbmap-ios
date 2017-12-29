@@ -22,40 +22,11 @@ class PhotoController: SwiftyCamViewController, SwiftyCamViewControllerDelegate 
         self.navigationController?.popViewController(animated: true)
     }
     @IBAction func keepImage(_ sender: Any) {
-        if (self.appDelegate.user.get_location() != nil) {
-            let olc = try? OpenLocationCode.encode(latitude: self.appDelegate.user.get_location()!.latitude, longitude: self.appDelegate.user.get_location()!.longitude, codeLength: 12)
-            if (olc != nil) {
-                let headers = [
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "username": self.appDelegate.user.get_username(),
-                    "session": self.appDelegate.user.get_session()
-                ]
-                Alamofire.upload(multipartFormData: { MultipartFormData in
-                    MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
-                    MultipartFormData.append(UIImageJPEGRepresentation(self.imageData, 1.0)!, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-                }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
-                    switch encodingResult {
-                    case .success(let upload, _, _):
-                        upload.responseJSON { response in
-                            if let result = response.result.value {
-                                if let success = result as? NSDictionary {
-                                    print(success["success"]! as! Bool)
-                                }
-                                let vc = self.navigationController?.viewControllers[(self.navigationController?.viewControllers.count)! - 2] as! MapViewController
-                                vc.uploadComplete()
-                                self.navigationController?.popViewController(animated: true)
-                            }
-                        }
-                        break
-                    case .failure(let encodingError):
-                            print("failed to send \(encodingError.localizedDescription)")
-                            self.navigationController?.popViewController(animated: true)
-                            break
-                    }
-                })
-            }
+        if (appDelegate.mapController != nil) {
+            appDelegate.mapController.photoToPlace = self.imageData
+            appDelegate.mapController.placePhoto()
         }
-        
+        self.navigationController?.popViewController(animated: true)
     }
     @IBAction func cancelImage(_ sender: Any) {
         previewView.isHidden = true

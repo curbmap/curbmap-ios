@@ -15,6 +15,9 @@
         <array key="AcademyEngraved.ttf">
             <string>AcademyEngravedLetPlain</string>
         </array>
+        <array key="Futura.ttc">
+            <string>Futura-Bold</string>
+        </array>
     </customFonts>
     <scenes>
         <!--Map View-->
@@ -55,37 +58,76 @@
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2Ch-Ss-iZH">
                                 <rect key="frame" x="311" y="599" width="48" height="48"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="48" id="0aG-qw-9ai"/>
-                                    <constraint firstAttribute="width" constant="48" id="kyX-GB-7vP"/>
-                                    <constraint firstAttribute="width" secondItem="2Ch-Ss-iZH" secondAttribute="height" multiplier="1:1" id="x5C-0e-ofv"/>
+                                    <constraint firstAttribute="height" constant="48" id="DPZ-9y-RSM"/>
+                                    <constraint firstAttribute="width" constant="48" id="LBj-il-Rhq"/>
+                                    <constraint firstAttribute="width" secondItem="2Ch-Ss-iZH" secondAttribute="height" multiplier="1:1" id="dAy-WW-PD9"/>
                                 </constraints>
                                 <state key="normal" image="about"/>
                                 <connections>
                                     <action selector="iconPressed:" destination="3Es-pf-Y83" eventType="touchUpInside" id="wgl-hO-cI6"/>
                                 </connections>
                             </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zEO-SI-B58">
+                                <rect key="frame" x="303" y="517" width="64" height="64"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="zEO-SI-B58" secondAttribute="height" multiplier="1:1" id="Q1q-Cb-J0b"/>
+                                    <constraint firstAttribute="height" constant="64" id="U0a-CD-ldm"/>
+                                    <constraint firstAttribute="width" constant="64" id="x06-QK-Rnl"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Futura-Bold" family="Futura" pointSize="16"/>
+                                <size key="titleShadowOffset" width="1" height="1"/>
+                                <state key="normal" title="Cancel" backgroundImage="cancel">
+                                    <color key="titleShadowColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="cancel:" destination="3Es-pf-Y83" eventType="touchUpInside" id="0VX-qS-MS3"/>
+                                </connections>
+                            </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="Y2Y-GG-mmN">
+                                <rect key="frame" x="16" y="517" width="64" height="64"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="64" id="6cx-ek-DZ6"/>
+                                    <constraint firstAttribute="width" secondItem="Y2Y-GG-mmN" secondAttribute="height" multiplier="1:1" id="Fda-n1-SbW"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Futura-Bold" family="Futura" pointSize="16"/>
+                                <size key="titleShadowOffset" width="1" height="1"/>
+                                <state key="normal" title="Looks great!" backgroundImage="check">
+                                    <color key="titleShadowColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="looksGreat:" destination="3Es-pf-Y83" eventType="touchUpInside" id="j5a-qD-u97"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="trailing" secondItem="eIL-XA-De8" secondAttribute="leading" id="2wt-98-JcO"/>
-                            <constraint firstItem="VoZ-I9-6yH" firstAttribute="trailing" secondItem="vdl-TO-E7Z" secondAttribute="trailing" constant="119" id="3zq-6M-91P"/>
+                            <constraint firstItem="vdl-TO-E7Z" firstAttribute="top" secondItem="eIL-XA-De8" secondAttribute="bottom" id="4Nm-8m-TvM"/>
+                            <constraint firstItem="Y2Y-GG-mmN" firstAttribute="top" secondItem="vdl-TO-E7Z" secondAttribute="bottom" constant="14" id="9AG-p9-YLg"/>
+                            <constraint firstAttribute="bottom" secondItem="2Ch-Ss-iZH" secondAttribute="bottom" constant="20" symbolic="YES" id="BNe-zg-pah"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="top" secondItem="eIL-XA-De8" secondAttribute="top" id="Eee-Ed-RNT"/>
-                            <constraint firstItem="PRe-bz-WtG" firstAttribute="leading" secondItem="vdl-TO-E7Z" secondAttribute="leading" id="GMc-4M-tLp"/>
-                            <constraint firstItem="2Ch-Ss-iZH" firstAttribute="leading" secondItem="VoZ-I9-6yH" secondAttribute="leading" constant="311" id="IRP-RU-Yrk"/>
-                            <constraint firstItem="VoZ-I9-6yH" firstAttribute="bottom" secondItem="vdl-TO-E7Z" secondAttribute="bottom" constant="164" id="MSc-Gz-NHm"/>
+                            <constraint firstItem="vdl-TO-E7Z" firstAttribute="leading" secondItem="Y2Y-GG-mmN" secondAttribute="leading" id="LRO-fa-K8C"/>
+                            <constraint firstItem="Y2Y-GG-mmN" firstAttribute="bottom" secondItem="zEO-SI-B58" secondAttribute="bottom" id="NDd-Od-JWd"/>
+                            <constraint firstItem="2Ch-Ss-iZH" firstAttribute="leading" secondItem="VoZ-I9-6yH" secondAttribute="leading" constant="311" id="OFI-ON-a0z"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="top" secondItem="VoZ-I9-6yH" secondAttribute="top" id="Q6Z-f8-y10"/>
-                            <constraint firstAttribute="bottom" secondItem="2Ch-Ss-iZH" secondAttribute="bottom" constant="20" symbolic="YES" id="YFz-Oh-WnU"/>
-                            <constraint firstItem="vdl-TO-E7Z" firstAttribute="top" secondItem="eIL-XA-De8" secondAttribute="bottom" id="pFc-fg-07g"/>
-                            <constraint firstItem="2Ch-Ss-iZH" firstAttribute="trailing" secondItem="eIL-XA-De8" secondAttribute="trailing" id="ujd-tI-s4C"/>
+                            <constraint firstItem="2Ch-Ss-iZH" firstAttribute="trailing" secondItem="eIL-XA-De8" secondAttribute="trailing" id="XkG-DB-BnI"/>
+                            <constraint firstItem="vdl-TO-E7Z" firstAttribute="leading" secondItem="PRe-bz-WtG" secondAttribute="leading" id="aTB-7t-QaX"/>
+                            <constraint firstItem="Y2Y-GG-mmN" firstAttribute="top" secondItem="zEO-SI-B58" secondAttribute="top" id="fmD-x4-nJ3"/>
+                            <constraint firstItem="VoZ-I9-6yH" firstAttribute="bottom" secondItem="zEO-SI-B58" secondAttribute="bottom" constant="86" id="j5Q-ml-efX"/>
+                            <constraint firstItem="VoZ-I9-6yH" firstAttribute="trailing" secondItem="zEO-SI-B58" secondAttribute="trailing" constant="8" id="kQ2-8k-QMK"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="leading" secondItem="pH2-Yh-EEI" secondAttribute="leadingMargin" id="vsr-BV-XhE"/>
+                            <constraint firstItem="VoZ-I9-6yH" firstAttribute="trailing" secondItem="vdl-TO-E7Z" secondAttribute="trailing" constant="119" id="wj8-CW-Y04"/>
+                            <constraint firstItem="zEO-SI-B58" firstAttribute="centerX" secondItem="2Ch-Ss-iZH" secondAttribute="centerX" id="xSE-k4-NNX"/>
                             <constraint firstItem="eIL-XA-De8" firstAttribute="trailing" secondItem="pH2-Yh-EEI" secondAttribute="trailingMargin" id="yQk-Zr-auz"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="VoZ-I9-6yH"/>
                     </view>
                     <navigationItem key="navigationItem" id="cwx-Hg-BME"/>
                     <connections>
+                        <outlet property="cancelButton" destination="zEO-SI-B58" id="nfN-zj-1Vd"/>
                         <outlet property="containerView" destination="vdl-TO-E7Z" id="XPa-Eb-inE"/>
                         <outlet property="icon" destination="2Ch-Ss-iZH" id="2ps-CN-UQS"/>
+                        <outlet property="looksGreatButton" destination="Y2Y-GG-mmN" id="VH3-2z-V0H"/>
                         <outlet property="searchBar" destination="eIL-XA-De8" id="Ewj-Gc-cvN"/>
                     </connections>
                 </viewController>
@@ -568,6 +610,8 @@
     </scenes>
     <resources>
         <image name="about" width="64" height="64"/>
+        <image name="cancel" width="48" height="48"/>
+        <image name="check" width="48" height="48"/>
         <image name="logo" width="330" height="310"/>
         <image name="menu" width="64" height="64"/>
     </resources>
