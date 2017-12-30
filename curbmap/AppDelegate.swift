@@ -18,6 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     let keychain = Keychain(service: "com.curbmap.keys")
     let notificationDelegate = AlarmUserNotification()
     var mapController: MapViewController!
+    var settingsController: SettingsViewController!
     var token: String!
     var window: UIWindow?
     var windowLocation = 0;
@@ -26,13 +27,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     let options: UNAuthorizationOptions = [.alert, .sound];
     var localNotificationsAllowed : Bool = false
     var remoteNotificationsAllowed: Bool = false
+    var registeredForLocal : Bool = false
+    var registeredForRemote: Bool = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        center.delegate = notificationDelegate
         registerForPushNotifications()
         registerForLocalNotifications()
-        center.delegate = notificationDelegate
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
+        checkSettings()
         return true
     }
     func registerForLocalNotifications() {
@@ -40,6 +44,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             (granted, error) in
             if !granted {
                 print("Something went wrong")
+                if (self.settingsController != nil) {
+                    self.settingsController.checkStatus()
+                }
             }
         }
         self.getLocalNotificationSettings()
@@ -57,6 +64,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         center.getNotificationSettings { (settings) in
             guard settings.authorizationStatus == .authorized else { return }
             self.localNotificationsAllowed = true
+            self.registeredForLocal = true
+            if (self.settingsController != nil) {
+                self.settingsController.checkStatus()
+            }
         }
     }
     func getNotificationSettings() {
@@ -75,6 +86,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         
         self.token = tokenParts.joined()
         self.remoteNotificationsAllowed = true
+        self.registeredForRemote = true
     }
     
     @objc func removeNotifications() {
@@ -85,23 +97,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("Failed to register: \(error)")
     }
-
-    func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
-    }
-
-    func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    }
-
-    func applicationWillEnterForeground(_ application: UIApplication) {
-        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
-    }
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    
+    @objc func checkSettings() {
         do {
             let username_token = try keychain.get("user_curbmap")
             if (username_token != nil) {
@@ -132,6 +129,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             let push = try! keychain.get("settings_push")
             if (push != nil) {
                 self.user.settings.updateValue(push!, forKey: "push")
+                if (push == "n") {
+                    self.localNotificationsAllowed = false
+                    self.remoteNotificationsAllowed = false
+                }
             }
             
             let units = try! keychain.get("settings_units")
@@ -148,8 +149,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             print("cannot get username")
         }
     }
-    @objc func changePushStatus(status: String) {
+
+    func applicationWillResignActive(_ application: UIApplication) {
+        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
+        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+    }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
+        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         
+    }
+    @objc func changePushStatus(status: String) {
+        // we can only give them what they've authorized
+        registerForPushNotifications()
+        registerForLocalNotifications()
     }
     @objc func finishedLogin() {
         print("finished login")

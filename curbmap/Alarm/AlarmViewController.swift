@@ -100,6 +100,11 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
                         self.checkTimeLeft()
                     }
                 })
+            } else {
+                // just launch the timer in the current window and if you leave... oh well
+                let alert = UIAlertController(title: "Timer settings", message: "Without notifications allowed, timer will not work.", preferredStyle: .actionSheet)
+                alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
             }
         }
     }
@@ -142,7 +147,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         // Do any additional setup after loading the view.
     }
     override func viewWillAppear(_ animated: Bool) {
-        self.checkTimeLeft()
+            self.checkTimeLeft()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -151,7 +156,9 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     }
     
     @objc func checkTimeLeft() {
-        appDelegate.center.getPendingNotificationRequests(completionHandler: appDelegate.notificationDelegate.gotPendingNotification)
+        if (appDelegate.localNotificationsAllowed) {
+            appDelegate.center.getPendingNotificationRequests(completionHandler: appDelegate.notificationDelegate.gotPendingNotification)
+        }
     }
     
     @objc func setRemainingTime(_ timeRemaining: Int) {

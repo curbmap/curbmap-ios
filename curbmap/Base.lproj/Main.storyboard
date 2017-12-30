@@ -140,15 +140,15 @@
             <objects>
                 <tableViewController storyboardIdentifier="Menu" title="Menu" useStoryboardIdentifierAsRestorationIdentifier="YES" id="jSz-oj-7xN" customClass="MenuTableViewController" customModule="curbmap" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="Goj-Cq-5xg">
-                        <rect key="frame" x="0.0" y="0.0" width="240" height="427"/>
+                        <rect key="frame" x="0.0" y="0.0" width="209" height="427"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="AMS-rL-0q0">
-                                <rect key="frame" x="0.0" y="28" width="240" height="44"/>
+                                <rect key="frame" x="0.0" y="28" width="209" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="AMS-rL-0q0" id="n70-lr-uhT">
-                                    <rect key="frame" x="0.0" y="0.0" width="240" height="43.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="209" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
                                 <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -523,9 +523,8 @@
                                     <action selector="logoutPressed:" destination="OUO-iY-FSx" eventType="touchUpInside" id="Xle-PA-Mma"/>
                                 </connections>
                             </button>
-                            <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="whZ-0Y-m2S">
+                            <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="whZ-0Y-m2S">
                                 <rect key="frame" x="16" y="76" width="209" height="427"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
                                     <segue destination="jSz-oj-7xN" kind="embed" identifier="ShowMenuFromSettings" id="7z7-uG-Pve"/>
                                 </connections>
@@ -535,14 +534,17 @@
                         <constraints>
                             <constraint firstItem="EWx-Iw-UxI" firstAttribute="leading" secondItem="BxM-sR-UU8" secondAttribute="leading" id="1Yk-Ax-ARc"/>
                             <constraint firstItem="EWx-Iw-UxI" firstAttribute="top" secondItem="sJa-P3-0U3" secondAttribute="bottom" constant="18" id="2GY-27-AnA"/>
+                            <constraint firstItem="AZI-wZ-bjf" firstAttribute="bottom" secondItem="whZ-0Y-m2S" secondAttribute="bottom" constant="164" id="31Q-Vr-nx3"/>
                             <constraint firstItem="cHg-qV-JJP" firstAttribute="trailing" secondItem="R7y-YG-eld" secondAttribute="trailingMargin" id="3Ma-CN-I8m"/>
                             <constraint firstItem="lQZ-SO-yPp" firstAttribute="leading" secondItem="sJa-P3-0U3" secondAttribute="trailing" constant="10" id="6oJ-fg-ZzF"/>
                             <constraint firstItem="hxf-IX-WkP" firstAttribute="top" secondItem="AZI-wZ-bjf" secondAttribute="top" id="7ek-G5-CWL"/>
                             <constraint firstItem="3KO-aV-RuB" firstAttribute="top" secondItem="cHg-qV-JJP" secondAttribute="bottom" constant="94" id="8IU-Re-s5c"/>
+                            <constraint firstItem="whZ-0Y-m2S" firstAttribute="leading" secondItem="hxf-IX-WkP" secondAttribute="leading" id="8St-bG-djc"/>
                             <constraint firstItem="xhE-yL-vQR" firstAttribute="leading" secondItem="AZI-wZ-bjf" secondAttribute="leading" constant="28" id="DSD-UG-HjV"/>
                             <constraint firstItem="lQZ-SO-yPp" firstAttribute="leading" secondItem="sZX-xG-Y31" secondAttribute="leading" id="EtR-eW-Y4s"/>
                             <constraint firstItem="EWx-Iw-UxI" firstAttribute="trailing" secondItem="BxM-sR-UU8" secondAttribute="trailing" id="F2e-ih-UwE"/>
                             <constraint firstItem="EWx-Iw-UxI" firstAttribute="centerY" secondItem="sZX-xG-Y31" secondAttribute="centerY" id="FKA-wy-Ls1"/>
+                            <constraint firstItem="AZI-wZ-bjf" firstAttribute="trailing" secondItem="whZ-0Y-m2S" secondAttribute="trailing" constant="150" id="IeX-y1-ePL"/>
                             <constraint firstItem="3KO-aV-RuB" firstAttribute="leading" secondItem="xhE-yL-vQR" secondAttribute="trailing" constant="8" symbolic="YES" id="LHC-ee-UFd"/>
                             <constraint firstItem="sZX-xG-Y31" firstAttribute="leading" secondItem="oRd-3d-yb2" secondAttribute="leading" id="LRJ-5W-VO1"/>
                             <constraint firstItem="dhH-pC-aoK" firstAttribute="centerY" secondItem="6pt-KU-cB9" secondAttribute="centerY" id="MMi-cE-aPY"/>
@@ -554,6 +556,7 @@
                             <constraint firstItem="hxf-IX-WkP" firstAttribute="top" secondItem="cHg-qV-JJP" secondAttribute="top" id="RzJ-Oe-mev"/>
                             <constraint firstItem="hxf-IX-WkP" firstAttribute="leading" secondItem="R7y-YG-eld" secondAttribute="leadingMargin" id="SN3-Rr-w0r"/>
                             <constraint firstItem="xhE-yL-vQR" firstAttribute="leading" secondItem="dhH-pC-aoK" secondAttribute="leading" id="Y2X-0e-g4O"/>
+                            <constraint firstItem="whZ-0Y-m2S" firstAttribute="top" secondItem="cHg-qV-JJP" secondAttribute="bottom" id="YFS-SH-7Ad"/>
                             <constraint firstItem="cHg-qV-JJP" firstAttribute="trailing" secondItem="3KO-aV-RuB" secondAttribute="trailing" id="ZdR-uL-kTL"/>
                             <constraint firstItem="dhH-pC-aoK" firstAttribute="trailing" secondItem="sJa-P3-0U3" secondAttribute="trailing" id="aNT-3h-pE5"/>
                             <constraint firstItem="BxM-sR-UU8" firstAttribute="leading" secondItem="r95-yd-xbO" secondAttribute="leading" id="cT8-Es-rue"/>
@@ -616,6 +619,6 @@
         <image name="menu" width="64" height="64"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="ugo-za-D9f"/>
+        <segue reference="7z7-uG-Pve"/>
     </inferredMetricsTieBreakers>
 </document>

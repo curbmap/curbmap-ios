@@ -76,15 +76,32 @@ class SettingsViewController: UIViewController {
         if (!self.pushOutlet.isOn) {
             self.pushLabel.text = "Don't send me notifications"
             self.appDelegate.user.settings.updateValue("n", forKey: "push")
+            self.appDelegate.localNotificationsAllowed = false
+            self.appDelegate.remoteNotificationsAllowed = false
             try! appDelegate.keychain.set("n", key:"settings_push")
         } else {
             self.pushLabel.text = "Send me notifications"
             self.appDelegate.user.settings.updateValue("y", forKey: "push")
             try! appDelegate.keychain.set("y", key:"settings_push")
+            appDelegate.changePushStatus(status: appDelegate.user.settings["push"]!)
         }
-        appDelegate.changePushStatus(status: appDelegate.user.settings["push"]!)
     }
-    
+    @objc func checkStatus() {
+        if (self.appDelegate.user.settings["push"] == "y" && self.appDelegate.registeredForLocal == false) {
+            let alert = UIAlertController(title: "Push notifications", message: "We noticed you would like push notifications. For this you must open Settings > Notifcations > Curbmap > Allow Notifications.", preferredStyle: .actionSheet)
+            alert.addAction(UIAlertAction(title: "Thanks", style: .default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+            DispatchQueue.main.async {
+                self.appDelegate.user.settings.updateValue("n", forKey: "push")
+                try! self.appDelegate.keychain.set("n", key:"settings_push")
+                self.pushLabel.text = "Change settings to enable push"
+                self.pushOutlet.setOn(false, animated: true)
+            }
+        } else if (self.appDelegate.user.settings["push"] == "y") {
+            self.pushOutlet.setOn(true, animated: true)
+            // do nothing
+        }
+    }
     @IBOutlet weak var followLabel: UILabel!
     @IBOutlet weak var followOutlet: UISwitch!
     @IBAction func followSwitch(_ sender: Any) {
@@ -111,19 +128,51 @@ class SettingsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("XXX: \(self.appDelegate.user.settings["mapstyle"] ?? "x")")
-        self.mapsstyleOutlet.isOn = self.appDelegate.user.settings["mapstyle"] == "l"
-        self.mapstyleLabel.text =  self.appDelegate.user.settings["mapstyle"] == "l" ? "Light is my friend" : "Dark is best"
-        self.unitsOutlet.isOn = self.appDelegate.user.settings["units"] == "mi"
-        self.followOutlet.isOn = self.appDelegate.user.settings["follow"] == "y"
-        self.pushOutlet.isOn = self.appDelegate.user.settings["push"] == "y"
-        self.offlineOutlet.isOn = self.appDelegate.user.settings["offline"] == "n"
-        // Do any additional setup after loading the view.
+        self.appDelegate.settingsController = self
+        if (self.appDelegate.user.settings["mapstyle"] == "l") {
+            self.mapsstyleOutlet.setOn(true, animated: false)
+            self.mapstyleLabel.text = "Light is awesome"
+        } else {
+            self.mapsstyleOutlet.setOn(false, animated: false)
+            self.mapstyleLabel.text = "Dark is best"
+        }
+        if(self.appDelegate.user.settings["units"] == "mi") {
+            self.unitsOutlet.setOn(true, animated: false)
+            self.unitsLabel.text = "Miles (US)"
+        } else {
+            self.unitsOutlet.setOn(false, animated: false)
+            self.unitsLabel.text = "Meters (Everywhere else)"
+        }
+        if (self.appDelegate.user.settings["follow"] == "y") {
+            self.followOutlet.setOn(true, animated: false)
+            self.followLabel.text = "Follow my location on the map"
+        } else {
+            self.followOutlet.setOn(false, animated: false)
+            self.followLabel.text = "Don't follow my location"
+        }
+        if (self.appDelegate.user.settings["push"] == "y") {
+            self.pushOutlet.setOn(true, animated: false)
+            self.pushLabel.text = "Send push notifications"
+        } else {
+            self.pushOutlet.setOn(false, animated: false)
+            self.pushLabel.text = "Don't send notifications"
+        }
+        if (self.appDelegate.user.settings["offline"] == "n") {
+            self.offlineOutlet.setOn(true, animated: false)
+            self.offlineLabel.text = "I need the latest maps"
+        } else {
+            self.offlineOutlet.setOn(false, animated: false)
+            self.offlineLabel.text = "I only want to use wifi"
+        }
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.appDelegate.settingsController = nil
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

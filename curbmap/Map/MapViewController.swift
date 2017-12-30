@@ -390,7 +390,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         if newHeading.headingAccuracy < 0 { return }
         self.userHeading = newHeading.trueHeading > 0 ? newHeading.trueHeading : newHeading.magneticHeading
-        self.appDelegate.user.set_location(location: manager.location!)
+        if (manager.location != nil) {
+            self.appDelegate.user.set_location(location: manager.location!)
+        }
     }
     @objc func movePhotoMarker(_ photoMoved: UITapGestureRecognizer) {
         // point teleportation!
