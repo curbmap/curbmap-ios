@@ -63,7 +63,9 @@ class AlarmUserNotification: NSObject, UNUserNotificationCenterDelegate {
                             // set up a new timer and start updating it
                             let dateComponents = calendar.dateComponents(Set<Calendar.Component>([ .second]), from: currentDate, to: date)
                             self.timerValue = Int((dateComponents.second)!)
-                            self.timerController.startTimer()
+                            DispatchQueue.main.async {
+                                self.timerController.startTimer()
+                            }
                         }
                     }
                 }

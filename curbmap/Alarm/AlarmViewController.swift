@@ -53,7 +53,6 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     @IBOutlet weak var picker: UIPickerView!
     @IBOutlet weak var startButton: UIButton!
     @IBAction func startPressed(_ sender: Any) {
-        print("start pressed \(appDelegate.notificationDelegate.timerIsRunning.value)")
         if (appDelegate.notificationDelegate.timerIsRunning.value) {
             // stop the timer
             appDelegate.notificationDelegate.timerIsRunning.value = false
@@ -62,9 +61,10 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             appDelegate.notificationDelegate.timerValue = 0
             appDelegate.removeNotifications()
             self.picker.isHidden = false
+            self.timerLabel.isHidden = true
             self.startButton.setTitle("Start timer", for: .normal)
         } else {
-            appDelegate.notificationDelegate.timerIsRunning.value = true
+            self.timerLabel.text = "Timer starting"
             // start the timer
             var hours = picker.selectedRow(inComponent: 0)
             if (hours >= 2 ) {
@@ -115,6 +115,9 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         self.timer.subscribe(onNext: { (sec) in
             self.tick()
         }).disposed(by: disposeBag)
+        self.appDelegate.notificationDelegate.timerAllotted?.asObservable().subscribe(onNext: { (newValue) in
+            self.setRemainingTime(newValue)
+        })
     }
     
     @objc func tick() {
@@ -124,6 +127,8 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         if (self.appDelegate.notificationDelegate.timerValue <= 0) {
             //sound the alarm
             self.disposeBag = DisposeBag()
+            self.appDelegate.notificationDelegate.timerIsRunning.value = false
+            self.timerLabel.text = "Timer finished :-("
         }
     }
 
@@ -138,6 +143,11 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     }
     override func viewWillAppear(_ animated: Bool) {
         self.checkTimeLeft()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.disposeBag = DisposeBag()
+        self.appDelegate.notificationDelegate.timerIsRunning.value = false
     }
     
     @objc func checkTimeLeft() {
