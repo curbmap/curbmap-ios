@@ -1,4 +1,9 @@
 # curbmap iOS application
+Changes: 12-28-17 -> 12-29-17
+1. After you take a photo, position it's marker exactly where you took it!
+2. Buttons are still getting screwed up by constraints
+3. Timers are now going to use UserNotifications (i.e. local notifications and can play sounds and vibrate your phone... though mine never seems to vibrate and only plays sounds if it's not muted... unlike a real alarm)
+4. Some things are now being written using RxSwift... which I like, but Rx anything can be annoying to get right.
 
 Changes: initial->12-28-17
 1. Currently the map is user configurable with two options from MapBox maps (derivative of Open Street Maps and MapBox). 
