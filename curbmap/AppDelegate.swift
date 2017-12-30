@@ -16,44 +16,36 @@ import AVFoundation
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     let user: User = User(username: "curbmaptest", password: "TestCurbm@p1")
     let keychain = Keychain(service: "com.curbmap.keys")
-    var timer: Timer!
-    var timerController: AlarmViewController!
-    var timerAlloted: Int64 = 0
-    var timerIsRunning: Bool = false
+    let notificationDelegate = AlarmUserNotification()
     var mapController: MapViewController!
     var token: String!
     var window: UIWindow?
     var windowLocation = 0;
     var error : Error!
-    @objc func tick() {
-        self.timerAlloted -= 1
-        if (timerController != nil) {
-            timerController.setRemainingTime(timerAlloted)
-        }
-        if (self.timerAlloted == 0) {
-            //sound the alarm
-            print("The ALARM")
-        }
-    }
+    let center = UNUserNotificationCenter.current()
+    let options: UNAuthorizationOptions = [.alert, .sound];
+    var localNotificationsAllowed : Bool = false
+    var remoteNotificationsAllowed: Bool = false
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         registerForPushNotifications()
-        do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
-        } catch let error1 as NSError{
-            error = error1
-            print("could not set session. err:\(error!.localizedDescription)")
-        }
-        do {
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch let error1 as NSError{
-            error = error1
-            print("could not active session. err:\(error!.localizedDescription)")
-        }
+        registerForLocalNotifications()
+        center.delegate = notificationDelegate
+        center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
         return true
     }
+    func registerForLocalNotifications() {
+        center.requestAuthorization(options: options) {
+            (granted, error) in
+            if !granted {
+                print("Something went wrong")
+            }
+        }
+        self.getLocalNotificationSettings()
+    }
     func registerForPushNotifications() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+        center.requestAuthorization(options: [.alert, .sound, .badge]) {
             (granted, error) in
             print("Permission granted: \(granted)")
             
@@ -61,11 +53,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             self.getNotificationSettings()
         }
     }
-    
+    func getLocalNotificationSettings() {
+        center.getNotificationSettings { (settings) in
+            guard settings.authorizationStatus == .authorized else { return }
+            self.localNotificationsAllowed = true
+        }
+    }
     func getNotificationSettings() {
-        UNUserNotificationCenter.current().getNotificationSettings { (settings) in
+        center.getNotificationSettings { (settings) in
             print("Notification settings: \(settings)")
             guard settings.authorizationStatus == .authorized else { return }
+            
             UIApplication.shared.registerForRemoteNotifications()
         }
     }
@@ -76,9 +74,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         }
         
         self.token = tokenParts.joined()
-        print("Device Token: \(token)")
+        self.remoteNotificationsAllowed = true
     }
     
+    @objc func removeNotifications() {
+        center.removePendingNotificationRequests(withIdentifiers: ["CurbmapAlarmLocalNotification"])
+    }
+
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("Failed to register: \(error)")

@@ -6,6 +6,9 @@ pod 'KeychainAccess'
 pod "OpenLocationCode" 
 pod 'Mapbox-iOS-SDK', '~> 3.7'
 pod 'SwiftyCam', :git => 'https://github.com/Awalz/SwiftyCam.git', :branch => 'Swift4'
+pod 'RxSwift'
+pod 'RxCocoa'
+
 target 'curbmap' do
   # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
   use_frameworks!

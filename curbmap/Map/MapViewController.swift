@@ -25,6 +25,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     var firstTouchPosition:CGPoint!
     @IBOutlet weak var cancelButton: UIButton!
     @IBAction func cancel(_ sender: Any) {
+        self.mapView.removeAnnotation(photoAnnotation)
         self.cancelled()
     }
     @IBOutlet weak var looksGreatButton: UIButton!

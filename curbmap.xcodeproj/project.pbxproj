@@ -31,6 +31,8 @@
 		D5D419391FC7B04E0052849D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D5D419371FC7B04E0052849D /* LaunchScreen.storyboard */; };
 		D5D419441FC7B04E0052849D /* curbmapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D419431FC7B04E0052849D /* curbmapTests.swift */; };
 		D5D4194F1FC7B04E0052849D /* curbmapUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4194E1FC7B04E0052849D /* curbmapUITests.swift */; };
+		D5DE8F791FF718C800B715B9 /* AlarmUserNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DE8F781FF718C800B715B9 /* AlarmUserNotification.swift */; };
+		D5DE8F7B1FF727D500B715B9 /* railroad.aiff in Resources */ = {isa = PBXBuildFile; fileRef = D5DE8F7A1FF727D500B715B9 /* railroad.aiff */; };
 		D5E1737A1FF21EFD00DF8B68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D5E173781FF21EFD00DF8B68 /* Main.storyboard */; };
 		D5E1737D1FF2287000DF8B68 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E1737C1FF2287000DF8B68 /* SettingsViewController.swift */; };
 		E006261727C49B3638A2A28B /* Pods_curbmapTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF737786B8BB78488E092F27 /* Pods_curbmapTests.framework */; };
@@ -91,6 +93,8 @@
 		D5D4194A1FC7B04E0052849D /* curbmapUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = curbmapUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5D4194E1FC7B04E0052849D /* curbmapUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = curbmapUITests.swift; sourceTree = "<group>"; };
 		D5D419501FC7B04E0052849D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D5DE8F781FF718C800B715B9 /* AlarmUserNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmUserNotification.swift; sourceTree = "<group>"; };
+		D5DE8F7A1FF727D500B715B9 /* railroad.aiff */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; path = railroad.aiff; sourceTree = "<group>"; };
 		D5E173791FF21EFD00DF8B68 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		D5E1737C1FF2287000DF8B68 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EF737786B8BB78488E092F27 /* Pods_curbmapTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmapTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -196,6 +200,7 @@
 			isa = PBXGroup;
 			children = (
 				D5BCACF81FF1CBB300EDB02A /* AlarmViewController.swift */,
+				D5DE8F781FF718C800B715B9 /* AlarmUserNotification.swift */,
 			);
 			path = Alarm;
 			sourceTree = "<group>";
@@ -225,6 +230,7 @@
 		D5D4192D1FC7B04E0052849D /* curbmap */ = {
 			isa = PBXGroup;
 			children = (
+				D5DE8F7A1FF727D500B715B9 /* railroad.aiff */,
 				D50BE3311FF389BD0025CB33 /* Photo */,
 				D5BCACFE1FF2052200EDB02A /* curbmap.entitlements */,
 				D5BCACF71FF1CB9C00EDB02A /* Alarm */,
@@ -416,6 +422,7 @@
 				D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */,
 				D5D419391FC7B04E0052849D /* LaunchScreen.storyboard in Resources */,
 				D5D419361FC7B04E0052849D /* Assets.xcassets in Resources */,
+				D5DE8F7B1FF727D500B715B9 /* railroad.aiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,6 +536,8 @@
 				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework",
 				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM",
 				"${BUILT_PRODUCTS_DIR}/OpenLocationCode/OpenLocationCode.framework",
+				"${BUILT_PRODUCTS_DIR}/RxCocoa/RxCocoa.framework",
+				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyCam/SwiftyCam.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -538,6 +547,8 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Mapbox.framework",
 				"${DWARF_DSYM_FOLDER_PATH}/Mapbox.framework.dSYM",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenLocationCode.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxCocoa.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyCam.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -609,6 +620,7 @@
 				D5D4192F1FC7B04E0052849D /* AppDelegate.swift in Sources */,
 				D5BCACFD1FF1F02400EDB02A /* MenuView.swift in Sources */,
 				D59488051FD736B2008822A7 /* Restriction.swift in Sources */,
+				D5DE8F791FF718C800B715B9 /* AlarmUserNotification.swift in Sources */,
 				D5E1737D1FF2287000DF8B68 /* SettingsViewController.swift in Sources */,
 				D5BCACFA1FF1CBB300EDB02A /* AlarmViewController.swift in Sources */,
 				D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */,
