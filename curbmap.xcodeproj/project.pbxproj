@@ -12,7 +12,6 @@
 		D50BE33A1FF3944D0025CB33 /* PhotoController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50BE3381FF3944D0025CB33 /* PhotoController.swift */; };
 		D50BE33B1FF3944D0025CB33 /* PhotoController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D50BE3391FF3944D0025CB33 /* PhotoController.xib */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
-		D55B6E211FF9ECE6001C9337 /* SignupScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E201FF9ECE6001C9337 /* SignupScrollView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
 		D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FD1FD7368D008822A7 /* CurbmapPolyLine.swift */; };
@@ -71,7 +70,6 @@
 		D50BE3381FF3944D0025CB33 /* PhotoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoController.swift; sourceTree = "<group>"; };
 		D50BE3391FF3944D0025CB33 /* PhotoController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PhotoController.xib; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
-		D55B6E201FF9ECE6001C9337 /* SignupScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupScrollView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		D59487FD1FD7368D008822A7 /* CurbmapPolyLine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurbmapPolyLine.swift; sourceTree = "<group>"; };
@@ -209,7 +207,6 @@
 			isa = PBXGroup;
 			children = (
 				D5A001BE1FF80A71003818C1 /* SignupViewController.swift */,
-				D55B6E201FF9ECE6001C9337 /* SignupScrollView.swift */,
 			);
 			path = Signup;
 			sourceTree = "<group>";
@@ -659,7 +656,6 @@
 				D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */,
 				D50BE33A1FF3944D0025CB33 /* PhotoController.swift in Sources */,
 				D59487FB1FD7350A008822A7 /* User.swift in Sources */,
-				D55B6E211FF9ECE6001C9337 /* SignupScrollView.swift in Sources */,
 				D59488071FD78096008822A7 /* MapViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

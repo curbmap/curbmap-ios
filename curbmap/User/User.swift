@@ -15,6 +15,7 @@ class User {
     let keychain = Keychain(service: "com.curbmap.keys")
     var username: String
     var password: String
+    var email: String
     var loggedIn: Bool = false
     var remember: Bool = false
     var session: String
@@ -35,6 +36,7 @@ class User {
         self.badge = "beginner"
         self.score = 0
         self.session = ""
+        self.email = ""
     }
     func set_location(location: CLLocation) {
         self.currentLocation = location
@@ -75,6 +77,12 @@ class User {
     func get_password() -> String {
         return self.password
     }
+    func set_email(email:String) {
+        self.email = email
+    }
+    func get_email() -> String {
+        return self.email
+    }
     func login(callback: @escaping ()->Void) -> Void {
         let parameters = [
             "username": self.username,
@@ -96,7 +104,25 @@ class User {
             }
         }
     }
-    
+    func signup(callback: @escaping (_ result: Int)->Void) -> Void {
+        let parameters = [
+            "username": self.username,
+            "password": self.password,
+            "email": self.email
+        ]
+        
+        let headers = [
+            "Content-Type": "application/x-www-form-urlencoded"
+        ]
+        
+        var full_dictionary: [String: Any] = ["success": false]
+        Alamofire.request("https://curbmap.com/signup", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
+            guard self != nil else { return }
+            if var json = response.result.value as? [String: Int] {
+                callback(json["success"]!)
+            }
+        }
+    }
     func logout(callback: @escaping ()->Void) -> Void {
         print("logging out")
         let headers = [

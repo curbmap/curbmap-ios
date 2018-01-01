@@ -55,7 +55,7 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var offlineLabel: UILabel!
     @IBOutlet weak var offlineOutlet: UISwitch!
     @IBAction func offlineSwitch(_ sender: Any) {
-        if (!self.offlineOutlet.isOn) {
+        if (self.offlineOutlet.isOn) {
             self.offlineLabel.text = "Save data, get maps on wifi"
             self.appDelegate.user.settings.updateValue("n", forKey: "offline")
             try! appDelegate.keychain.set("n", key:"settings_offline")

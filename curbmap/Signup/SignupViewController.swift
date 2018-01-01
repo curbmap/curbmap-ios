@@ -37,6 +37,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     var ratio = 660.0/620.0 // for logo dimension ratio
     var windowFrame: CGRect!
     var contentInsetOriginal: UIEdgeInsets!
+    var viewSize: CGSize!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -110,25 +111,23 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     }
 
     @objc func setupCentralViews(_ firstTime: Int) {
-        var viewSize: CGSize!
-        viewSize = self.view.frame.size
+        self.viewSize = self.view.frame.size
         
         if ((firstTime != 1 && firstTime != 2) &&
             ((!UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width > viewSize.height) ||
                 (UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width < viewSize.height))) {
             viewSize = CGSize(width: viewSize.height, height: viewSize.width)
         }
-        self.scrollView.contentSize = CGSize(width: viewSize.width, height: viewSize.height * 1.25)
 
         self.menuButton.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.view.snp.leading).priority(1000.0)
-            make.top.equalTo(self.view.snp.top).priority(1000.0)
+            make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
+            make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
             make.width.equalTo(64).priority(1000.0)
             make.height.equalTo(64).priority(1000.0)
         }
         // They should call it wasPortrait
         self.containerView.snp.remakeConstraints({(make) in
-            make.leading.equalTo(self.menuButton.snp.leading).priority(1000.0)
+            make.leading.equalTo(self.menuButton.snp.leadingMargin).priority(1000.0)
             make.top.equalTo(self.menuButton.snp.bottom).priority(1000.0)
             make.bottom.equalTo(self.view.snp.bottomMargin)
             if (viewSize.width < viewSize.height) {
@@ -139,7 +138,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         })
         self.logo.snp.remakeConstraints { (make) in
             make.leading.equalTo(self.menuButton.snp.trailing).priority(1000.0)
-            make.top.equalTo(self.view.snp.top)
+            make.top.equalTo(self.view.snp.topMargin)
             make.width.equalTo(self.logo.snp.height).multipliedBy(ratio).priority(1000.0)
             if (viewSize.width > viewSize.height) {
                 make.height.equalTo(0).priority(1000.0)
@@ -149,35 +148,34 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         }
         self.scrollView.snp.remakeConstraints { (make) in
             if (viewSize.width > viewSize.height) {
-                make.leading.equalTo(self.view.snp.leading).priority(1000.0)
-                make.trailing.equalTo(self.view.snp.trailing).priority(1000.0)
+                make.leading.equalTo(self.view.snp.leading).offset(5).priority(1000.0)
+                make.trailing.equalTo(self.view.snp.trailing).inset(5).priority(1000.0)
                 make.top.equalTo(self.menuButton.snp.bottom).priority(1000.0)
-                make.bottom.equalTo(self.view.snp.bottom).priority(1000.0)
+                make.bottom.equalTo(self.view.snp.bottomMargin).priority(1000.0)
             } else {
-                make.leading.equalTo(self.view.snp.leading).priority(1000.0)
-                make.trailing.equalTo(self.view.snp.trailing).priority(1000.0)
+                make.leading.equalTo(self.view.snp.leading).offset(5).priority(1000.0)
+                make.trailing.equalTo(self.view.snp.trailing).inset(5).priority(1000.0)
                 make.top.equalTo(self.logo.snp.bottom).priority(1000.0)
-                make.bottom.equalTo(self.view.snp.bottom).priority(1000.0)
+                make.bottom.equalTo(self.view.snp.bottomMargin).priority(1000.0)
             }
         }
         self.usernameLabel.snp.remakeConstraints { (make) in
             make.top.equalTo(self.scrollView.snp.topMargin).offset(40).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).inset(20).priority(1000.0)
             make.height.equalTo(21).priority(1000.0)
         }
         self.username.snp.remakeConstraints({(make) in
             make.top.equalTo(self.usernameLabel.snp.bottom).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(50).priority(1000.0)
         })
         self.usernameError.snp.remakeConstraints({ (make) in
             make.top.equalTo(self.username.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             if (self.usernameError.text! != "UsernameError") {
                 make.height.equalTo(70).priority(1000.0)
             } else {
@@ -186,23 +184,20 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         })
         self.passwordLabel.snp.remakeConstraints { (make) in
             make.top.equalTo(self.usernameError.snp.bottom).offset(10).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(21).priority(1000.0)
         }
         self.password.snp.remakeConstraints({(make) in
             make.top.equalTo(self.passwordLabel.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(50).priority(1000.0)
         })
         self.passwordError.snp.remakeConstraints({(make) in
             make.top.equalTo(self.password.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             if (self.passwordError.text! != "PasswordError") {
                 make.height.equalTo(70).priority(1000.0)
             } else {
@@ -211,23 +206,20 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         })
         self.retypeLabel.snp.remakeConstraints { (make) in
             make.top.equalTo(self.passwordError.snp.bottom).offset(10).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(21).priority(1000.0)
         }
         self.retype.snp.remakeConstraints({(make) in
             make.top.equalTo(self.retypeLabel.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(50).priority(1000.0)
         })
         self.retypeError.snp.remakeConstraints({(make) in
             make.top.equalTo(self.retype.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             if (self.retypeError.text! != "RetypeError") {
                 make.height.equalTo(70).priority(1000.0)
             } else {
@@ -236,23 +228,20 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         })
         self.emailLabel.snp.remakeConstraints { (make) in
             make.top.equalTo(self.retypeError.snp.bottom).offset(10).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(21).priority(1000.0)
         }
         self.email.snp.remakeConstraints({(make) in
             make.top.equalTo(self.emailLabel.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(45).priority(1000.0)
         })
         self.emailError.snp.remakeConstraints({(make) in
             make.top.equalTo(self.email.snp.bottomMargin).offset(6).priority(1000.0)
-            make.leading.equalTo(self.scrollView.snp.leadingMargin).priority(1000.0)
-            make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
-            make.width.equalTo(viewSize.width-20).priority(1000.0)
+            make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             if (self.emailError.text! != "EmailError") {
                 make.height.equalTo(70).priority(1000.0)
             } else {
@@ -265,9 +254,9 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
             make.width.equalTo(100).priority(1000.0)
             make.height.equalTo(50).priority(1000.0)
         }
-        self.view.layoutSubviews()
+        //self.view.layoutSubviews()
         self.view.layoutIfNeeded()
-        self.scrollView.layoutSubviews()
+        //self.scrollView.layoutSubviews()
         self.scrollView.layoutIfNeeded()
     }
 
@@ -279,7 +268,11 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     }
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
-        self.scrollView.contentSize = CGSize(width: self.view.frame.width, height: self.view.frame.height*2)
+        if (viewSize != nil) {
+            print("here")
+            self.scrollView.contentSize = CGSize(width: viewSize.width, height: 1000)
+            self.scrollView.isScrollEnabled = true
+        }
     }
     
     @objc func keyboardWillShow(notification:NSNotification){
@@ -387,10 +380,14 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
             alertIncorrectEmail()
             return
         }
-
         
         appDelegate.user.set_username(username: username.text!)
         appDelegate.user.set_password(password: password.text!)
+        appDelegate.user.set_email(email: email.text!)
+        self.appDelegate.user.signup(callback: completeSignup)
+    }
+    @objc func completeSignup(_ result: Int) -> Void {
+        print(result)
     }
     
     @objc func checkPassword(_ pass: String, _ exp: String) -> Bool {

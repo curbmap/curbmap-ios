@@ -16,7 +16,6 @@ class MenuTableViewController: UITableViewController {
         self.tableView.backgroundColor = UIColor.clear
         self.tableView.separatorStyle = .none
         self.tableView.backgroundView?.backgroundColor = UIColor.clear
-        print("here XXXYYZZZ")
         self.tableView.register(UINib(nibName: "UserCell", bundle: nil), forCellReuseIdentifier: "UserCell")
         self.tableView.register(UINib(nibName: "GeneralMenuCell", bundle: nil), forCellReuseIdentifier: "GeneralMenuCell")
         
@@ -46,7 +45,6 @@ class MenuTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("did select row YYYXXX")
         if (appDelegate.user.isLoggedIn()) {
             if (indexPath.row == appDelegate.windowLocation && indexPath.row == 0) {
                 
@@ -94,7 +92,29 @@ class MenuTableViewController: UITableViewController {
             }
         }
         else {
-            if (indexPath.row == 0 && appDelegate.windowLocation != 0) {
+            if (indexPath.row == appDelegate.windowLocation && indexPath.row == 0) {
+                let vc = navigationController?.topViewController as! MapViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+            } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 1) {
+                let vc = navigationController?.topViewController as! AlarmViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+            } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 2) {
+                let vc = navigationController?.topViewController as! LoginViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+            } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 3) {
+                let vc = navigationController?.topViewController as! SignupViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+            } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 4) {
+                
+            } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 5) {
+                let vc = navigationController?.topViewController as! SettingsViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+            } else if (indexPath.row == 0 && appDelegate.windowLocation != 0) {
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
                 }

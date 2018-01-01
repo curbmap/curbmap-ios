@@ -234,6 +234,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupMap()
+        self.appDelegate.checkSettings()
         self.locationManager = CLLocationManager()
         self.locationManager.delegate = self
         self.locationManager.requestWhenInUseAuthorization()

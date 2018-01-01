@@ -36,7 +36,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForPushNotifications()
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
-        checkSettings()
         return true
     }
     func registerForLocalNotifications() {
@@ -143,7 +142,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             let offline = try! keychain.get("settings_offline")
             if (offline != nil) {
                 self.user.settings.updateValue(offline!, forKey: "offline")
-                self.mapController.changeOffline(offline: offline!)
+                if (mapController != nil){
+                    self.mapController.changeOffline(offline: offline!)
+                }
             }
         } catch _ {
             print("cannot get username")
