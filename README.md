@@ -1,4 +1,11 @@
 # curbmap iOS application
+Changes 12-29-17 -> 1-1-18
+1. Login and Signup are working
+2. Signup still needs to learn how to tell you that you're not doing something right
+3. Timer now works with User Notifications and everthing works there. Even if you close the app and reopen it... or leave it closed.
+4. Settings are now correct, sort of, I still have to figure out how offline settings will work.
+5. We now use some reactive monitoring for the User Notfications care of RxSwift and RxCocoa.
+
 Changes: 12-28-17 -> 12-29-17
 1. After you take a photo, position it's marker exactly where you took it!
 2. Buttons are still getting screwed up by constraints

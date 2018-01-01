@@ -386,8 +386,52 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         appDelegate.user.set_email(email: email.text!)
         self.appDelegate.user.signup(callback: completeSignup)
     }
+    @objc func empty() {
+        self.usernameError.numberOfLines = 3
+        self.usernameError.lineBreakMode = .byWordWrapping
+        self.usernameError.text = "You must enter something for all fields to create an account."
+        self.usernameError.isHidden = false
+        self.setupCentralViews(1)
+    }
+    @objc func usernameTaken() {
+        self.usernameError.numberOfLines = 3
+        self.usernameError.lineBreakMode = .byWordWrapping
+        self.usernameError.text = "Sorry, that username was already taken. Choose another."
+        self.usernameError.isHidden = false
+        self.setupCentralViews(1)
+    }
+    @objc func emailTaken() {
+        self.emailError.text = "Sorry, that email is already being used. Use another or check your email for an account you might have created before."
+        self.emailError.numberOfLines = 3
+        self.emailError.lineBreakMode = .byWordWrapping
+        self.emailError.isHidden = false
+        self.setupCentralViews(1)
+    }
+    @objc func somethingHappened() {
+        self.emailError.numberOfLines = 3
+        self.emailError.lineBreakMode = .byWordWrapping
+        self.emailError.text = "Something went wrong, and we weren't able to create the account. :-("
+        self.emailError.isHidden = false
+        self.setupCentralViews(1)
+    }
+    
     @objc func completeSignup(_ result: Int) -> Void {
         print(result)
+        if (result == 1) {
+            // everything works somehow direct to login somehow
+        } else if (result == 0) {
+            empty()
+        } else if (result == -1) {
+            usernameTaken()
+        } else if (result == -2) {
+            emailTaken()
+        } else if (result == -3) {
+            alertPasswordMustContain()
+        } else if (result == -4) {
+            alertIncorrectEmail()
+        } else {
+            somethingHappened()
+        }
     }
     
     @objc func checkPassword(_ pass: String, _ exp: String) -> Bool {

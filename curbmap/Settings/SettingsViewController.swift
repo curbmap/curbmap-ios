@@ -158,10 +158,10 @@ class SettingsViewController: UIViewController {
             self.pushLabel.text = "Don't send notifications"
         }
         if (self.appDelegate.user.settings["offline"] == "n") {
-            self.offlineOutlet.setOn(true, animated: false)
+            self.offlineOutlet.setOn(false, animated: false)
             self.offlineLabel.text = "I need the latest maps"
         } else {
-            self.offlineOutlet.setOn(false, animated: false)
+            self.offlineOutlet.setOn(true, animated: false)
             self.offlineLabel.text = "I only want to use wifi"
         }
     }
