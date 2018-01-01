@@ -13,10 +13,10 @@ class MenuTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.tableView = UITableView()
         self.tableView.backgroundColor = UIColor.clear
         self.tableView.separatorStyle = .none
         self.tableView.backgroundView?.backgroundColor = UIColor.clear
+        print("here XXXYYZZZ")
         self.tableView.register(UINib(nibName: "UserCell", bundle: nil), forCellReuseIdentifier: "UserCell")
         self.tableView.register(UINib(nibName: "GeneralMenuCell", bundle: nil), forCellReuseIdentifier: "GeneralMenuCell")
         
@@ -44,7 +44,9 @@ class MenuTableViewController: UITableViewController {
             return 6
         }
     }
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("did select row YYYXXX")
         if (appDelegate.user.isLoggedIn()) {
             if (indexPath.row == appDelegate.windowLocation && indexPath.row == 0) {
                 
@@ -111,6 +113,7 @@ class MenuTableViewController: UITableViewController {
                 appDelegate.windowLocation = 1
                 navigationController?.pushViewController(alarmViewController, animated: true)
             } else if (indexPath.row == 2 && appDelegate.windowLocation != 2) {
+                print("trying to switch to login XXXXYYY")
                 let loginViewController = self.storyboard?.instantiateViewController(withIdentifier: "Login") as! LoginViewController
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
@@ -121,7 +124,15 @@ class MenuTableViewController: UITableViewController {
                 appDelegate.windowLocation = 2
                 navigationController?.pushViewController(loginViewController, animated: true)
             } else if (indexPath.row == 3 && appDelegate.windowLocation != 3) {
-                // signup
+                let signupViewController = self.storyboard?.instantiateViewController(withIdentifier: "Signup") as! SignupViewController
+                if (appDelegate.windowLocation != 0) {
+                    navigationController?.popViewController(animated: true)
+                }
+                let vc = navigationController?.topViewController as! MapViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+                appDelegate.windowLocation = 3
+                navigationController?.pushViewController(signupViewController, animated: true)
             } else if (indexPath.row == 4 && appDelegate.windowLocation != 4) {
                 // about
             } else {

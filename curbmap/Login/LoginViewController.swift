@@ -8,11 +8,17 @@
 
 import UIKit
 import KeychainAccess
+import SnapKit
 
 class LoginViewController: UIViewController, UITextFieldDelegate {
+    @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var scrollView: UIScrollView!
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     @IBOutlet weak var containerView: UIView!
+    @IBOutlet weak var usernameLabel: UILabel!
+    @IBOutlet weak var searchBar: UISearchBar!
+    
+    var isPortrait: Bool = true
     @IBAction func loginButton(_ sender: Any) {
         appDelegate.user.set_username(username: username.text!)
         appDelegate.user.set_password(password: password.text!)
@@ -33,6 +39,10 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.scrollView.isExclusiveTouch = false
+        self.scrollView.translatesAutoresizingMaskIntoConstraints = false
+        self.scrollView.backgroundColor = UIColor.black
+
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name:NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name:NSNotification.Name.UIKeyboardWillHide, object: nil)
         remember.isOn = false
@@ -48,7 +58,24 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.username.delegate = self
         self.password.delegate = self
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        self.view.addGestureRecognizer(tap)
+        self.scrollView.addGestureRecognizer(tap)
+        if (self.isPortrait) {
+            let ratio = 660.0/620.0
+            self.view.insertSubview(self.logo, at: 0)
+            self.logo.snp.remakeConstraints({(make) in
+                make.centerX.equalTo(self.username.snp.centerX).priority(1000)
+                make.bottom.equalTo(self.usernameLabel.snp.top).offset(-30).priority(1000)
+                make.top.equalTo(self.view.snp.topMargin).offset(8).priority(1000)
+                make.width.equalTo(self.logo.snp.height).multipliedBy(ratio).priority(1000)
+                make.height.lessThanOrEqualTo(self.view.snp.height).multipliedBy(1.0/5.0).priority(1000.0)
+            })
+            self.username.snp.remakeConstraints({ (make) in
+                make.leading.equalToSuperview()
+                make.trailing.equalToSuperview()
+                make.height.equalTo(50).priority(1000.0)
+                make.top.equalTo(self.usernameLabel.snp.bottom).priority(1000.0)
+            })
+        }
         // Do any additional setup after loading the view.
     }
     @objc func dismissKeyboard() {
@@ -57,7 +84,35 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.containerView.isHidden = true
         menuOpen = false
     }
-    
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        coordinator.animate(alongsideTransition: { (_) in
+            let orient = UIApplication.shared.statusBarOrientation
+            self.isPortrait = orient.isPortrait
+        }, completion: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            if (self.isPortrait) {
+                let ratio = 660.0/620.0
+                self.view.insertSubview(self.logo, at: 0)
+                self.logo.snp.remakeConstraints({(make) in
+                    make.centerX.equalTo(self.username.snp.centerX).priority(1000)
+                    make.bottom.equalTo(self.usernameLabel.snp.top).offset(-30).priority(1000)
+                    make.top.equalTo(self.searchBar.snp.bottom).offset(8).priority(1000)
+                    make.width.equalTo(self.logo.snp.height).multipliedBy(ratio).priority(1000)
+                    make.height.lessThanOrEqualTo(self.view.snp.height).multipliedBy(1.0/5.0).priority(1000.0)
+                })
+                self.username.snp.remakeConstraints({ (make) in
+                    make.leading.equalToSuperview()
+                    make.trailing.equalToSuperview()
+                    make.height.equalTo(50).priority(1000.0)
+                    make.top.equalTo(self.usernameLabel.snp.bottom).priority(1000.0)
+                })
+            } else {
+                self.logo.removeFromSuperview()
+                print(self.logo)
+                self.view.layoutIfNeeded()
+            }
+        })
+    }
+
     @objc func keyboardWillShow(notification:NSNotification){
         //give room at the bottom of the scroll view, so it doesn't cover up anything the user needs to tap
         var userInfo = notification.userInfo!
@@ -106,6 +161,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             self.menuTableViewController = vc
         }
     }
+    
 
     
 }

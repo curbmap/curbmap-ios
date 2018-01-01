@@ -11,6 +11,9 @@
 		BB8F8EC9EFB0138662F4B561 /* Pods_curbmapUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */; };
 		D50BE33A1FF3944D0025CB33 /* PhotoController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50BE3381FF3944D0025CB33 /* PhotoController.swift */; };
 		D50BE33B1FF3944D0025CB33 /* PhotoController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D50BE3391FF3944D0025CB33 /* PhotoController.xib */; };
+		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
+		D55B6E211FF9ECE6001C9337 /* SignupScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E201FF9ECE6001C9337 /* SignupScrollView.swift */; };
+		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
 		D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FD1FD7368D008822A7 /* CurbmapPolyLine.swift */; };
 		D59488011FD7368D008822A7 /* MapMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FE1FD7368D008822A7 /* MapMarker.swift */; };
@@ -20,6 +23,7 @@
 		D59488121FD7C745008822A7 /* UserCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D59488101FD7C745008822A7 /* UserCell.xib */; };
 		D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */; };
 		D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */; };
+		D5A001BF1FF80A71003818C1 /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A001BE1FF80A71003818C1 /* SignupViewController.swift */; };
 		D5BCACF11FF1A12900EDB02A /* MenuTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACF01FF1A12900EDB02A /* MenuTableViewController.swift */; };
 		D5BCACF61FF1BCF700EDB02A /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACF51FF1BCF700EDB02A /* LoginViewController.swift */; };
 		D5BCACFA1FF1CBB300EDB02A /* AlarmViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACF81FF1CBB300EDB02A /* AlarmViewController.swift */; };
@@ -66,6 +70,9 @@
 		C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmapUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D50BE3381FF3944D0025CB33 /* PhotoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoController.swift; sourceTree = "<group>"; };
 		D50BE3391FF3944D0025CB33 /* PhotoController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PhotoController.xib; sourceTree = "<group>"; };
+		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
+		D55B6E201FF9ECE6001C9337 /* SignupScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupScrollView.swift; sourceTree = "<group>"; };
+		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		D59487FD1FD7368D008822A7 /* CurbmapPolyLine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurbmapPolyLine.swift; sourceTree = "<group>"; };
 		D59487FE1FD7368D008822A7 /* MapMarker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapMarker.swift; sourceTree = "<group>"; };
@@ -75,6 +82,7 @@
 		D59488101FD7C745008822A7 /* UserCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UserCell.xib; sourceTree = "<group>"; };
 		D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralMenuCell.swift; sourceTree = "<group>"; };
 		D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GeneralMenuCell.xib; sourceTree = "<group>"; };
+		D5A001BE1FF80A71003818C1 /* SignupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
 		D5BCACF01FF1A12900EDB02A /* MenuTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableViewController.swift; sourceTree = "<group>"; };
 		D5BCACF51FF1BCF700EDB02A /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		D5BCACF81FF1CBB300EDB02A /* AlarmViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmViewController.swift; sourceTree = "<group>"; };
@@ -149,6 +157,14 @@
 			path = Photo;
 			sourceTree = "<group>";
 		};
+		D55B6E221FFA06A7001C9337 /* General */ = {
+			isa = PBXGroup;
+			children = (
+				D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */,
+			);
+			path = General;
+			sourceTree = "<group>";
+		};
 		D59487F91FD734EB008822A7 /* User */ = {
 			isa = PBXGroup;
 			children = (
@@ -184,8 +200,18 @@
 				D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */,
 				D5BCACF01FF1A12900EDB02A /* MenuTableViewController.swift */,
 				D5BCACFC1FF1F02400EDB02A /* MenuView.swift */,
+				D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */,
 			);
 			path = Menu;
+			sourceTree = "<group>";
+		};
+		D5A001BD1FF809EA003818C1 /* Signup */ = {
+			isa = PBXGroup;
+			children = (
+				D5A001BE1FF80A71003818C1 /* SignupViewController.swift */,
+				D55B6E201FF9ECE6001C9337 /* SignupScrollView.swift */,
+			);
+			path = Signup;
 			sourceTree = "<group>";
 		};
 		D5BCACF21FF1BCA700EDB02A /* Login */ = {
@@ -230,10 +256,12 @@
 		D5D4192D1FC7B04E0052849D /* curbmap */ = {
 			isa = PBXGroup;
 			children = (
+				D55B6E221FFA06A7001C9337 /* General */,
 				D5DE8F7A1FF727D500B715B9 /* railroad.aiff */,
 				D50BE3311FF389BD0025CB33 /* Photo */,
 				D5BCACFE1FF2052200EDB02A /* curbmap.entitlements */,
 				D5BCACF71FF1CB9C00EDB02A /* Alarm */,
+				D5A001BD1FF809EA003818C1 /* Signup */,
 				D5BCACF21FF1BCA700EDB02A /* Login */,
 				D5E1737B1FF2283A00DF8B68 /* Settings */,
 				D59488081FD7BE7A008822A7 /* Menu */,
@@ -538,6 +566,7 @@
 				"${BUILT_PRODUCTS_DIR}/OpenLocationCode/OpenLocationCode.framework",
 				"${BUILT_PRODUCTS_DIR}/RxCocoa/RxCocoa.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
+				"${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyCam/SwiftyCam.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -549,6 +578,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenLocationCode.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxCocoa.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SnapKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyCam.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -622,10 +652,14 @@
 				D59488051FD736B2008822A7 /* Restriction.swift in Sources */,
 				D5DE8F791FF718C800B715B9 /* AlarmUserNotification.swift in Sources */,
 				D5E1737D1FF2287000DF8B68 /* SettingsViewController.swift in Sources */,
+				D5A001BF1FF80A71003818C1 /* SignupViewController.swift in Sources */,
 				D5BCACFA1FF1CBB300EDB02A /* AlarmViewController.swift in Sources */,
+				D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */,
 				D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */,
+				D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */,
 				D50BE33A1FF3944D0025CB33 /* PhotoController.swift in Sources */,
 				D59487FB1FD7350A008822A7 /* User.swift in Sources */,
+				D55B6E211FF9ECE6001C9337 /* SignupScrollView.swift in Sources */,
 				D59488071FD78096008822A7 /* MapViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
