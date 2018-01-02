@@ -38,15 +38,22 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         self.containerView.isHidden = menuOpen
         menuOpen = !menuOpen
     }
-
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+    
+    func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
+        var value: String!
         if (component == 0 && row == 0) {
-            return "Hours"
+            value = "Hours"
         } else if (component == 1 && row == 0) {
-            return "Minutes"
+            value = "Minutes"
         } else {
-            return String(row-1)
+            value = String(row-1)
         }
+        let attributes : [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.font:UIFont(name: "Georgia", size: 13.0)!,
+            NSAttributedStringKey.foregroundColor:UIColor.white
+        ]
+        let title = NSAttributedString(string: value!, attributes: attributes)
+        return title
     }
     
     

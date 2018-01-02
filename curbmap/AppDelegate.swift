@@ -73,8 +73,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         center.getNotificationSettings { (settings) in
             print("Notification settings: \(settings)")
             guard settings.authorizationStatus == .authorized else { return }
-            
-            UIApplication.shared.registerForRemoteNotifications()
+            DispatchQueue.main.sync {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
         }
     }
     func application(_ application: UIApplication,
@@ -174,8 +175,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForPushNotifications()
         registerForLocalNotifications()
     }
-    @objc func finishedLogin() {
-        print("finished login")
+    @objc func finishedLogin(_ result: Int) {
+        if (result == 1) {
+            print("Successfully logged in")
+        } else {
+            if (result == 0) {
+                print("Incorrect password")
+            } else if (result == -1) {
+                print("Not authenticated!")
+            } else if (result == -2) {
+                print("No such user")
+            }
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

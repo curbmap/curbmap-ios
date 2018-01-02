@@ -41,10 +41,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                 ]
                 Alamofire.upload(multipartFormData: { MultipartFormData in
                     MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
-                    print(heading)
-                    print(heading.magnitude)
-                    var heading_magnitude = heading.magnitude
-                    MultipartFormData.append(Data(buffer: UnsafeBufferPointer(start: &heading_magnitude, count:1)), withName: "bearing")
+                    let heading_magnitude = heading.magnitude
+                    MultipartFormData.append("\(heading_magnitude)".data(using: String.Encoding.utf8)!, withName: "bearing")
                     MultipartFormData.append(UIImageJPEGRepresentation(self.photoToPlace, 1.0)!, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
                 }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
                     switch encodingResult {
@@ -187,6 +185,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
         if ((withPlacemarks?.count)! > 0) {
             let point: CLLocationCoordinate2D = (withPlacemarks?[0].location?.coordinate)!
+            self.trackUser = false
             centerMapOnLocation( location: CLLocation(latitude: point.latitude, longitude: point.longitude) )
         }
     }

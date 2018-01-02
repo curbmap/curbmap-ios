@@ -21,6 +21,7 @@ class User {
     var session: String
     var score: Int64
     var badge: String
+    var cookie: [String: Any]!
     var currentLocation: CLLocation!
     var settings: [String: String] = [
         "mapstyle": "d",
@@ -37,6 +38,12 @@ class User {
         self.score = 0
         self.session = ""
         self.email = ""
+    }
+    func set_cookie(_ cookie : HTTPCookie, _ url: URL ) {
+        self.cookie = ["cookie" : cookie, "url": url]
+    }
+    func use_cookie_in_request() {
+        Alamofire.SessionManager.default.session.configuration.httpCookieStorage?.setCookies([self.cookie["cookie"] as! HTTPCookie], for: (self.cookie["url"] as! URL), mainDocumentURL: nil)
     }
     func set_location(location: CLLocation) {
         self.currentLocation = location
@@ -83,7 +90,9 @@ class User {
     func get_email() -> String {
         return self.email
     }
-    func login(callback: @escaping ()->Void) -> Void {
+    
+    // MARK: - Login
+    func login(callback: @escaping (_ result: Int)->Void) -> Void {
         let parameters = [
             "username": self.username,
             "password": self.password
@@ -96,14 +105,22 @@ class User {
         var full_dictionary: [String: Any] = ["success": false]
         Alamofire.request("https://curbmap.com/login", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }
-            print(response)
             if var json = response.result.value as? [String: Any] {
-                json["success"] = true
-                full_dictionary = json
-                self?.runDict(full_dictionary: full_dictionary, callback: callback)
+                let cookie = HTTPCookieStorage.shared.cookies![0]
+                let URL = response.request?.url
+                self?.set_cookie(cookie, URL!)
+                if (json["success"] as! Int == 1) {
+                    full_dictionary = json
+                    self?.runDict(full_dictionary: full_dictionary, callback: callback)
+                } else {
+                    // got error
+                    callback(json["success"] as! Int)
+                }
             }
         }
     }
+    
+    // MARK: - Signup
     func signup(callback: @escaping (_ result: Int)->Void) -> Void {
         let parameters = [
             "username": self.username,
@@ -124,23 +141,21 @@ class User {
         }
     }
     func logout(callback: @escaping ()->Void) -> Void {
-        print("logging out")
-        let headers = [
-            "session": self.get_session()
-        ]
-        Alamofire.request("https://curbmap.com/logout", method: .post, parameters: [:], headers: headers).responseJSON { response in
+        self.use_cookie_in_request()
+        Alamofire.request("https://curbmap.com/logout", method: .post, parameters: ["X":"y"]).responseJSON { [weak self] response in
+            print(response)
             if var json = response.result.value as? [String: Bool] {
                 print(json["success"])
                 if (json["success"] == true) {
                     print("succes")
-                    self.loggedIn = false
-                    self.set_badge(badge: "")
-                    self.set_username(username: "curbmaptest")
-                    self.set_session(session: "x")
-                    self.set_score(score: 0)
-                    self.set_password(password: "")
-                    self.set_remember(remember: false)
-                    try? self.keychain.removeAll()
+                    self?.loggedIn = false
+                    self?.set_badge(badge: "")
+                    self?.set_username(username: "curbmaptest")
+                    self?.set_session(session: "x")
+                    self?.set_score(score: 0)
+                    self?.set_password(password: "")
+                    self?.set_remember(remember: false)
+                    try? self?.keychain.removeAll()
                     callback()
                 }
             }
@@ -175,12 +190,13 @@ class User {
         }
     }
     
-    func runDict(full_dictionary: [String: Any], callback: ()->Void) {
+    func runDict(full_dictionary: [String: Any], callback: (_ result: Int)->Void) {
         self.set_badge(badge: full_dictionary["badge"] as! String)
         self.set_score(score: (Int64)((full_dictionary["score"] as! NSString).intValue))
         self.set_session(session: full_dictionary["session"] as! String)
+        self.set_email(email: full_dictionary["email"] as! String)
         self.loggedIn = true
-        callback()
+        callback(1)
     }
     
     func isLoggedIn() -> Bool {

@@ -66,6 +66,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
         self.scrollView.frame = self.windowFrame
         self.scrollView.backgroundColor = UIColor.black
+        self.scrollView.alwaysBounceHorizontal = false
         self.menuButton.translatesAutoresizingMaskIntoConstraints = false
         self.logo.translatesAutoresizingMaskIntoConstraints = false
         self.usernameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -137,8 +138,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
             }
         })
         self.logo.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.menuButton.snp.trailing).priority(1000.0)
-            make.top.equalTo(self.view.snp.topMargin)
+            make.centerX.equalTo(self.view.snp.centerX).priority(1000.0)
+            make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
             make.width.equalTo(self.logo.snp.height).multipliedBy(ratio).priority(1000.0)
             if (viewSize.width > viewSize.height) {
                 make.height.equalTo(0).priority(1000.0)
@@ -269,8 +270,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
         if (viewSize != nil) {
-            print("here")
-            self.scrollView.contentSize = CGSize(width: viewSize.width, height: 1000)
+            self.scrollView.contentSize = CGSize(width: 0.9*viewSize.width, height: 1000)
             self.scrollView.isScrollEnabled = true
         }
     }
@@ -418,7 +418,13 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     @objc func completeSignup(_ result: Int) -> Void {
         print(result)
         if (result == 1) {
-            // everything works somehow direct to login somehow
+            let loginViewController = self.storyboard?.instantiateViewController(withIdentifier: "Login") as! LoginViewController
+            appDelegate.windowLocation = 2
+            let vcToRemove = (navigationController?.viewControllers.count)! - 1
+            navigationController?.pushViewController(loginViewController, animated: true)
+            var newSet = navigationController?.viewControllers
+            newSet?.remove(at: vcToRemove)
+            navigationController?.viewControllers = newSet!
         } else if (result == 0) {
             empty()
         } else if (result == -1) {

@@ -133,7 +133,6 @@ class MenuTableViewController: UITableViewController {
                 appDelegate.windowLocation = 1
                 navigationController?.pushViewController(alarmViewController, animated: true)
             } else if (indexPath.row == 2 && appDelegate.windowLocation != 2) {
-                print("trying to switch to login XXXXYYY")
                 let loginViewController = self.storyboard?.instantiateViewController(withIdentifier: "Login") as! LoginViewController
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)

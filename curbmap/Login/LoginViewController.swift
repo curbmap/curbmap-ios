@@ -25,6 +25,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var rememberLabel: UILabel!
     @IBOutlet weak var rememberSwitch: UISwitch!
     @IBAction func loginButtonPressed(_ sender: Any) {
+        self.error.text = "ErrorLabel"
+        self.setupCentralViews(0)
         appDelegate.user.set_username(username: username.text!)
         appDelegate.user.set_password(password: password.text!)
         appDelegate.user.login(callback: self.completeLogin)
@@ -82,6 +84,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
         self.scrollView.frame = self.windowFrame
         self.scrollView.backgroundColor = UIColor.black
+        self.scrollView.alwaysBounceHorizontal = false
         self.menuButton.translatesAutoresizingMaskIntoConstraints = false
         self.logo.translatesAutoresizingMaskIntoConstraints = false
         self.usernameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -135,8 +138,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             }
         })
         self.logo.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.menuButton.snp.trailing).priority(1000.0)
-            make.top.equalTo(self.view.snp.topMargin)
+            make.centerX.equalTo(self.view.snp.centerX).priority(1000.0)
+            make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
             make.width.equalTo(self.logo.snp.height).multipliedBy(ratio).priority(1000.0)
             if (viewSize.width > viewSize.height) {
                 make.height.equalTo(0).priority(1000.0)
@@ -200,7 +203,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         })
         self.rememberLabel.snp.remakeConstraints({ (make) in
             make.centerY.equalTo(self.rememberSwitch.snp.centerY).priority(1000.0)
-            make.leading.equalTo(self.rememberSwitch.snp.trailing).priority(1000.0)
+            make.leading.equalTo(self.rememberSwitch.snp.trailing).offset(8).priority(1000.0)
         })
         self.loginButton.snp.remakeConstraints({ (make) in
             make.centerX.equalTo(self.scrollView.snp.centerX).priority(1000.0)
@@ -219,14 +222,15 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         self.setupCentralViews(0)
     }
+    
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
         if (viewSize != nil) {
-            print("here")
-            self.scrollView.contentSize = CGSize(width: viewSize.width, height: 1000)
+            self.scrollView.contentSize = CGSize(width: 0.9*viewSize.width, height: 1000)
             self.scrollView.isScrollEnabled = true
         }
     }
+
     
     @objc func dismissKeyboard() {
         self.password.endEditing(true)
@@ -251,7 +255,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.scrollView.setContentOffset(CGPoint(x:contentInsetOriginal.left, y:0.0), animated: true)
     }
     
-    @objc func completeLogin() -> Void {
+    @objc func completeLogin(_ result: Int) -> Void {
         if (appDelegate.user.isLoggedIn()) {
             if (remember.isOn == true) {
                 do {
@@ -262,7 +266,20 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                 }
             }
             self.menuTableViewController.tableView.reloadData()
+            self.appDelegate.windowLocation = 0
             self.navigationController?.popViewController(animated: true)
+        } else {
+            // alert user about error
+            print(result)
+            if (result == 0) {
+                self.error.text = "Incorrect password. Please try again."
+            } else if (result == -1) {
+                print("Not authenticated!")
+                self.error.text = "Check your email. You were sent something from curbmap to authorize this account."
+            } else if (result == -2) {
+                self.error.text = "Check that you entered your username correctly. It didn't appear in our system. You can log in either with your username or email address."
+            }
+            self.setupCentralViews(0)
         }
     }
     override func didReceiveMemoryWarning() {
