@@ -9,6 +9,7 @@
 import UIKit
 import KeychainAccess
 import SnapKit
+import NVActivityIndicatorView
 
 class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var logo: UIImageView!
@@ -19,6 +20,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var error: ErrorLabel!
     @IBOutlet weak var passwordLabel: UILabel!
     @IBOutlet weak var menuButton: UIButton!
+    var loading: NVActivityIndicatorView!
     var isPortrait: Bool = true
     var contentInsetOriginal: UIEdgeInsets!
 
@@ -26,9 +28,15 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var rememberSwitch: UISwitch!
     @IBAction func loginButtonPressed(_ sender: Any) {
         self.error.text = "ErrorLabel"
-        self.setupCentralViews(0)
+        self.setupCentralViews(2)
         appDelegate.user.set_username(username: username.text!)
         appDelegate.user.set_password(password: password.text!)
+        // load
+        let size = self.viewSize.width/4
+        let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)
+        self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
+        self.view.addSubview(self.loading)
+        self.loading.startAnimating()
         appDelegate.user.login(callback: self.completeLogin)
     }
     @IBOutlet weak var loginButton: UIButton!
@@ -181,7 +189,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             make.height.equalTo(21).priority(1000.0)
         }
         self.password.snp.remakeConstraints({(make) in
-            make.top.equalTo(self.passwordLabel.snp.bottomMargin).offset(6).priority(1000.0)
+            make.top.equalTo(self.passwordLabel.snp.bottom).offset(6).priority(1000.0)
             make.leading.equalTo(self.scrollView.snp.leadingMargin).offset(10).priority(1000.0)
             make.trailing.equalTo(self.scrollView.snp.trailingMargin).offset(-10).priority(1000.0)
             make.height.equalTo(50).priority(1000.0)
@@ -252,10 +260,15 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.scrollView.contentInset = contentInset
     }
     @objc func keyboardWillHide(notification:NSNotification){
-        self.scrollView.setContentOffset(CGPoint(x:contentInsetOriginal.left, y:0.0), animated: true)
+        if (contentInsetOriginal != nil) {
+            self.scrollView.setContentOffset(CGPoint(x:contentInsetOriginal.left, y:0.0), animated: true)
+        }
     }
     
     @objc func completeLogin(_ result: Int) -> Void {
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
+        
         if (appDelegate.user.isLoggedIn()) {
             if (remember.isOn == true) {
                 do {

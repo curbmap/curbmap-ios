@@ -1,8 +1,17 @@
 PODS:
   - Alamofire (4.6.0)
+  - Instructions (1.1.0)
   - KeychainAccess (3.1.0)
   - Mapbox-iOS-SDK (3.7.2)
+  - NVActivityIndicatorView (4.1.1):
+    - NVActivityIndicatorView/Presenter (= 4.1.1)
+  - NVActivityIndicatorView/Presenter (4.1.1)
   - OpenLocationCode (0.0.5.2)
+  - Realm (3.0.2):
+    - Realm/Headers (= 3.0.2)
+  - Realm/Headers (3.0.2)
+  - RealmSwift (3.0.2):
+    - Realm (= 3.0.2)
   - RxCocoa (4.1.0):
     - RxSwift (~> 4.0)
   - RxSwift (4.1.0)
@@ -11,9 +20,12 @@ PODS:
 
 DEPENDENCIES:
   - Alamofire
+  - Instructions (~> 1.1.0)
   - KeychainAccess
   - Mapbox-iOS-SDK (~> 3.7)
+  - NVActivityIndicatorView
   - OpenLocationCode
+  - RealmSwift
   - RxCocoa
   - RxSwift
   - SnapKit (~> 4.0.0)
@@ -31,14 +43,18 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   Alamofire: f41a599bd63041760b26d393ec1069d9d7b917f4
+  Instructions: ff5738d6a637a46d1638a77d77261649f4da36a7
   KeychainAccess: 94c5540b32eabf7bc32bfb976a268e8ea05fd6da
   Mapbox-iOS-SDK: d882f53debc26649b728755df5b7a160d9086367
+  NVActivityIndicatorView: 60109b9bf46efc2e71ab81453196ccdfdfeea870
   OpenLocationCode: 9fcfb120d9e11a91842b91e3517ab432a3c23c3b
+  Realm: 6f23fd1f178a09342eac21bfa7c2bf4312a7a180
+  RealmSwift: 695393add1b8f9d5fa75dd16e6355cf3935f71e2
   RxCocoa: cc1fec49cdc8fabe645964de7c51c099a36c2aa8
   RxSwift: 4219941c1244c88002901bd87a69d3aea9ae71f0
   SnapKit: a42d492c16e80209130a3379f73596c3454b7694
   SwiftyCam: 7c826b73a5b208677aee29390582c771bf748661
 
-PODFILE CHECKSUM: bd857f497b87e3748f4edb6ea7889bd80a670547
+PODFILE CHECKSUM: d9a8449e56412e8821a1fca2e07f6d1c13568017
 
 COCOAPODS: 1.4.0.beta.2

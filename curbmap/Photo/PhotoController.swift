@@ -10,6 +10,7 @@ import UIKit
 import SwiftyCam
 import Alamofire
 import OpenLocationCode
+import SnapKit
 
 class PhotoController: SwiftyCamViewController, SwiftyCamViewControllerDelegate {
     
@@ -57,8 +58,9 @@ class PhotoController: SwiftyCamViewController, SwiftyCamViewControllerDelegate 
         flashEnabled = true
         pinchToZoom = true
         tapToFocus = true
-        
         videoQuality = .high
+        shouldUseDeviceOrientation = true
+        allowAutoRotate = true
     }
     
     override func viewDidAppear(_ animated: Bool) {

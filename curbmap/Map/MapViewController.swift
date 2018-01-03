@@ -12,8 +12,12 @@ import Alamofire
 import OpenLocationCode
 import Mapbox
 import SwiftyCam
+import Instructions
+import SnapKit
 
-class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate {
+class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate, CoachMarksControllerDataSource, CoachMarksControllerDelegate {
+    let coachMarksController = CoachMarksController()
+    let coachMarkSkip = CoachMarkSkipDefaultView()
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var tempGestureRecognizers: [UIGestureRecognizer]!
     var tempViewGestureRecognizers: [UIGestureRecognizer]!
@@ -67,10 +71,12 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             }
       }
     }
+    @IBOutlet weak var centerBox: UIView!
     var zoomLevel: Double = 15.0
     @IBOutlet weak var containerView: UIView!
     var menuOpen = false
     // Hide table view tap on map or button
+    @IBOutlet weak var buttonForMenu: UIButton!
     @IBAction func menuButton(_ sender: Any) {
         self.containerView.isHidden = menuOpen
         menuOpen = !menuOpen
@@ -227,13 +233,60 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         view.insertSubview(self.mapView, at: 0)
         self.appDelegate.mapController = self        
     }
+    func numberOfCoachMarks(for coachMarksController: CoachMarksController) -> Int {
+        return 4
+    }
     
+    func coachMarksController(_ coachMarksController: CoachMarksController, coachMarkAt index: Int) -> CoachMark {
+        if (index == 0) {
+            self.centerBox.isHidden = true
+            return coachMarksController.helper.makeCoachMark(for: self.centerBox)
+        } else if (index == 1) {
+            return coachMarksController.helper.makeCoachMark(for: self.buttonForMenu)
+        } else if (index == 2) {
+            return coachMarksController.helper.makeCoachMark(for: self.searchBar)
+        } else {
+            self.icon.isHidden = false
+            return coachMarksController.helper.makeCoachMark(for: self.icon)
+        }
+    }
     
+    func coachMarksController(_ coachMarksController: CoachMarksController, coachMarkViewsAt index: Int, madeFrom coachMark: CoachMark) -> (bodyView: CoachMarkBodyView, arrowView: CoachMarkArrowView?) {
+        
+        let coachViews = coachMarksController.helper.makeDefaultCoachViews(withArrow: true, arrowOrientation: coachMark.arrowOrientation)
+        if (index == 0) {
+            coachViews.bodyView.hintLabel.text = "This is you! You can longpress anywhere on the map to bring up an alert box asking if you'd like to take a photo  (line doesn't work yet)"
+            coachViews.bodyView.nextLabel.text = "Sweet!"
+        } else if (index == 1) {
+            coachViews.bodyView.hintLabel.text = "This is the menu button! From here you can log in, sign up, change the color of the map, etc."
+            coachViews.bodyView.nextLabel.text = "Ok!"
+        } else if (index == 2) {
+            coachViews.bodyView.hintLabel.text = "This is the search bar! You can enter an address or a place and the map will move to that location"
+            coachViews.bodyView.nextLabel.text = "Ok!"
+        } else {
+            coachViews.bodyView.hintLabel.text = "Finally, if you move the map, this button will appear and will let you return the map to following your movements, if you want."
+            coachViews.bodyView.nextLabel.text = "Ok!"
+        }
+        return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
+    }
+    func coachMarksController(_ coachMarksController: CoachMarksController, willShow coachMark: inout CoachMark, afterSizeTransition: Bool, at index: Int) {
+        print("index: \(index)")
+    }
+    func coachMarksController(_ coachMarksController: CoachMarksController, willHide coachMark: CoachMark, at index: Int) {
+        if (index == 3) {
+            self.icon.isHidden = true
+            self.appDelegate.setCoachMarksComplete(inView: "map", completed: true)
+        }
+    }
+    
+    func coachMarksController(_ coachMarksController: CoachMarksController, didEndShowingBySkipping skipped: Bool) {
+        self.appDelegate.setCoachMarksComplete(inView: "map", completed: true)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupMap()
-        self.appDelegate.checkSettings()
+        self.appDelegate.getSettings()
         self.locationManager = CLLocationManager()
         self.locationManager.delegate = self
         self.locationManager.requestWhenInUseAuthorization()
@@ -249,8 +302,51 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
         self.searchBar.delegate = self
-        setupViews(portrait_oriented)
+        //setupViews(portrait_oriented)
+        self.centerBox.translatesAutoresizingMaskIntoConstraints = false
+        self.centerBox.snp.remakeConstraints { (make) in
+            make.centerX.equalTo(self.view.snp.centerX).priority(1000.0)
+            make.centerY.equalTo(self.view.snp.centerY).priority(1000.0)
+            make.height.equalTo(60).priority(1000.0)
+            make.width.equalTo(60).priority(1000.0)
+        }
+        self.centerBox.backgroundColor = UIColor.clear
+        self.centerBox.isHidden = true
+        self.coachMarksController.dataSource = self
+        self.coachMarksController.delegate = self
+        coachMarkSkip.setTitle("Skip", for: .normal)
+        coachMarkSkip.setTitleColor(UIColor.white, for: .normal)
+        coachMarkSkip.setBackgroundImage(nil, for: .normal)
+        coachMarkSkip.setBackgroundImage(nil, for: .highlighted)
+        coachMarkSkip.layer.cornerRadius = 0
+        coachMarkSkip.backgroundColor = UIColor.darkGray
+        self.coachMarksController.skipView = self.coachMarkSkip
         
+    }
+    
+    func coachMarksController(_ coachMarksController: CoachMarksController, constraintsForSkipView skipView: UIView, inParent parentView: UIView) -> [NSLayoutConstraint]? {
+        skipView.snp.remakeConstraints { (make) in
+            make.bottom.equalTo(parentView.snp.bottomMargin).priority(1000.0)
+            make.centerX.equalTo(parentView.snp.centerX).priority(1000.0)
+            make.width.equalTo(200).priority(1000.0)
+            make.height.equalTo(50).priority(1000.0)
+        }
+
+        return skipView.constraints
+    }
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // start the views
+        if (!self.appDelegate.getCoachMarksComplete(inView: "map")) {
+            self.coachMarksController.start(on: self)
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.coachMarksController.stop(immediately: true)
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {

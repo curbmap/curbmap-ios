@@ -4,10 +4,33 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>curbmap 2.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>11</integer>
+		</dict>
 		<key>curbmap.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>10</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>D5D4192A1FC7B04D0052849D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>D5D4193E1FC7B04E0052849D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>D5D419491FC7B04E0052849D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

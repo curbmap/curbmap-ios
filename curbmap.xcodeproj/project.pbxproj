@@ -69,6 +69,8 @@
 		C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmapUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D50BE3381FF3944D0025CB33 /* PhotoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoController.swift; sourceTree = "<group>"; };
 		D50BE3391FF3944D0025CB33 /* PhotoController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PhotoController.xib; sourceTree = "<group>"; };
+		D52CB08A1FFCA79400C50B41 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/RealmSwift.framework"; sourceTree = "<group>"; };
+		D52CB08B1FFCA79400C50B41 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/Realm.framework"; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -138,6 +140,8 @@
 		37D17621BA0B1FFE5C0F42D8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D52CB08B1FFCA79400C50B41 /* Realm.framework */,
+				D52CB08A1FFCA79400C50B41 /* RealmSwift.framework */,
 				D5BCACFF1FF2079000EDB02A /* MapKit.framework */,
 				7998D376AE798C7A2BB50B14 /* Pods_curbmap.framework */,
 				EF737786B8BB78488E092F27 /* Pods_curbmapTests.framework */,
@@ -557,10 +561,14 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-curbmap/Pods-curbmap-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
+				"${BUILT_PRODUCTS_DIR}/Instructions/Instructions.framework",
 				"${BUILT_PRODUCTS_DIR}/KeychainAccess/KeychainAccess.framework",
 				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework",
 				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM",
+				"${BUILT_PRODUCTS_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.framework",
 				"${BUILT_PRODUCTS_DIR}/OpenLocationCode/OpenLocationCode.framework",
+				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
+				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/RxCocoa/RxCocoa.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework",
@@ -569,10 +577,14 @@
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Instructions.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KeychainAccess.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Mapbox.framework",
 				"${DWARF_DSYM_FOLDER_PATH}/Mapbox.framework.dSYM",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/NVActivityIndicatorView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenLocationCode.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxCocoa.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SnapKit.framework",
@@ -860,6 +872,19 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CNKFCAS44G;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/Instructions\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/KeychainAccess\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/OpenLocationCode\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/RxCocoa\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/RxSwift\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/SnapKit\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/SwiftyCam\"",
+					"\"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic\"",
+					"\"${PODS_ROOT}/Realm\"",
+				);
 				INFOPLIST_FILE = curbmapTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.curbmap.curbmapTests;
@@ -878,6 +903,19 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CNKFCAS44G;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/Instructions\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/KeychainAccess\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/OpenLocationCode\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/RxCocoa\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/RxSwift\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/SnapKit\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/SwiftyCam\"",
+					"\"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic\"",
+					"\"${PODS_ROOT}/Realm\"",
+				);
 				INFOPLIST_FILE = curbmapTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.curbmap.curbmapTests;

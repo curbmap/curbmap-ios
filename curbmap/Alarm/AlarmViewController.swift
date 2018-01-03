@@ -11,12 +11,14 @@ import EventKit
 import UserNotifications
 import RxCocoa
 import RxSwift
+import SnapKit
 
 class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var menuTableViewController: UITableViewController!
     var disposeBag = DisposeBag()
     var timer: Observable<Int>!
+    var viewSize: CGSize!
     
     @IBOutlet weak var timerLabel: UILabel!
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -32,6 +34,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         }
     }
 
+    @IBOutlet weak var menuButtonOutlet: UIButton!
     var menuOpen = false
     // Hide table view tap on map or button
     @IBAction func menuButton(_ sender: Any) {
@@ -86,6 +89,9 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
                 minutes = 0
             }
             let inSeconds = Int(hours * (60*60) + minutes * 60)
+            if (inSeconds <= 0) {
+                return // just stop... it's silly to go on
+            }
             if (appDelegate.localNotificationsAllowed) {
                 let futureDate = Date().addingTimeInterval(TimeInterval(inSeconds))
                 // local notifications are allowed so really set the notification!
@@ -132,6 +138,55 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         })
     }
     
+    @objc func setupCentralViews(_ firstTime: Int) {
+        viewSize = self.view.frame.size
+        if ((firstTime != 1 && firstTime != 2) &&
+            ((!UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width > viewSize.height) ||
+                (UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width < viewSize.height))) {
+            viewSize = CGSize(width: viewSize.height, height: viewSize.width)
+        }
+        print("XXXX: \(viewSize)")
+
+        self.menuButtonOutlet.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
+            make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
+            make.width.equalTo(64).priority(1000.0)
+            make.height.equalTo(64).priority(1000.0)
+        }
+        // They should call it wasPortrait
+        self.containerView.snp.remakeConstraints({(make) in
+            make.leading.equalTo(self.menuButtonOutlet.snp.leading).priority(1000.0)
+            make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin)
+            if (viewSize.width < viewSize.height) {
+                make.width.equalTo(viewSize.width/1.5).priority(1000.0)
+            } else {
+                make.width.equalTo(viewSize.width/2.0).priority(1000.0)
+            }
+        })
+        self.picker.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
+            make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
+            make.trailing.equalTo(self.view.snp.trailingMargin).priority(1000.0)
+            make.height.equalTo(viewSize.height/2)
+        }
+        self.startButton.snp.remakeConstraints { (make) in
+            make.centerX.equalTo(self.picker.snp.centerX).priority(1000.0)
+            make.top.equalTo(self.picker.snp.bottom).offset(10).priority(1000.0)
+            make.height.equalTo(50).priority(1000.0)
+            make.width.equalTo(125).priority(1000.0)
+        }
+        self.timerLabel.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
+            make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
+            make.trailing.equalTo(self.view.snp.trailingMargin).priority(1000.0)
+            make.height.equalTo(viewSize.height/2)
+        }
+
+        self.view.layoutSubviews()
+        self.view.layoutIfNeeded()
+    }
+    
     @objc func tick() {
         print("Do we get called")
         self.appDelegate.notificationDelegate.timerValue -= 1
@@ -151,8 +206,17 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         self.picker.selectRow(1, inComponent: 0, animated: true)
         self.picker.selectRow(1, inComponent: 1, animated: true)
         appDelegate.notificationDelegate.timerController = self
+        if (UIApplication.shared.statusBarOrientation.isPortrait) {
+            self.setupCentralViews(1)
+        } else {
+            self.setupCentralViews(2)
+        }
         // Do any additional setup after loading the view.
     }
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        self.setupCentralViews(0)
+    }
+
     override func viewWillAppear(_ animated: Bool) {
             self.checkTimeLeft()
     }

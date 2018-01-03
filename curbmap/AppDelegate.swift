@@ -11,6 +11,7 @@ import KeychainAccess
 import UserNotifications
 import AudioToolbox
 import AVFoundation
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
@@ -29,13 +30,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     var remoteNotificationsAllowed: Bool = false
     var registeredForLocal : Bool = false
     var registeredForRemote: Bool = false
-
+    let realm = try! Realm()
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         center.delegate = notificationDelegate
         registerForPushNotifications()
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
+        self.getUser()
         return true
     }
     func registerForLocalNotifications() {
@@ -98,7 +101,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         print("Failed to register: \(error)")
     }
     
-    @objc func checkSettings() {
+    @objc func getUser() {
         do {
             let username_token = try keychain.get("user_curbmap")
             if (username_token != nil) {
@@ -110,45 +113,65 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     user.login(callback: self.finishedLogin)
                 }
             }
-            let mapstyle = try! keychain.get("settings_mapstyle")
-            if (mapstyle != nil) {
-                self.user.settings.updateValue(mapstyle!, forKey: "mapstyle")
-                if (self.mapController != nil) {
-                    self.mapController.changeStyle(style: mapstyle!)
-                }
-            }
-            
-            let follow = try! keychain.get("settings_follow")
-            if (follow != nil) {
-                self.user.settings.updateValue(follow!, forKey: "follow")
-                if (self.mapController != nil) {
-                    self.mapController.trackUser = false
-                }
-            }
-            
-            let push = try! keychain.get("settings_push")
-            if (push != nil) {
-                self.user.settings.updateValue(push!, forKey: "push")
-                if (push == "n") {
-                    self.localNotificationsAllowed = false
-                    self.remoteNotificationsAllowed = false
-                }
-            }
-            
-            let units = try! keychain.get("settings_units")
-            if (units != nil) {
-                self.user.settings.updateValue(units!, forKey: "units")
-            }
-            
-            let offline = try! keychain.get("settings_offline")
-            if (offline != nil) {
-                self.user.settings.updateValue(offline!, forKey: "offline")
-                if (mapController != nil){
-                    self.mapController.changeOffline(offline: offline!)
-                }
-            }
         } catch _ {
             print("cannot get username")
+        }
+    }
+    
+    @objc func setSetting(setting: String, value: String) {
+        let settings = realm.objects(Settings.self)
+        if (settings.count > 0) {
+            try! realm.write {
+                switch(setting) {
+                case "mapstyle":
+                    settings[0].mapstyle = value
+                    break
+                case "follow":
+                    settings[0].follow = value
+                    break
+                case "push":
+                    settings[0].push = value
+                    break
+                case "units":
+                    settings[0].units = value
+                    break
+                case "offline":
+                    settings[0].offline = value
+                    break
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    @objc func getSettings() {
+        let settings = realm.objects(Settings.self)
+        if (settings.count > 0) {
+            self.user.settings.updateValue(settings[0].mapstyle, forKey: "mapstyle")
+            if (self.mapController != nil) {
+                self.mapController.changeStyle(style: settings[0].mapstyle)
+            }
+            self.user.settings.updateValue(settings[0].follow, forKey: "follow")
+            if (self.mapController != nil) {
+                self.mapController.trackUser = false
+            }
+            self.user.settings.updateValue(settings[0].push, forKey: "push")
+            if (settings[0].push == "n") {
+                self.localNotificationsAllowed = false
+                self.remoteNotificationsAllowed = false
+            }
+            self.user.settings.updateValue(settings[0].units, forKey: "units")
+            
+            self.user.settings.updateValue(settings[0].offline, forKey: "offline")
+            if (mapController != nil){
+                self.mapController.changeOffline(offline: settings[0].offline)
+            }
+        } else {
+            let newSettings = Settings()
+            try! realm.write {
+                realm.add(newSettings)
+            }
         }
     }
 
@@ -188,7 +211,76 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             }
         }
     }
-
+    func setCoachMarksComplete(inView: String, completed: Bool) {
+        let coachMarksStatus = realm.objects(CoachMarksStatus.self)
+        if (coachMarksStatus.count > 0) {
+            try! realm.write {
+                switch (inView) {
+                case "map":
+                    coachMarksStatus[0].map = completed
+                    break
+                case "alarm":
+                    coachMarksStatus[0].alarm = completed
+                    break
+                case "login":
+                    coachMarksStatus[0].login = completed
+                    break
+                case "signup":
+                    coachMarksStatus[0].signup = completed
+                    break
+                case "settings":
+                    coachMarksStatus[0].settings = completed
+                    break
+                default:
+                    break
+                }
+            }
+        } else {
+            var newCoachMarksStatus = CoachMarksStatus()
+            switch (inView) {
+            case "map":
+                newCoachMarksStatus.map = completed
+                break
+            case "alarm":
+                newCoachMarksStatus.alarm = completed
+                break
+            case "login":
+                newCoachMarksStatus.login = completed
+                break
+            case "signup":
+                newCoachMarksStatus.signup = completed
+                break
+            case "settings":
+                newCoachMarksStatus.settings = completed
+                break
+            default:
+                break
+            }
+            try! realm.write {
+                realm.add(newCoachMarksStatus)
+            }
+        }
+    }
+    func getCoachMarksComplete(inView: String) -> Bool {
+        let coachMarksStatus = realm.objects(CoachMarksStatus.self)
+        if (coachMarksStatus.count > 0) {
+            switch (inView) {
+            case "map":
+                return coachMarksStatus[0].map
+            case "alarm":
+                return coachMarksStatus[0].alarm
+            case "login":
+                return coachMarksStatus[0].login
+            case "signup":
+                return coachMarksStatus[0].signup
+            case "settings":
+                return coachMarksStatus[0].settings
+            default:
+                break
+            }
+        }
+        return false
+    }
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
@@ -196,3 +288,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
 
 }
 
+class Settings : Object {
+    @objc dynamic var mapstyle: String = "d"
+    @objc dynamic var units: String = "mi"
+    @objc dynamic var push: String = "n"
+    @objc dynamic var follow: String = "y"
+    @objc dynamic var offline: String = "n"
+}
+
+class CoachMarksStatus: Object {
+    @objc dynamic var map: Bool = false
+    @objc dynamic var login: Bool = false
+    @objc dynamic var signup: Bool = false
+    @objc dynamic var settings: Bool = false
+    @objc dynamic var alarm: Bool = false
+}

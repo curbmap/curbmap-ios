@@ -43,7 +43,11 @@ class User {
         self.cookie = ["cookie" : cookie, "url": url]
     }
     func use_cookie_in_request() {
-        Alamofire.SessionManager.default.session.configuration.httpCookieStorage?.setCookies([self.cookie["cookie"] as! HTTPCookie], for: (self.cookie["url"] as! URL), mainDocumentURL: nil)
+       print(self.cookie)
+        if (isLoggedIn() && self.cookie != nil){
+            Alamofire.SessionManager.default.session.configuration.httpCookieStorage?.setCookies([self.cookie["cookie"] as! HTTPCookie], for: (self.cookie["url"] as! URL), mainDocumentURL: nil)
+            
+        }
     }
     func set_location(location: CLLocation) {
         self.currentLocation = location

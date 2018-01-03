@@ -9,11 +9,14 @@
 import UIKit
 import KeychainAccess
 import SnapKit
+import NVActivityIndicatorView
 
 class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var isPortrait: Bool!
     var originalOrientation: Bool!
+    var loading: NVActivityIndicatorView!
+    
     @IBOutlet weak var containerView: UIView! // for menu controller
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var menuButton: UIButton!
@@ -325,6 +328,12 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         //self.menuTableViewController.tableView.reloadData()
     }
     @IBAction func signup(_ sender: Any) {
+        let size = self.viewSize.width/4
+        let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)
+        self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
+        self.view.addSubview(self.loading)
+        self.loading.startAnimating()
+
         self.usernameError.text = "UsernameError"
         self.passwordError.isHidden = true
         self.passwordError.text = "PasswordError"
@@ -333,7 +342,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.retypeError.isHidden = true
         self.emailError.text = "EmailError"
         self.emailError.isHidden = true
-        self.setupCentralViews(0)
+        self.setupCentralViews(2)
         if (abs(self.username.text!.count.distance(to: 0)) < 4) {
             alertUsernameAllows()
             return
@@ -391,6 +400,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.usernameError.lineBreakMode = .byWordWrapping
         self.usernameError.text = "You must enter something for all fields to create an account."
         self.usernameError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     @objc func usernameTaken() {
@@ -398,6 +409,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.usernameError.lineBreakMode = .byWordWrapping
         self.usernameError.text = "Sorry, that username was already taken. Choose another."
         self.usernameError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     @objc func emailTaken() {
@@ -405,6 +418,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.emailError.numberOfLines = 3
         self.emailError.lineBreakMode = .byWordWrapping
         self.emailError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     @objc func somethingHappened() {
@@ -412,12 +427,15 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.emailError.lineBreakMode = .byWordWrapping
         self.emailError.text = "Something went wrong, and we weren't able to create the account. :-("
         self.emailError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     
     @objc func completeSignup(_ result: Int) -> Void {
-        print(result)
         if (result == 1) {
+            self.loading.stopAnimating()
+            self.loading.removeFromSuperview()
             let loginViewController = self.storyboard?.instantiateViewController(withIdentifier: "Login") as! LoginViewController
             appDelegate.windowLocation = 2
             let vcToRemove = (navigationController?.viewControllers.count)! - 1
@@ -425,6 +443,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
             var newSet = navigationController?.viewControllers
             newSet?.remove(at: vcToRemove)
             navigationController?.viewControllers = newSet!
+
         } else if (result == 0) {
             empty()
         } else if (result == -1) {
@@ -461,6 +480,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.usernameError.lineBreakMode = .byWordWrapping
         self.usernameError.text = "Username must be > 3 characters and can only contain letters a-z A-Z and characters @, ., _, -, or ' "
         self.usernameError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
 
@@ -469,6 +490,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.passwordError.lineBreakMode = .byWordWrapping
         self.passwordError.text = "Passwords must be 9 to 40 characters in length, contain at least one lowercase, one uppercase, one special character ~!@#$%^&*()-_+=,.<>?:;"
         self.passwordError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     
@@ -477,6 +500,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.retypeError.lineBreakMode = .byWordWrapping
         self.retypeError.text = "Passwords must be the same"
         self.retypeError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     
@@ -485,6 +510,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.emailError.lineBreakMode = .byWordWrapping
         self.emailError.text = "Email must be format name@name.type like me@curbmap.com"
         self.emailError.isHidden = false
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
