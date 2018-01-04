@@ -43,8 +43,8 @@
 	<string>Will you allow this app to always know your location?</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Do you allow this app to know your current location?</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Curbmap doesn't use your microphone but the dependency automatically requests it.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We want to be able to save your photos to your camera roll only if you want to after each photo is taken.</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>We use reminders for alarms for remembering to collect your car.</string>
 	<key>UILaunchStoryboardName</key>

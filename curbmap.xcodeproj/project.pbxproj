@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		1E5ECD83A457E53B583231A1 /* Pods_curbmap.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7998D376AE798C7A2BB50B14 /* Pods_curbmap.framework */; };
 		BB8F8EC9EFB0138662F4B561 /* Pods_curbmapUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */; };
-		D50BE33A1FF3944D0025CB33 /* PhotoController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50BE3381FF3944D0025CB33 /* PhotoController.swift */; };
-		D50BE33B1FF3944D0025CB33 /* PhotoController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D50BE3391FF3944D0025CB33 /* PhotoController.xib */; };
+		D52CB0971FFDF9B400C50B41 /* PhotoController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52CB0951FFDF9B400C50B41 /* PhotoController.swift */; };
+		D52CB0981FFDF9B400C50B41 /* PhotoController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D52CB0961FFDF9B400C50B41 /* PhotoController.xib */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
@@ -67,10 +67,10 @@
 		6488BFE3B12D0577F715E5F7 /* Pods-curbmapTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-curbmapTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-curbmapTests/Pods-curbmapTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7998D376AE798C7A2BB50B14 /* Pods_curbmap.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmap.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmapUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D50BE3381FF3944D0025CB33 /* PhotoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoController.swift; sourceTree = "<group>"; };
-		D50BE3391FF3944D0025CB33 /* PhotoController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PhotoController.xib; sourceTree = "<group>"; };
 		D52CB08A1FFCA79400C50B41 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/RealmSwift.framework"; sourceTree = "<group>"; };
 		D52CB08B1FFCA79400C50B41 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/Realm.framework"; sourceTree = "<group>"; };
+		D52CB0951FFDF9B400C50B41 /* PhotoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoController.swift; sourceTree = "<group>"; };
+		D52CB0961FFDF9B400C50B41 /* PhotoController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PhotoController.xib; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -153,8 +153,8 @@
 		D50BE3311FF389BD0025CB33 /* Photo */ = {
 			isa = PBXGroup;
 			children = (
-				D50BE3381FF3944D0025CB33 /* PhotoController.swift */,
-				D50BE3391FF3944D0025CB33 /* PhotoController.xib */,
+				D52CB0951FFDF9B400C50B41 /* PhotoController.swift */,
+				D52CB0961FFDF9B400C50B41 /* PhotoController.xib */,
 			);
 			path = Photo;
 			sourceTree = "<group>";
@@ -445,8 +445,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D50BE33B1FF3944D0025CB33 /* PhotoController.xib in Resources */,
 				D59488121FD7C745008822A7 /* UserCell.xib in Resources */,
+				D52CB0981FFDF9B400C50B41 /* PhotoController.xib in Resources */,
 				D5E1737A1FF21EFD00DF8B68 /* Main.storyboard in Resources */,
 				D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */,
 				D5D419391FC7B04E0052849D /* LaunchScreen.storyboard in Resources */,
@@ -653,6 +653,7 @@
 				D5BCACF61FF1BCF700EDB02A /* LoginViewController.swift in Sources */,
 				D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */,
 				D59488011FD7368D008822A7 /* MapMarker.swift in Sources */,
+				D52CB0971FFDF9B400C50B41 /* PhotoController.swift in Sources */,
 				D5BCACF11FF1A12900EDB02A /* MenuTableViewController.swift in Sources */,
 				D59488111FD7C745008822A7 /* UserCell.swift in Sources */,
 				D5D419311FC7B04E0052849D /* ViewController.swift in Sources */,
@@ -666,7 +667,6 @@
 				D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */,
 				D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */,
 				D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */,
-				D50BE33A1FF3944D0025CB33 /* PhotoController.swift in Sources */,
 				D59487FB1FD7350A008822A7 /* User.swift in Sources */,
 				D59488071FD78096008822A7 /* MapViewController.swift in Sources */,
 			);
