@@ -61,15 +61,15 @@ class SettingsViewController: UIViewController {
     @IBAction func offlineSwitch(_ sender: Any) {
         if (self.offlineOutlet.isOn) {
             self.offlineLabel.text = "Save data, get maps on wifi"
-            self.appDelegate.user.settings.updateValue("n", forKey: "offline")
-            self.appDelegate.setSetting(setting: "offline", value: "n")
+            self.appDelegate.user.settings.updateValue("y", forKey: "offline")
+            self.appDelegate.setSetting(setting: "offline", value: "y")
             let alert = UIAlertController(title: "Offline maps", message: "By turning this off, we cannot give you regular updates about the status of parking.", preferredStyle: .actionSheet)
             alert.addAction(UIAlertAction(title: "Agree", style: .default, handler: nil))
             self.present(alert, animated: true, completion: nil)
         } else {
             self.offlineLabel.text = "I need the latest updates"
-            self.appDelegate.user.settings.updateValue("y", forKey: "offline")
-            self.appDelegate.setSetting(setting: "offline", value: "y")
+            self.appDelegate.user.settings.updateValue("n", forKey: "offline")
+            self.appDelegate.setSetting(setting: "offline", value: "n")
         }
         appDelegate.mapController.changeOffline(offline: appDelegate.user.settings["offline"]!)
     }

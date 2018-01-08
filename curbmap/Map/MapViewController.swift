@@ -11,11 +11,13 @@ import MapKit
 import Alamofire
 import OpenLocationCode
 import Mapbox
-import SwiftyCam
 import Instructions
 import SnapKit
+import Photos
+import AVFoundation
+import RxCocoa
 
-class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate, CoachMarksControllerDataSource, CoachMarksControllerDelegate {
+class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate, CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     let coachMarksController = CoachMarksController()
     let coachMarkSkip = CoachMarkSkipDefaultView()
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -23,18 +25,34 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     var tempViewGestureRecognizers: [UIGestureRecognizer]!
     var menuTableViewController: UITableViewController!
     var photoAnnotation: MapMarker!
+    var polyline: CurbmapPolyLine!
     var movingPhotoAnnotation: Bool = false
     var photoToPlace: UIImage!
+    var photoToPlaceHeading: CLHeading!
+    var photoToPlaceLocation: CLLocation!
     var lastTouchPosition:CGPoint!
     var firstTouchPosition:CGPoint!
+    var line: [MapMarker] = []
+    var picker: UIImagePickerController!
+    
     @IBOutlet weak var cancelButton: UIButton!
+    @IBOutlet weak var lineCancelButton: UIButton!
+    
     @IBAction func cancel(_ sender: Any) {
         self.mapView.removeAnnotation(photoAnnotation)
         self.cancelled()
     }
+    @IBAction func cancelLine(_ sender: Any) {
+        self.mapView.removeAnnotations(self.line)
+        self.mapView.remove(self.polyline)
+        self.lineCancelled()
+    }
     @IBOutlet weak var looksGreatButton: UIButton!
+    @IBOutlet weak var lineLooksGreatButton: UIButton!
     @IBAction func looksGreat(_ sender: Any) {
-        if (self.appDelegate.user.get_location() != nil) {
+        self.looksGreatButton.isEnabled = false
+        if (self.photoAnnotation != nil) {
+            print("working photo annotation")
             let olc = try? OpenLocationCode.encode(latitude: self.photoAnnotation.coordinate.latitude, longitude: self.photoAnnotation.coordinate.longitude, codeLength: 12)
             let heading = self.photoAnnotation.heading
             if (olc != nil) {
@@ -43,33 +61,89 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                     "username": self.appDelegate.user.get_username(),
                     "session": self.appDelegate.user.get_session()
                 ]
-                Alamofire.upload(multipartFormData: { MultipartFormData in
-                    MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
-                    let heading_magnitude = heading.magnitude
-                    MultipartFormData.append("\(heading_magnitude)".data(using: String.Encoding.utf8)!, withName: "bearing")
-                    MultipartFormData.append(UIImageJPEGRepresentation(self.photoToPlace, 1.0)!, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-                }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
-                    switch encodingResult {
-                    case .success(let upload, _, _):
-                        upload.responseJSON { response in
-                            if let result = response.result.value {
-                                if let success = result as? NSDictionary {
-                                    print(success["success"]! as! Bool)
-                                    self.uploadComplete()
-                                    return
-                                }
-                                
+                let imageData = UIImageJPEGRepresentation(self.photoToPlace, 1.0)!
+                let cgImgSource = CGImageSourceCreateWithData(imageData as CFData, nil)!
+                let uti:CFString = CGImageSourceGetType(cgImgSource)!
+                let dataWithEXIF: NSMutableData = NSMutableData(data: imageData)
+                let destination: CGImageDestination = CGImageDestinationCreateWithData((dataWithEXIF as CFMutableData), uti, 1, nil)!
+                
+                let imageProperties = CGImageSourceCopyPropertiesAtIndex(cgImgSource, 0, nil)! as NSDictionary
+                let mutable: NSMutableDictionary = imageProperties.mutableCopy() as! NSMutableDictionary
+                let EXIFDictionary: NSMutableDictionary = (mutable[kCGImagePropertyExifDictionary as String] as? NSMutableDictionary)!
+                let GPSDictionary: NSMutableDictionary = NSMutableDictionary()
+                GPSDictionary.setValue(NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.latitude)), forKey: kCGImagePropertyGPSLatitude as String)
+                GPSDictionary.setValue(NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.latitude)), forKey: kCGImagePropertyGPSLatitude as String)
+                GPSDictionary.setValue(NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.latitude)), forKey: kCGImagePropertyGPSDestLatitude as String)
+                if (self.photoAnnotation.coordinate.latitude > 0) {
+                    GPSDictionary.setValue( "N", forKey: kCGImagePropertyGPSLatitudeRef as String)
+                    GPSDictionary.setValue( "N", forKey: kCGImagePropertyGPSDestLatitudeRef as String)
+                    // north
+                } else {
+                    // south
+                    GPSDictionary.setValue( "S", forKey: kCGImagePropertyGPSLatitudeRef as String)
+                    GPSDictionary.setValue( "S", forKey: kCGImagePropertyGPSDestLatitudeRef as String)
+                }
+                GPSDictionary.setValue( NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.longitude)), forKey: kCGImagePropertyGPSLongitude as String)
+                GPSDictionary.setValue( NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.longitude)), forKey: kCGImagePropertyGPSDestLongitude as String)
+                if (self.photoAnnotation.coordinate.longitude < 0) {
+                    // W
+                    GPSDictionary.setValue( "W", forKey: kCGImagePropertyGPSLongitudeRef as String)
+                    GPSDictionary.setValue( "W", forKey: kCGImagePropertyGPSDestLongitudeRef as String)
+                } else {
+                    // E
+                    GPSDictionary.setValue( "E", forKey: kCGImagePropertyGPSLongitudeRef as String)
+                    GPSDictionary.setValue( "E", forKey: kCGImagePropertyGPSDestLongitudeRef as String)
+                }
+                GPSDictionary.setValue(NSNumber(floatLiteral: self.photoAnnotation.heading.magnitude), forKey: kCGImagePropertyGPSDestBearing as String)
+                GPSDictionary.setValue("N", forKey: kCGImagePropertyGPSDestBearingRef as String)
+                mutable.setValue(EXIFDictionary, forKey: kCGImagePropertyExifDictionary as String)
+                mutable.setValue(GPSDictionary, forKey: kCGImagePropertyGPSDictionary as String)
+                CGImageDestinationAddImageFromSource(destination, cgImgSource, 0, (mutable as CFDictionary))
+                CGImageDestinationFinalize(destination)
+
+                if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! {
+                    let annotation = self.photoAnnotation!
+                    DispatchQueue.global(qos: .background).async {
+                        let localDataWithExif = (dataWithEXIF as Data)
+                        let localCoord = annotation.coordinate
+                        let localHeading = annotation.heading!
+                        Alamofire.upload(multipartFormData: { MultipartFormData in
+                            MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
+                            if let heading_magnitude = heading?.magnitude {
+                                MultipartFormData.append("\(heading_magnitude)".data(using: String.Encoding.utf8)!, withName: "bearing")
                             }
-                        }
-                        break
-                    case .failure(let encodingError):
-                        print("failed to send \(encodingError.localizedDescription)")
-                        self.navigationController?.popViewController(animated: true)
-                        break
+                            MultipartFormData.append(dataWithEXIF as Data, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+                        }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
+                            switch encodingResult {
+                            case .success(let upload, _, _):
+                                upload.responseJSON { response in
+                                    if let result = response.result.value {
+                                        if let success = result as? NSDictionary {
+                                            print(success["success"]! as! Bool)
+                                            PHPhotoLibrary.shared().save(imageData: localDataWithExif, location: localCoord, heading: localHeading, appDelegate: self.appDelegate, completed: true)
+                                            return
+                                        }
+                                        
+                                    }
+                                }
+                                break
+                            case .failure(let encodingError):
+                                print("failed to send \(encodingError.localizedDescription)")
+                                PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: self.photoAnnotation.coordinate, heading: self.photoAnnotation.heading, appDelegate: self.appDelegate, completed: false)
+                            }
+                        })
                     }
-                })
-            }
-      }
+                    self.cancelled()
+                    } else {
+                        PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: self.photoAnnotation.coordinate, heading: self.photoAnnotation.heading, appDelegate: self.appDelegate, completed: false)
+                        self.cancelled()
+                    }
+                }
+        }
+    }
+    @IBAction func lineLooksGreat(_ sender: Any) {
+        let vc = RestrictionViewController(nibName: "Restriction", bundle: nil)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     @IBOutlet weak var centerBox: UIView!
     var zoomLevel: Double = 15.0
@@ -94,7 +168,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     var locationManager: CLLocationManager!
     var coordTouched: CLLocationCoordinate2D!
     var userHeading: CLLocationDirection?
-    var longPressGesture: UILongPressGestureRecognizer!
+    var doubleTapGesture: UITapGestureRecognizer!
     lazy var geocoder = CLGeocoder()
     var addingLine: Bool = false
     var trackUser: Bool = false
@@ -228,9 +302,24 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.mapView.delegate = self;
         self.mapView.setUserTrackingMode(MGLUserTrackingMode.follow, animated: true)
         self.mapView.showsHeading = true
-        self.longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(determineLongPressAction))
-        self.mapView.addGestureRecognizer(self.longPressGesture)
+        self.mapView.gestureRecognizers?.forEach({ (gesture) in
+            if (gesture is UITapGestureRecognizer) {
+                let gr = gesture as! UITapGestureRecognizer
+                if (gr.numberOfTapsRequired == 2) {
+                    print("removing and adding")
+                    self.mapView.removeGestureRecognizer(gr)
+                    self.doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(determineDoubleTapAction))
+                    self.doubleTapGesture.delegate = self
+                    self.doubleTapGesture.numberOfTapsRequired = 2
+                    self.mapView.addGestureRecognizer(self.doubleTapGesture)
+                }
+            }
+        })
         view.insertSubview(self.mapView, at: 0)
+        self.mapView.compassView.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.mapView.snp.top).offset(80).priority(1000.0)
+            make.right.equalTo(self.mapView.snp.right).offset(-30).priority(1000.0)
+        }
         self.appDelegate.mapController = self        
     }
     func numberOfCoachMarks(for coachMarksController: CoachMarksController) -> Int {
@@ -255,7 +344,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         
         let coachViews = coachMarksController.helper.makeDefaultCoachViews(withArrow: true, arrowOrientation: coachMark.arrowOrientation)
         if (index == 0) {
-            coachViews.bodyView.hintLabel.text = "This is you! You can longpress anywhere on the map to bring up an alert box asking if you'd like to take a photo  (line doesn't work yet)"
+            coachViews.bodyView.hintLabel.text = "This is you! You can double tap anywhere on the map to bring up an alert box asking if you'd like to take a photo  (line doesn't work yet)"
             coachViews.bodyView.nextLabel.text = "Sweet!"
         } else if (index == 1) {
             coachViews.bodyView.hintLabel.text = "This is the menu button! From here you can log in, sign up, change the color of the map, etc."
@@ -361,16 +450,32 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
     }
     
-    @objc func determineLongPressAction(gestureRecognizer:UIGestureRecognizer) {
+    @objc func determineDoubleTapAction(gestureRecognizer:UIGestureRecognizer) {
         let touched = gestureRecognizer.location(in: self.mapView)
         self.coordTouched = mapView.convert(touched, toCoordinateFrom: self.mapView)
         if (self.addingLine) {
-            // put another point on the map
+            if (self.line.count < 2) {
+                // put another point on the map
+                var mapMarker: MapMarker!
+                if let heading = self.userHeading {
+                    mapMarker = MapMarker(coordinate: self.coordTouched)
+                    mapMarker.set_heading(heading: heading)
+                } else {
+                    mapMarker = MapMarker(coordinate: self.coordTouched)
+                }
+                mapMarker.type = .line
+                mapMarker.tag = line.count
+                self.updateCurrentLine(mapMarker)
+            } else {
+                let alertController = UIAlertController(title: "2 Points Max", message: "We only allow 2 points on a line, but you can move around the two points you currently have by long pressing them.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
+                self.present(alertController, animated: true, completion: nil)
+            }
         } else {
             // determine if user wants to add a line or a photo
             // 3d touch?
             let alertController = UIAlertController(title: "Line or Photo", message:
-                "Would you like to draw a line or a photo?", preferredStyle: UIAlertControllerStyle.alert)
+                "Would you like to draw a line or a photo?", preferredStyle: UIAlertControllerStyle.actionSheet)
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
             alertController.addAction(UIAlertAction(title: "Line", style: .default, handler: handleAlert))
             alertController.addAction(UIAlertAction(title: "Photo", style: .default, handler: handleAlert))
@@ -379,16 +484,82 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     @objc func handleAlert(action: UIAlertAction) {
         if (action.title == "Line") {
+            self.line = [] // reset the line being added
             self.addingLine = true
+            var mapMarker: MapMarker!
+            if let heading = self.userHeading {
+                mapMarker = MapMarker(coordinate: self.coordTouched)
+                mapMarker.set_heading(heading: heading)
+            } else {
+                mapMarker = MapMarker(coordinate: self.coordTouched)
+            }
+            mapMarker.type = .line
+            mapMarker.tag = self.line.count
+            self.icon.isHidden = true
+            self.updateCurrentLine(mapMarker)
             // handle putting the first point on the map with the coordinate in memory self.coordTouched
         } else {
             //create photo view controller and push onto navigation
             self.trackUser = false
+            // when we add the possibility to add a photo for another location we should not user locationManager, but the touched coord
             self.appDelegate.user.set_location(location: locationManager.location!)
-            let vc = PhotoController(nibName: "PhotoController", bundle: nil)
-            self.navigationController?.pushViewController(vc, animated: true)
+            //let vc = PhotoController(nibName: "PhotoController", bundle: nil)
+            self.picker = UIImagePickerController()
+            self.picker.delegate = self
+            let alert = UIAlertController(title: "Library or Camera", message: "Get a photo from your library or camera?", preferredStyle: .actionSheet)
+            alert.addAction(UIAlertAction(title: "Camera", style: .default, handler: handleCameraLibrary))
+            alert.addAction(UIAlertAction(title: "Library", style: .default, handler: handleCameraLibrary))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            self.present(alert, animated: true, completion: nil)
         }
     }
+    
+    @objc func handleCameraLibrary(action: UIAlertAction) {
+        if (action.title == "Camera") {
+            self.picker.sourceType = .camera
+            self.picker.cameraDevice = .rear
+            self.picker.cameraCaptureMode = .photo
+            self.picker.allowsEditing = false
+            self.picker.showsCameraControls = true
+            self.picker.cameraOverlayView = UIView()
+            self.picker.videoQuality = .typeHigh
+        } else if(action.title == "Library") {
+            self.picker.sourceType = .photoLibrary
+        }
+        self.present(self.picker, animated: true, completion: nil)
+    }
+    
+    
+    
+    @objc func updateCurrentLine(_ mapMarker: MapMarker?) {
+        if (self.line.count > 0) {
+            self.mapView.removeAnnotations(self.line) // remove all current annotations for the line
+            if (self.polyline != nil) {
+            self.mapView.remove(self.polyline)
+            }
+        }
+        if (mapMarker != nil) {
+            self.line.append(mapMarker!)
+        }
+        self.mapView.addAnnotations(self.line)
+        if (self.line.count > 1) {
+            self.polyline = CurbmapPolyLine(coordinates: [self.line[0].coordinate, self.line[1].coordinate], count: 2)
+            self.mapView.add(self.polyline)
+            self.lineLooksGreatButton.isHidden = false
+            self.lineCancelButton.isHidden = false
+        }
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            self.photoToPlace = pickedImage
+            dismiss(animated: true, completion: nil)
+            print(info)
+            self.photoToPlace = pickedImage
+            self.placePhoto()
+        }
+    }
+    
     func setupViews(_ portrait: Bool) {
         var displaywidth = Int((view.frame.width))
         var displayheight = Int((view.frame.height))
@@ -430,10 +601,15 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         contentInset.top = contentInset.top + 44 + 20
         setupViews(self.portrait_oriented)
     }
-    
-    @objc func uploadComplete() {
-        print("completed upload!")
-        self.cancelled()
+    @objc func lineCancelled() {
+        self.lineCancelButton.isHidden = true
+        self.lineLooksGreatButton.isHidden = true
+        self.zoomLevel = 15.0
+        if (self.appDelegate.user.settings["follow"] == "y"){
+            self.trackUser = true
+        }
+        self.addingLine = false
+        
     }
     @objc func cancelled() {
         self.cancelButton.isHidden = true
@@ -442,26 +618,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         if (self.appDelegate.user.settings["follow"] == "y"){
             self.trackUser = true
         }
-        self.mapView.gestureRecognizers = self.tempGestureRecognizers
-        self.view.gestureRecognizers = []
-        for listedGestureRecognizer in tempViewGestureRecognizers {
-            if (listedGestureRecognizer.isKind(of: UIPanGestureRecognizer.self)) {
-                let gestureToAdd: UIPanGestureRecognizer = listedGestureRecognizer as! UIPanGestureRecognizer
-                self.view.addGestureRecognizer(gestureToAdd)
-            }
-            else if (listedGestureRecognizer.isKind(of: UILongPressGestureRecognizer.self)) {
-                let gestureToAdd: UILongPressGestureRecognizer = listedGestureRecognizer as! UILongPressGestureRecognizer
-                self.view.addGestureRecognizer(gestureToAdd)
-            } else if (listedGestureRecognizer.isKind(of: UITapGestureRecognizer.self)) {
-                let gestureToAdd: UITapGestureRecognizer = listedGestureRecognizer as! UITapGestureRecognizer
-                self.view.addGestureRecognizer(gestureToAdd)
-                
-            }
-        }
         self.movingPhotoAnnotation = false
         self.photoToPlace = nil
         self.photoAnnotation = nil
     }
+    
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .authorizedWhenInUse {
             if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
@@ -490,53 +651,56 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.appDelegate.user.set_location(location: manager.location!)
         }
     }
-    @objc func movePhotoMarker(_ photoMoved: UITapGestureRecognizer) {
-        // point teleportation!
-        let lastMovedTo = photoMoved.location(in: self.mapView)
-        let photoAnnotationLocation = mapView.convert(lastMovedTo, toCoordinateFrom: self.mapView)
-        self.mapView.removeAnnotation(photoAnnotation)
-        self.photoAnnotation.coordinate = photoAnnotationLocation
-        self.mapView.addAnnotation(photoAnnotation)
-    }
-    @objc func moveMap(_ mapMoved: UIPanGestureRecognizer) {
-        if (mapMoved.state == .began) {
-            self.firstTouchPosition = mapMoved.location(in: self.mapView)
+
+    func mapView(_ mapView: MGLMapView, viewFor annotation: MGLAnnotation) -> MGLAnnotationView? {
+        // This example is only concerned with point annotations.
+        guard annotation is MapMarker else {
+            return nil
         }
-        if (mapMoved.state == .ended) {
-            self.lastTouchPosition = mapMoved.location(in: self.mapView)
-            let origin = self.mapView.convert(self.firstTouchPosition, toCoordinateFrom: self.mapView)
-            let ending = self.mapView.convert(self.lastTouchPosition, toCoordinateFrom: self.mapView)
-            var center = self.mapView.centerCoordinate
-            let dist_lng = origin.longitude - ending.longitude
-            let dist_lat = origin.latitude - ending.latitude
-            center.longitude += dist_lng
-            center.latitude += dist_lat
-            let center_location = CLLocation(latitude: center.latitude, longitude: center.longitude)
-            self.centerMapOnLocation(location: center_location)
+        let ann = annotation as! MapMarker
+        // For better performance, always try to reuse existing annotations. To use multiple different annotation views, change the reuse identifier for each.
+        if (ann.type == .line) {
+            if let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "draggableLinePoint") as? DraggableAnnotationView {
+                annotationView.set_callback(function: self.updateCurrentLine)
+                return annotationView
+            } else {
+                let annotationView = DraggableAnnotationView(reuseIdentifier: "draggableLinePoint", size: 50, type: .line)
+                annotationView.set_callback(function: self.updateCurrentLine)
+                return annotationView
+            }
+        } else if (ann.type == .photo){
+            if let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "draggablePhotoPoint") {
+                return annotationView
+            } else {
+                return DraggableAnnotationView(reuseIdentifier: "draggablePhotoPoint", size: 50, type: .photo)
+            }
+        } else {
+            let View = DraggableAnnotationView(reuseIdentifier: "undragable", size: 50, type: .line)
+            View.isDraggable = false
+            return View
         }
     }
     
+    func mapView(_ mapView: MGLMapView, annotationCanShowCallout annotation: MGLAnnotation) -> Bool {
+        return true
+    }
+    
     @objc func placePhoto() {
+        self.looksGreatButton.isEnabled = true
         // Display mapmarker
         // on mapMarker show little photo?
         // Then turn off dragging of map and add a pan gesture which moves the marker only
         self.zoomLevel = 17
-        centerMapOnLocation(location: self.appDelegate.user.get_location()!)
+        centerMapOnLocation(location: CLLocation(latitude: self.coordTouched.latitude, longitude: self.coordTouched.longitude))
         if (self.userHeading != nil) {
-            self.photoAnnotation = MapMarker(coordinate: self.appDelegate.user.get_location()!.coordinate, heading: self.userHeading!)
+            self.photoAnnotation = MapMarker(coordinate: self.coordTouched)
+            self.photoAnnotation.set_heading(heading: self.userHeading!)
         } else {
-            self.photoAnnotation = MapMarker(coordinate: self.appDelegate.user.get_location()!.coordinate)
+            self.photoAnnotation = MapMarker(coordinate: self.coordTouched)
         }
+        self.photoAnnotation.type = .photo
         self.movingPhotoAnnotation = true
         self.mapView.addAnnotation(self.photoAnnotation)
-        self.tempGestureRecognizers = self.mapView.gestureRecognizers! // copy the gesture recognizers to replace later
-        self.mapView.gestureRecognizers = []
-        self.tempViewGestureRecognizers = self.view.gestureRecognizers!
-        let tapGestureMarker = UITapGestureRecognizer(target: self, action: #selector(movePhotoMarker))
-        tapGestureMarker.delegate = self
-        let panGestureMarker = UIPanGestureRecognizer(target: self, action: #selector(moveMap))
-        panGestureMarker.delegate = self
-        self.view.gestureRecognizers = [panGestureMarker, tapGestureMarker]
         self.looksGreatButton.isHidden = false
         self.cancelButton.isHidden = false
         self.icon.isHidden = true
@@ -550,5 +714,49 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
     }
 }
+extension PHPhotoLibrary {
+    func save(imageData: Data, location: CLLocationCoordinate2D, heading: CLLocationDirection, appDelegate: AppDelegate, completed: Bool) {
+        var placeholder: PHObjectPlaceholder!
+            PHPhotoLibrary.shared().performChanges({
+                let request = PHAssetCreationRequest.forAsset()
+                request.addResource(with: .photo, data: imageData, options: .none)
+                request.location = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                placeholder = request.placeholderForCreatedAsset
+            }, completionHandler: { (success, error) -> Void in
+                if let error = error {
+                    return
+                }
+                guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [placeholder.localIdentifier], options: nil).firstObject else {
+                    return
+                }
+                appDelegate.save_image_data(localIdentifier: placeholder.localIdentifier, heading: heading.magnitude, lat: location.latitude, lng: location.longitude, uploaded: completed)
+            }
+        )
+    }
+    
+}
+// :- Date -: https://stackoverflow.com/questions/28016578/swift-how-to-create-a-date-time-stamp-and-format-as-iso-8601-rfc-3339-utc-tim
+extension Formatter {
+    static let iso8601: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+        return formatter
+    }()
+}
+extension Date {
+    var iso8601: String {
+        return Formatter.iso8601.string(from: self)
+    }
+}
+
+extension String {
+    var dateFromISO8601: Date? {
+        return Formatter.iso8601.date(from: self)   // "Mar 22, 2017, 10:22 AM"
+    }
+}
+
 
 

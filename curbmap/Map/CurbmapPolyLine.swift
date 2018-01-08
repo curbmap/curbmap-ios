@@ -9,7 +9,7 @@
 import Foundation
 import MapKit
 import Mapbox
-class CurbmapPolyLine: MGLPolyline {
+class CurbmapPolyLine: MGLPolylineFeature {
     var color: UIColor?
     var restrictions: [Restriction] = []
     var inEffect: Bool?    

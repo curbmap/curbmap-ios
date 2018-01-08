@@ -10,19 +10,40 @@ import Foundation
 import MapKit
 import Mapbox
 
-class MapMarker: NSObject, MGLAnnotation {
-    var coordinate: CLLocationCoordinate2D
-    var heading: CLLocationDirection
+class MapMarker: MGLPointAnnotation {
+    var heading: CLLocationDirection!
     var color: String!
-    var tag: String!
+    var type: AnnotationType!
+    var tag: Int!
     var restrictions: [Restriction]!
     var inEffect: Bool!
-    init(coordinate: CLLocationCoordinate2D){
-        self.coordinate = coordinate
-        self.heading = 0.0
+    enum AnnotationType : Int {
+        case photo = 0
+        case line = 1
     }
-    init(coordinate: CLLocationCoordinate2D, heading: CLLocationDirection) {
+    
+    init(coordinate: CLLocationCoordinate2D){
+        super.init()
         self.coordinate = coordinate
+    }
+        
+    func get_coordinate() -> CLLocationCoordinate2D {
+        return self.coordinate
+    }
+    
+    func set_coordinate(location: CLLocationCoordinate2D) {
+        self.coordinate = location
+    }
+    
+    func set_heading(heading: CLLocationDirection) {
         self.heading = heading
+    }
+
+    func get_heading() -> CLLocationDirection? {
+        return self.heading
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

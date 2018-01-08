@@ -174,6 +174,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             }
         }
     }
+    
+    @objc func save_image_data(localIdentifier: String, heading: Double, lat:  Double, lng: Double, uploaded: Bool) {
+        DispatchQueue.main.async {
+            let newImage = Images()
+            newImage.localIdentifier = localIdentifier
+            newImage.heading = heading
+            newImage.latitude = lat
+            newImage.longitude = lng
+            newImage.uploaded = uploaded
+            try! self.realm.write {
+                self.realm.add(newImage)
+            }
+        }
+    }
+    
+    @objc func find_image_data(_ localIdentifier: String) -> [String: Any]? {
+        let file_searched = realm.objects(Images.self).filter("localIdentifer == \(localIdentifier)").first
+        if let file_found = file_searched {
+            return [
+                "heading": file_found.heading,
+                "latitude": file_found.latitude,
+                "longitude": file_found.longitude,
+                "uploaded": file_found.uploaded
+            ]
+        } else {
+            return nil
+        }
+    }
 
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
@@ -286,6 +314,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     }
 
 
+}
+class Images: Object {
+    @objc dynamic var localIdentifier: String = ""
+    @objc dynamic var heading: Double = 0.0
+    @objc dynamic var longitude: Double = 0.0
+    @objc dynamic var latitude: Double = 0.0
+    @objc dynamic var uploaded: Bool = false
 }
 
 class Settings : Object {

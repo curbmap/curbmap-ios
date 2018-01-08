@@ -9,7 +9,7 @@
 import Foundation
 
 class Restriction : CustomStringConvertible {
-    var type: String = "rednp"
+    var type: Int = 0
     var days: [Bool] = [false, false, false, false, false, false, false]
     var weeks: [Bool] = [true, true, true, true]
     var months: [Bool] = [true, true, true, true, true, true, true, true, true, true, true, true]
@@ -24,7 +24,7 @@ class Restriction : CustomStringConvertible {
     var dateAdded: Date?
     var id: String?
     var creator_score: Int = 0
-    init(type: String, days: [Bool], from: Int, to: Int, limit: Int){
+    init(type: Int, days: [Bool], from: Int, to: Int, limit: Int){
         self.type = type
         self.days = days
         self.fromTime = from

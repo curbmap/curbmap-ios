@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Alignment constraints to the first baseline" minToolsVersion="6.0"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -74,6 +75,18 @@
                                     <action selector="looksGreat:" destination="3Es-pf-Y83" eventType="touchUpInside" id="j5a-qD-u97"/>
                                 </connections>
                             </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="TSe-Gh-7vL" userLabel="Line Looks Great Button">
+                                <rect key="frame" x="16" y="428" width="64" height="64"/>
+                                <fontDescription key="fontDescription" name="Futura-Bold" family="Futura" pointSize="16"/>
+                                <size key="titleShadowOffset" width="1" height="1"/>
+                                <state key="normal" title="Looks great!" backgroundImage="check">
+                                    <color key="titleShadowColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="lineLooksGreat:" destination="3Es-pf-Y83" eventType="touchUpInside" id="IJT-eh-4C4"/>
+                                    <action selector="looksGreat:" destination="3Es-pf-Y83" eventType="touchUpInside" id="gR2-nQ-3GY"/>
+                                </connections>
+                            </button>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zEO-SI-B58">
                                 <rect key="frame" x="240" y="428" width="64" height="64"/>
                                 <constraints>
@@ -86,6 +99,17 @@
                                 </state>
                                 <connections>
                                     <action selector="cancel:" destination="3Es-pf-Y83" eventType="touchUpInside" id="0VX-qS-MS3"/>
+                                </connections>
+                            </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wMe-70-ZE2" userLabel="Line Cancel Button">
+                                <rect key="frame" x="240" y="428" width="64" height="64"/>
+                                <fontDescription key="fontDescription" name="Futura-Bold" family="Futura" pointSize="16"/>
+                                <size key="titleShadowOffset" width="1" height="1"/>
+                                <state key="normal" title="Cancel" backgroundImage="cancel">
+                                    <color key="titleShadowColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="cancelLine:" destination="3Es-pf-Y83" eventType="touchUpInside" id="23l-Ro-btL"/>
                                 </connections>
                             </button>
                             <view hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eXc-A5-P4z">
@@ -102,20 +126,30 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="wMe-70-ZE2" firstAttribute="baseline" secondItem="zEO-SI-B58" secondAttribute="baseline" id="04F-oK-v7h"/>
                             <constraint firstItem="2Ch-Ss-iZH" firstAttribute="trailing" secondItem="zEO-SI-B58" secondAttribute="trailing" id="0zB-83-R6R"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="trailing" secondItem="eIL-XA-De8" secondAttribute="leading" id="2wt-98-JcO"/>
                             <constraint firstAttribute="bottom" secondItem="2Ch-Ss-iZH" secondAttribute="bottom" constant="20" symbolic="YES" id="8ns-NC-u1r"/>
                             <constraint firstItem="2Ch-Ss-iZH" firstAttribute="trailing" secondItem="eIL-XA-De8" secondAttribute="trailing" id="DLG-YP-Fne"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="top" secondItem="eIL-XA-De8" secondAttribute="top" id="Eee-Ed-RNT"/>
                             <constraint firstItem="zEO-SI-B58" firstAttribute="bottom" secondItem="Y2Y-GG-mmN" secondAttribute="bottom" id="Foc-NT-FMg"/>
+                            <constraint firstItem="TSe-Gh-7vL" firstAttribute="firstBaseline" secondItem="Y2Y-GG-mmN" secondAttribute="firstBaseline" id="G1F-rC-WLq"/>
                             <constraint firstItem="vdl-TO-E7Z" firstAttribute="bottom" secondItem="2Ch-Ss-iZH" secondAttribute="bottom" id="IfL-JM-8X5"/>
+                            <constraint firstItem="TSe-Gh-7vL" firstAttribute="trailing" secondItem="Y2Y-GG-mmN" secondAttribute="trailing" id="JGu-mi-qkS"/>
                             <constraint firstItem="vdl-TO-E7Z" firstAttribute="top" secondItem="eIL-XA-De8" secondAttribute="bottom" id="Lnv-e7-7Uq"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="top" secondItem="VoZ-I9-6yH" secondAttribute="top" id="Q6Z-f8-y10"/>
+                            <constraint firstItem="wMe-70-ZE2" firstAttribute="trailing" secondItem="zEO-SI-B58" secondAttribute="trailing" id="WYu-rR-BUH"/>
                             <constraint firstItem="zEO-SI-B58" firstAttribute="leading" secondItem="vdl-TO-E7Z" secondAttribute="trailing" constant="35" id="WwZ-r8-WgT"/>
                             <constraint firstItem="2Ch-Ss-iZH" firstAttribute="top" secondItem="zEO-SI-B58" secondAttribute="bottom" constant="8" symbolic="YES" id="bs5-by-eTe"/>
+                            <constraint firstItem="TSe-Gh-7vL" firstAttribute="baseline" secondItem="Y2Y-GG-mmN" secondAttribute="baseline" id="cp9-NN-R1t"/>
+                            <constraint firstItem="TSe-Gh-7vL" firstAttribute="top" secondItem="Y2Y-GG-mmN" secondAttribute="top" id="fCc-aG-df8"/>
+                            <constraint firstItem="wMe-70-ZE2" firstAttribute="firstBaseline" secondItem="zEO-SI-B58" secondAttribute="firstBaseline" id="fgK-TW-TpR"/>
+                            <constraint firstItem="wMe-70-ZE2" firstAttribute="leading" secondItem="zEO-SI-B58" secondAttribute="leading" id="fux-St-rql"/>
+                            <constraint firstItem="wMe-70-ZE2" firstAttribute="top" secondItem="zEO-SI-B58" secondAttribute="top" id="gf6-h5-WK0"/>
                             <constraint firstItem="zEO-SI-B58" firstAttribute="top" secondItem="Y2Y-GG-mmN" secondAttribute="top" id="hWg-8h-dCo"/>
                             <constraint firstItem="vdl-TO-E7Z" firstAttribute="leading" secondItem="Y2Y-GG-mmN" secondAttribute="leading" id="jtI-wZ-N6s"/>
                             <constraint firstItem="PRe-bz-WtG" firstAttribute="leading" secondItem="pH2-Yh-EEI" secondAttribute="leadingMargin" id="vsr-BV-XhE"/>
+                            <constraint firstItem="TSe-Gh-7vL" firstAttribute="leading" secondItem="Y2Y-GG-mmN" secondAttribute="leading" id="wjG-So-TqG"/>
                             <constraint firstItem="vdl-TO-E7Z" firstAttribute="leading" secondItem="PRe-bz-WtG" secondAttribute="leading" id="xTh-Xz-iLU"/>
                             <constraint firstItem="eIL-XA-De8" firstAttribute="trailing" secondItem="pH2-Yh-EEI" secondAttribute="trailingMargin" id="yQk-Zr-auz"/>
                         </constraints>
@@ -128,6 +162,8 @@
                         <outlet property="centerBox" destination="eXc-A5-P4z" id="t6J-zR-Dpc"/>
                         <outlet property="containerView" destination="vdl-TO-E7Z" id="XPa-Eb-inE"/>
                         <outlet property="icon" destination="2Ch-Ss-iZH" id="2ps-CN-UQS"/>
+                        <outlet property="lineCancelButton" destination="wMe-70-ZE2" id="nje-Bm-wTn"/>
+                        <outlet property="lineLooksGreatButton" destination="TSe-Gh-7vL" id="Wsl-uo-9s9"/>
                         <outlet property="looksGreatButton" destination="Y2Y-GG-mmN" id="VH3-2z-V0H"/>
                         <outlet property="searchBar" destination="eIL-XA-De8" id="Ewj-Gc-cvN"/>
                     </connections>
@@ -141,15 +177,15 @@
             <objects>
                 <tableViewController storyboardIdentifier="Menu" title="Menu" useStoryboardIdentifierAsRestorationIdentifier="YES" id="jSz-oj-7xN" customClass="MenuTableViewController" customModule="curbmap" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="Goj-Cq-5xg">
-                        <rect key="frame" x="0.0" y="0.0" width="154" height="492"/>
+                        <rect key="frame" x="0.0" y="0.0" width="209" height="523"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="AMS-rL-0q0">
-                                <rect key="frame" x="0.0" y="28" width="154" height="44"/>
+                                <rect key="frame" x="0.0" y="28" width="209" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="AMS-rL-0q0" id="n70-lr-uhT">
-                                    <rect key="frame" x="0.0" y="0.0" width="154" height="43.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="209" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
                                 <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -710,6 +746,6 @@
         <image name="menu" width="64" height="64"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="diB-Eu-lXd"/>
+        <segue reference="oeh-Kp-bb0"/>
     </inferredMetricsTieBreakers>
 </document>
