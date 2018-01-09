@@ -143,6 +143,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     @IBAction func lineLooksGreat(_ sender: Any) {
         let vc = RestrictionViewController(nibName: "Restriction", bundle: nil)
+        vc.setCancel(function: self.cancelLine)
         self.navigationController?.pushViewController(vc, animated: true)
     }
     @IBOutlet weak var centerBox: UIView!
@@ -532,10 +533,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     
     
     @objc func updateCurrentLine(_ mapMarker: MapMarker?) {
+        print("update line being called")
         if (self.line.count > 0) {
             self.mapView.removeAnnotations(self.line) // remove all current annotations for the line
             if (self.polyline != nil) {
-            self.mapView.remove(self.polyline)
+                self.mapView.remove(self.polyline)
             }
         }
         if (mapMarker != nil) {
@@ -675,6 +677,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                 return DraggableAnnotationView(reuseIdentifier: "draggablePhotoPoint", size: 50, type: .photo)
             }
         } else {
+            print("adding this kind of annotation")
             let View = DraggableAnnotationView(reuseIdentifier: "undragable", size: 50, type: .line)
             View.isDraggable = false
             return View

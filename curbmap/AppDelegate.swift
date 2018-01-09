@@ -31,6 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     var registeredForLocal : Bool = false
     var registeredForRemote: Bool = false
     let realm = try! Realm()
+    var restrictions: [Restriction] = []
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -101,6 +102,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         print("Failed to register: \(error)")
     }
     
+    func addRestriction(_ restriction: Restriction) {
+        self.restrictions.append(restriction)
+    }
+    
+    func restrictionsToAdd() -> [Restriction] {
+        return self.restrictions
+    }
+    func popRestriction() -> Restriction? {
+        return self.restrictions.popLast()
+    }
     @objc func getUser() {
         do {
             let username_token = try keychain.get("user_curbmap")

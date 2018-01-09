@@ -77,6 +77,9 @@ class DraggableAnnotationView: MGLAnnotationView {
             self.layer.opacity = 1
             self.transform = CGAffineTransform.identity.scaledBy(x: 1, y: 1)            
         }, completion: nil)
+        if let updateLine = callback {
+            updateLine(nil)
+        }
     }
 }
 

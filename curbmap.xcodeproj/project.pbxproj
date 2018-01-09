@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1E5ECD83A457E53B583231A1 /* Pods_curbmap.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7998D376AE798C7A2BB50B14 /* Pods_curbmap.framework */; };
 		BB8F8EC9EFB0138662F4B561 /* Pods_curbmapUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */; };
+		D50F8D41200499B20029E4FF /* TimeDelegateData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50F8D40200499B20029E4FF /* TimeDelegateData.swift */; };
 		D527000D2002D61F0082B58A /* Restriction.xib in Resources */ = {isa = PBXBuildFile; fileRef = D5BF303E2002B35F007E8147 /* Restriction.xib */; };
 		D52CB09A1FFECD7300C50B41 /* MapMarkerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52CB0991FFECD7300C50B41 /* MapMarkerView.swift */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
@@ -69,6 +70,7 @@
 		6488BFE3B12D0577F715E5F7 /* Pods-curbmapTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-curbmapTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-curbmapTests/Pods-curbmapTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7998D376AE798C7A2BB50B14 /* Pods_curbmap.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmap.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C53ED6BB5F01D387E6CA6559 /* Pods_curbmapUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmapUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D50F8D40200499B20029E4FF /* TimeDelegateData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeDelegateData.swift; sourceTree = "<group>"; };
 		D52CB08A1FFCA79400C50B41 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/RealmSwift.framework"; sourceTree = "<group>"; };
 		D52CB08B1FFCA79400C50B41 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/Realm.framework"; sourceTree = "<group>"; };
 		D52CB0991FFECD7300C50B41 /* MapMarkerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapMarkerView.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				D59488041FD736B2008822A7 /* Restriction.swift */,
 				D5BF303D2002B35F007E8147 /* RestrictionViewController.swift */,
 				D5BF303E2002B35F007E8147 /* Restriction.xib */,
+				D50F8D40200499B20029E4FF /* TimeDelegateData.swift */,
 			);
 			path = Restriction;
 			sourceTree = "<group>";
@@ -649,6 +652,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D5BCACF61FF1BCF700EDB02A /* LoginViewController.swift in Sources */,
+				D50F8D41200499B20029E4FF /* TimeDelegateData.swift in Sources */,
 				D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */,
 				D5BF303C2001F5F2007E8147 /* MapBoxExtended.swift in Sources */,
 				D59488011FD7368D008822A7 /* MapMarker.swift in Sources */,

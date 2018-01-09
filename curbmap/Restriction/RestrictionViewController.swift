@@ -12,32 +12,227 @@ import SnapKit
 
 class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-
+    func setCancel(function: @escaping(Any)->Void) {
+        self.cancelLine = function
+    }
+    var cancelLine: ((Any) -> Void)?
+    var startTimeDelegate: TimeDelegateData!
+    var endTimeDelegate: TimeDelegateData!
+    
     @IBOutlet weak var doneButtonOutlet: UIButton!
     @IBAction func doneButtonAction(_ sender: Any) {
         self.addCurrentRestriction()
-        self.appDelegate.submitRestrictions()
+        //self.appDelegate.submitRestrictions()
     }
     @IBOutlet weak var addAnotherOutlet: UIButton!
     @IBAction func addAnotherAction(_ sender: Any) {
         self.addCurrentRestriction()
         self.createCentralViews()
+        self.setupCentralViews()
     }
     @IBOutlet weak var cancelOutlet: UIButton!
     @IBAction func cancelAction(_ sender: Any) {
-        if (self.appDelegate.restrictionsToAdd.count <= 0) {
+        if (self.appDelegate.restrictionsToAdd().count <= 0) {
+            if let cancelLineFunction = self.cancelLine {
+                cancelLineFunction(self)
+            }
             self.navigationController?.popViewController(animated: true)
         } else {
             self.getLastRestriction()
         }
     }
     func addCurrentRestriction() {
-        let restriction = Restriction(type: <#String#>)
-        restriction
+        var type = 0
+        if (self.curbColorValue == 2 && !self.meterOutlet.isOn) {
+            // short term unmetered parking
+            type = 0
+        } else if (self.curbColorValue == 2 && self.meterOutlet.isOn) {
+            // short term metered parking
+            type = 1
+        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.timeLimitField.text != nil && self.permitField.text == nil) {
+            // Time Limited parking without a meter
+            type = 2
+        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != nil && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 1) {
+            // metered parking without permit exemption
+            type = 3
+        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitField.text != nil) {
+            // permit exemption to time limited parking
+            type = 4
+        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != nil && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 0) {
+            // metered parking with permit exemption
+            type = 5
+        } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 0) {
+            // no parking
+            type = 6
+        } else if (self.curbColorValue == 1 && self.permitField.text != nil) {
+            // no parking with permit exemption
+            type = 7
+        } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 1) {
+            // no stopping
+            type = 8
+        } else if (self.curbColorValue == 3 && self.permitOutlet.selectedSegmentIndex == 0) {
+            // Disabled parking
+            type = 10
+        } else if (self.curbColorValue == 4) {
+            // Yellow zone
+            type = 12
+        } else if (self.curbColorValue == 5) {
+            //White zone
+            type = 11
+        }
+        var days = [true, true, true, true, true, true, true]
+        if (!self.daysSwitchOutlet.isOn) {
+            days = [self.sunSwitchOutlet.isOn, self.monSwitchOutlet.isOn, self.tueSwitchOutlet.isOn, self.wedSwitchOutlet.isOn, self.thuSwitchOutlet.isOn, self.friSwitchOutlet.isOn, self.satSwitchOutlet.isOn]
+        }
+        var weeks = [true, true, true, true]
+        if (!self.everyWeekSwitchOutlet.isOn) {
+            weeks = [self.firstWeekOutlet.isOn, self.secondWeekOutlet.isOn, self.thirdWeekOutlet.isOn, self.fourthWeekOutlet.isOn]
+        }
+        var months = [true, true, true, true, true, true, true, true, true, true, true, true]
+        if (!self.everyMonthOutlet.isOn) {
+            months = [self.janOutlet.isOn, self.febOutlet.isOn, self.marOutlet.isOn, self.aprOutlet.isOn, self.mayOutlet.isOn, self.junOutlet.isOn, self.julOutlet.isOn, self.augOutlet.isOn, self.sepOutlet.isOn, self.octOutlet.isOn, self.novOutlet.isOn, self.decOutlet.isOn]
+        }
+        var start = 0
+        var end = 1440
+        if (!self.allDaySwitchOutlet.isOn) {
+            start = startTimePicker.selectedRow(inComponent: 0) * 60 + startTimePicker.selectedRow(inComponent: 1)
+            end = endTimePicker.selectedRow(inComponent: 0) * 60 + endTimePicker.selectedRow(inComponent: 1)
+        }
+        let restriction = Restriction(type: type, days: days, weeks: weeks, months: months, from: start, to: end, angle: self.angleOutlet.selectedSegmentIndex, limit: (self.timeLimitField.text != nil) ? Int(self.timeLimitField.text!) : nil, cost: self.costField.text != nil ? Float(self.costField.text!) : nil, per: self.perField.text != nil ? Int(self.perField.text!) : nil, permit: self.permitField.text != nil ? self.permitField.text : nil)
+        self.appDelegate.addRestriction(restriction)
+        
+    }
+    func resetAllDay() {
+        self.startTimePicker.selectRow(8, inComponent: 0, animated: true)
+        self.startTimePicker.selectRow(0, inComponent: 1, animated: true)
+        self.endTimePicker.selectRow(10, inComponent: 0, animated: true)
+        self.endTimePicker.selectRow(0, inComponent: 1, animated: true)
+    }
+    func resetDays() {
+        self.sunSwitchOutlet.setOn(false, animated: false)
+        self.monSwitchOutlet.setOn(false, animated: false)
+        self.tueSwitchOutlet.setOn(false, animated: false)
+        self.wedSwitchOutlet.setOn(false, animated: false)
+        self.thuSwitchOutlet.setOn(false, animated: false)
+        self.friSwitchOutlet.setOn(false, animated: false)
+        self.satSwitchOutlet.setOn(false, animated: false)
+    }
+    func resetWeeks() {
+        self.firstWeekOutlet.setOn(false, animated: false)
+        self.secondWeekOutlet.setOn(false, animated: false)
+        self.thirdWeekOutlet.setOn(false, animated: false)
+        self.fourthWeekOutlet.setOn(false, animated: false)
+    }
+    func resetMonths() {
+        self.janOutlet.setOn(false, animated: false)
+        self.febOutlet.setOn(false, animated: false)
+        self.marOutlet.setOn(false, animated: false)
+        self.aprOutlet.setOn(false, animated: false)
+        self.mayOutlet.setOn(false, animated: false)
+        self.junOutlet.setOn(false, animated: false)
+        self.julOutlet.setOn(false, animated: false)
+        self.augOutlet.setOn(false, animated: false)
+        self.sepOutlet.setOn(false, animated: false)
+        self.octOutlet.setOn(false, animated: false)
+        self.novOutlet.setOn(false, animated: false)
+        self.decOutlet.setOn(false, animated: false)
     }
     
     func getLastRestriction() {
-        
+        self.createCentralViews()
+        self.setupCentralViews()
+        if let restriction = self.appDelegate.popRestriction() {
+            if let limit = restriction.timeLimit {
+                self.timeLimitField.text = String(limit)
+            }
+            if let cost = restriction.cost {
+                self.costField.text = String(cost)
+                self.meterOutlet.setOn(true, animated: true)
+            }
+            if let per = restriction.per {
+                self.perField.text = String(per)
+            }
+            if (restriction.days.contains(false)) {
+                self.daysSwitchOutlet.setOn(false, animated: true)
+                self.sunSwitchOutlet.setOn(restriction.days[0], animated: true)
+                self.monSwitchOutlet.setOn(restriction.days[1], animated: true)
+                self.tueSwitchOutlet.setOn(restriction.days[2], animated: true)
+                self.wedSwitchOutlet.setOn(restriction.days[3], animated: true)
+                self.thuSwitchOutlet.setOn(restriction.days[4], animated: true)
+                self.friSwitchOutlet.setOn(restriction.days[5], animated: true)
+                self.satSwitchOutlet.setOn(restriction.days[6], animated: true)
+            }
+            if (restriction.weeks.contains(false)) {
+                self.everyWeekSwitchOutlet.setOn(false, animated: true)
+                self.firstWeekOutlet.setOn(restriction.weeks[0], animated: true)
+                self.secondWeekOutlet.setOn(restriction.weeks[1], animated: true)
+                self.thirdWeekOutlet.setOn(restriction.weeks[2], animated: true)
+                self.fourthWeekOutlet.setOn(restriction.weeks[3], animated: true)
+            }
+            if (restriction.months.contains(false)) {
+                self.everyMonthOutlet.setOn(false, animated: false)
+                self.janOutlet.setOn(restriction.months[0], animated: false)
+                self.febOutlet.setOn(restriction.months[1], animated: false)
+                self.marOutlet.setOn(restriction.months[2], animated: false)
+                self.aprOutlet.setOn(restriction.months[3], animated: false)
+                self.mayOutlet.setOn(restriction.months[4], animated: false)
+                self.junOutlet.setOn(restriction.months[5], animated: false)
+                self.julOutlet.setOn(restriction.months[6], animated: false)
+                self.augOutlet.setOn(restriction.months[7], animated: false)
+                self.sepOutlet.setOn(restriction.months[8], animated: false)
+                self.octOutlet.setOn(restriction.months[9], animated: false)
+                self.novOutlet.setOn(restriction.months[10], animated: false)
+                self.decOutlet.setOn(restriction.months[11], animated: false)
+            }
+            if (restriction.fromTime != 0 || restriction.toTime != 1440) {
+                let s_hours = Int(floor(Double(restriction.fromTime) / 60.0))
+                let s_minutes = restriction.fromTime - (60 * s_hours)
+                let e_hours = Int(floor(Double(restriction.toTime) / 60.0))
+                let e_minutes = restriction.toTime - (60 * s_hours)
+                startTimePicker.selectRow(s_hours, inComponent: 0, animated: true)
+                startTimePicker.selectRow(s_minutes, inComponent: 1, animated: true)
+                endTimePicker.selectRow(e_hours, inComponent: 0, animated: true)
+                endTimePicker.selectRow(e_minutes, inComponent: 1, animated: true)
+            }
+            if let permit = restriction.permit {
+                self.permitOutlet.selectedSegmentIndex = 0
+                self.permitField.text = permit
+            }
+            self.angleOutlet.selectedSegmentIndex = restriction.angle
+            self.angleAction(self)
+            switch(restriction.type) {
+            case 0:
+                fallthrough
+            case 1:
+                self.greenCurbAction(self)
+                break
+            case 2:
+                fallthrough
+            case 3:
+                fallthrough
+            case 4:
+                fallthrough
+            case 5:
+                self.grayCurbAction(self)
+            case 6:
+                fallthrough
+            case 7:
+                fallthrough
+            case 8:
+                self.redCurbAction(self)
+            case 10:
+                self.blueCurbAction(self)
+            case 11:
+                self.whiteCurbAction(self)
+            case 12:
+                self.yellowCurbAction(self)
+            default:
+                break
+            }
+        } else {
+            // do nothing
+        }
+        self.setupCentralViews()
     }
     
     @IBOutlet weak var scrollView: UIScrollView!
@@ -54,7 +249,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.curbColorValue = 0
         self.meterOutlet.isHidden = false
         self.meterOutlet.setOn(false, animated: true)
-        self.permitOutlet.selectedSegmentIndex = 2
         self.setupCentralViews()
     }
     @IBOutlet weak var curbColor: UILabel!
@@ -69,7 +263,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.redCurbOutlet.layer.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 1.0, alpha: 0.8).cgColor
         self.curbColorValue = 1
         self.meterOutlet.setOn(false, animated: true)
-        self.permitOutlet.selectedSegmentIndex = 2
+        self.permitOutlet.selectedSegmentIndex = 1
         self.setupCentralViews()
     }
     @IBOutlet weak var greenCurbOutlet: UIButton!
@@ -94,7 +288,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.redCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.curbColorValue = 3
         self.meterOutlet.setOn(false, animated: true)
-        self.permitOutlet.selectedSegmentIndex = 0
         self.setupCentralViews()
     }
     
@@ -157,6 +350,138 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     }
     @IBOutlet weak var currencyOutlet: UISegmentedControl!
     
+    @IBOutlet weak var allDaySwitchOutlet: UISwitch!
+    @IBAction func allDaySwitchAction(_ sender: Any) {
+        self.resetAllDay()
+        self.setupCentralViews()
+    }
+    @IBOutlet weak var allDayLabel: UILabel!
+    @IBOutlet weak var timeView: UIView!
+    
+    @IBOutlet weak var startTimeHeading: UILabel!
+    @IBOutlet weak var startTimePicker: UIPickerView!
+
+    @IBOutlet weak var endTimeHeading: UILabel!
+    @IBOutlet weak var endTimePicker: UIPickerView!
+    
+    @IBOutlet weak var daysSwitchOutlet: UISwitch!
+    @IBAction func daysSwitchAction(_ sender: Any) {
+        self.resetDays()
+        self.setupCentralViews()
+    }
+    @IBOutlet weak var daysView: UIScrollView!
+    @IBOutlet weak var sunLabel: UILabel!
+    @IBOutlet weak var sunSwitchOutlet: UISwitch!
+    @IBAction func sunSwitchAction(_ sender: Any) {
+        
+    }
+    @IBOutlet weak var monLabel: UILabel!
+    @IBOutlet weak var monSwitchOutlet: UISwitch!
+    @IBAction func monSwitchAction(_ sender: Any) {
+    }
+    @IBOutlet weak var tueLabel: UILabel!
+    @IBOutlet weak var tueSwitchOutlet: UISwitch!
+    @IBAction func tueSwitchAction(_ sender: Any) {
+    }
+    @IBOutlet weak var wedLabel: UILabel!
+    @IBOutlet weak var wedSwitchOutlet: UISwitch!
+    @IBAction func wedSwitchAction(_ sender: Any) {
+    }
+    @IBOutlet weak var thuLabel: UILabel!
+    @IBOutlet weak var thuSwitchOutlet: UISwitch!
+    @IBAction func thuSwitchAction(_ sender: Any) {
+    }
+    @IBOutlet weak var friLabel: UILabel!
+    @IBOutlet weak var friSwitchOutlet: UISwitch!
+    @IBAction func friSwitchAction(_ sender: Any) {
+    }
+    @IBOutlet weak var satLabel: UILabel!
+    @IBOutlet weak var satSwitchOutlet: UISwitch!
+    @IBAction func satSwitchAction(_ sender: Any) {
+    }
+    @IBOutlet weak var everyDayLabel: UILabel!
+    
+    @IBOutlet weak var everyWeekSwitchOutlet: UISwitch!
+    @IBAction func everyWeekSwitchAction(_ sender: Any) {
+        self.resetWeeks()
+        self.setupCentralViews()
+    }
+    @IBOutlet weak var everyWeekLabel: UILabel!
+    @IBOutlet weak var weeksView: UIScrollView!
+    @IBOutlet weak var firstWeekOutlet: UISwitch!
+    @IBAction func firstWeekAction(_ sender: Any) {
+    }
+    @IBOutlet weak var firstWeekLabel: UILabel!
+    @IBOutlet weak var secondWeekOutlet: UISwitch!
+    @IBAction func secondWeekAction(_ sender: Any) {
+    }
+    @IBOutlet weak var secondWeekLabel: UILabel!
+    @IBOutlet weak var thirdWeekOutlet: UISwitch!
+    @IBAction func thirdWeekAction(_ sender: Any) {
+    }
+    @IBOutlet weak var thirdWeekLabel: UILabel!
+    @IBOutlet weak var fourthWeekOutlet: UISwitch!
+    @IBAction func fourthWeekAction(_ sender: Any) {
+    }
+    @IBOutlet weak var fourthWeekLabel: UILabel!
+    @IBOutlet weak var everyMonthOutlet: UISwitch!
+    @IBAction func everyMonthAction(_ sender: Any) {
+        self.resetMonths()
+        self.setupCentralViews()
+    }
+    @IBOutlet weak var everyMonthLabel: UILabel!
+    @IBOutlet weak var monthsView: UIScrollView!
+    @IBOutlet weak var janOutlet: UISwitch!
+    @IBAction func janAction(_ sender: Any) {
+    }
+    @IBOutlet weak var janLabel: UILabel!
+    
+    @IBOutlet weak var febOutlet: UISwitch!
+    @IBAction func febAction(_ sender: Any) {
+    }
+    @IBOutlet weak var febLabel: UILabel!
+    @IBOutlet weak var marOutlet: UISwitch!
+    @IBAction func marAction(_ sender: Any) {
+    }
+    @IBOutlet weak var marLabel: UILabel!
+    @IBOutlet weak var aprOutlet: UISwitch!
+    @IBAction func aprAction(_ sender: Any) {
+    }
+    @IBOutlet weak var aprLabel: UILabel!
+    @IBOutlet weak var mayOutlet: UISwitch!
+    @IBAction func mayAction(_ sender: Any) {
+    }
+    @IBOutlet weak var mayLabel: UILabel!
+    @IBOutlet weak var junOutlet: UISwitch!
+    @IBAction func junAction(_ sender: Any) {
+    }
+    @IBOutlet weak var junLabel: UILabel!
+    @IBOutlet weak var julOutlet: UISwitch!
+    @IBAction func julAction(_ sender: Any) {
+    }
+    @IBOutlet weak var julLabel: UILabel!
+    @IBOutlet weak var augOutlet: UISwitch!
+    @IBAction func augAction(_ sender: Any) {
+    }
+    @IBOutlet weak var augLabel: UILabel!
+    @IBOutlet weak var sepOutlet: UISwitch!
+    @IBAction func sepAction(_ sender: Any) {
+    }
+    @IBOutlet weak var sepLabel: UILabel!
+    @IBOutlet weak var octOutlet: UISwitch!
+    @IBAction func octAction(_ sender: Any) {
+    }
+    @IBOutlet weak var octLabel: UILabel!
+    @IBOutlet weak var novOutlet: UISwitch!
+    @IBAction func novAction(_ sender: Any) {
+    }
+    @IBOutlet weak var novLabel: UILabel!
+    @IBOutlet weak var decOutlet: UISwitch!
+    @IBAction func decAction(_ sender: Any) {
+    }
+    @IBOutlet weak var decLabel: UILabel!
+
+    
     @IBOutlet weak var timeLimitField: UITextField!
     @IBOutlet weak var timeLimitLabel: UILabel!
     @IBOutlet weak var addHour: UIButton!
@@ -186,38 +511,53 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     @IBAction func resetHoursAction(_ sender: Any) {
         self.timeLimitField.text = "0"
     }
+    let angleImageView = UIImageView(image: UIImage(named: "parallel"))
     @IBOutlet weak var angleHeading: UILabel!
     @IBAction func angleAction(_ sender: Any) {
+        if (angleOutlet.selectedSegmentIndex == 0) {
+            self.angleImageView.image = UIImage(named: "parallel")
+        } else if (angleOutlet.selectedSegmentIndex == 1) {
+            self.angleImageView.image = UIImage(named: "headin")
+        } else {
+            self.angleImageView.image = UIImage(named: "angled")
+        }
+        self.setupCentralViews()
     }
     @IBOutlet weak var angleOutlet: UISegmentedControl!
     var contentInsetOriginal:UIEdgeInsets!
+
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-     
     }
-
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-     
     }
-
+    
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-     
     }
+    func scrollViewDidChangeAdjustedContentInset(_ scrollView: UIScrollView) {
+        scrollView.panGestureRecognizer.isEnabled = false;
+        scrollView.panGestureRecognizer.isEnabled = true;
+        scrollView.setContentOffset(scrollView.contentOffset, animated: false)
+        
+    }
+    
     func createCentralViews() {
         self.curbView.isScrollEnabled = true
         self.curbView.isUserInteractionEnabled = true
         self.curbView.isExclusiveTouch = false
-        self.curbView.isPagingEnabled = true
-        self.curbView.delegate = self
+        self.curbView.isPagingEnabled = false
+        //self.curbView.delegate = self
         self.scrollView.isExclusiveTouch = false
         self.scrollView.isScrollEnabled = true
         self.scrollView.isUserInteractionEnabled = true
+        self.scrollView.alwaysBounceVertical = false
         self.scrollView.delegate = self
         self.scrollView.isPagingEnabled = true
+        self.scrollView.scrollsToTop = false
         self.meterView.isExclusiveTouch = false
-        self.meterView.isScrollEnabled = true
+        self.meterView.isScrollEnabled = false
         self.meterView.isUserInteractionEnabled = true
-        self.meterView.delegate = self
-        self.meterView.isPagingEnabled = true
+        //self.meterView.delegate = self
+        self.meterView.isPagingEnabled = false
         self.costField.keyboardType = .numbersAndPunctuation
         self.costField.autocapitalizationType = .none
         self.costField.autocorrectionType = .no
@@ -235,14 +575,15 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.meterOutlet.setOn(false, animated: true)
         self.currencyOutlet.selectedSegmentIndex = 0
         self.angleOutlet.selectedSegmentIndex = 0
+        self.permitOutlet.selectedSegmentIndex = 1
         self.permitField.returnKeyType = .done
         self.permitField.delegate = self
-        self.permitField.text = ""
+        self.permitField.text = nil
         self.permitField.tag = 0
         self.costField.returnKeyType = .next
         self.costField.delegate = self
         self.costField.tag = 1
-        self.costField.text = "0"
+        self.costField.text = nil
         self.perField.returnKeyType = .done
         self.perField.tag = 2
         self.perField.delegate = self
@@ -251,8 +592,33 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.timeLimitField.tag = 3
         self.timeLimitField.delegate = self
         self.timeLimitField.text = "0"
+        self.startTimeDelegate = TimeDelegateData()
+        self.endTimeDelegate = TimeDelegateData()
+        self.grayCurbAction(self)
+        self.meterOutlet.setOn(false, animated: true)
+        self.costField.text = nil
+        self.perField.text = nil
+        self.startTimePicker.delegate = self.startTimeDelegate
+        self.startTimePicker.dataSource = self.startTimeDelegate
+        self.endTimePicker.dataSource = self.endTimeDelegate
+        self.endTimePicker.delegate = self.endTimeDelegate
+        self.allDaySwitchOutlet.setOn(true, animated: true)
+        self.resetAllDay()
+        self.daysSwitchOutlet.setOn(true, animated: true)
+        self.resetDays()
+        self.everyWeekSwitchOutlet.setOn(true, animated: true)
+        self.resetWeeks()
+        self.everyMonthOutlet.setOn(true, animated: true)
+        self.resetMonths()
+        self.angleImageView.image = UIImage(named: "parallel")
+        self.angleOutlet.selectedSegmentIndex = 0
+        self.angleAction(self)
+        self.scrollView.addSubview(self.angleImageView)
     }
     func setupCentralViews() {
+        if (self.angleImageView.superview != self.scrollView) {
+            self.scrollView.addSubview(self.angleImageView)
+        }
         self.doneButtonOutlet.snp.remakeConstraints { (make) in
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
             make.leading.equalTo(self.view.snp.leading).priority(1000.0)
@@ -284,7 +650,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.leading.equalTo(self.scrollView.snp.leading).priority(1000.0)
             make.trailing.equalTo(self.scrollView.snp.trailingMargin).priority(1000.0)
             make.height.equalTo(120).priority(1000.0)
-            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).dividedBy(1.25).priority(1000.0)
         }
         self.grayCurbOutlet.snp.remakeConstraints { (make) in
             make.top.equalTo(self.curbView.snp.top).offset(8).priority(1000.0)
@@ -334,7 +700,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.top.equalTo(self.curbView.snp.bottom).offset(10).priority(1000.0)
             make.leading.equalTo(self.curbView.snp.leading).priority(1000.0)
             make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
-            if (self.curbColorValue == 1 || self.curbColorValue == 3) {
+            if (self.curbColorValue == 1) {
                 self.npnsOutlet.isHidden = false
                 make.height.equalTo(45).priority(1000.0)
             } else {
@@ -346,7 +712,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.top.equalTo(self.npnsOutlet.snp.bottom).offset(10).priority(1000.0)
             make.leading.equalTo(self.npnsOutlet.snp.leading).priority(1000.0)
             make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
-            if (self.curbColorValue == 1 || self.curbColorValue == 3) {
+            if (self.curbColorValue == 1 || self.curbColorValue == 0) {
                 self.permitOutlet.isHidden = false
                 make.height.equalTo(45).priority(1000.0)
             } else {
@@ -358,7 +724,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.top.equalTo(self.permitOutlet.snp.bottom).offset(10).priority(1000.0)
             make.leading.equalTo(self.permitOutlet.snp.leading).priority(1000.0)
             make.width.equalTo(self.scrollView.snp.width).dividedBy(2.0).priority(1000.0)
-            if (permitOutlet.selectedSegmentIndex == 1) {
+            if (permitOutlet.selectedSegmentIndex == 0 && (self.curbColorValue == 1 || self.curbColorValue == 0)) {
                 self.permitField.isHidden = false
                 make.height.equalTo(45).priority(1000.0)
             } else {
@@ -369,7 +735,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.permitLabel.snp.remakeConstraints { (make) in
             make.centerY.equalTo(self.permitField.snp.centerY).priority(1000.0)
             make.leading.equalTo(self.permitField.snp.trailing).offset(10).priority(1000.0)
-            if (permitOutlet.selectedSegmentIndex == 1) {
+            if (permitOutlet.selectedSegmentIndex == 0 && (self.curbColorValue == 1 || self.curbColorValue == 0)) {
                 self.permitLabel.isHidden = false
                 make.height.equalTo(45).priority(1000.0)
             } else {
@@ -427,9 +793,350 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.trailing.equalTo(self.meterView.snp.trailing).priority(1000.0)
             make.width.equalTo(self.meterView).priority(1000)
         }
-        self.timeLimitField.snp.remakeConstraints { (make) in
+        self.allDaySwitchOutlet.snp.remakeConstraints { (make) in
             make.top.equalTo(self.meterView.snp.bottom).offset(10).priority(1000.0)
             make.leading.equalTo(self.meterOutlet.snp.leading).priority(1000.0)
+        }
+        self.allDayLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.meterView.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.allDaySwitchOutlet.snp.trailing).offset(10).priority(1000.0)
+            make.height.equalTo(self.allDaySwitchOutlet.snp.height).priority(1000.0)
+        }
+        self.timeView.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.allDaySwitchOutlet.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.allDaySwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+            if (!self.allDaySwitchOutlet.isOn) {
+                self.timeView.isHidden = false
+                make.height.equalTo(220).priority(1000.0)
+            } else {
+                self.timeView.isHidden = true
+                make.height.equalTo(0).priority(1000.0)
+            }
+        }
+        self.timeView.backgroundColor = UIColor.clear
+        self.startTimeHeading.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.timeView.snp.top).priority(1000.0)
+            make.height.equalTo(24).priority(1000.0)
+            make.width.equalTo(self.timeView.snp.width).priority(1000.0)
+        })
+        self.startTimePicker.snp.remakeConstraints({ (make) in
+            make.top.equalTo(self.startTimeHeading.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.timeView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.timeView.snp.width).priority(1000.0)
+            make.height.equalTo(70).priority(1000.0)
+        })
+        self.startTimePicker.backgroundColor = UIColor.gray
+        self.endTimeHeading.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.startTimePicker.snp.bottom).offset(10).priority(1000.0)
+            make.height.equalTo(24).priority(1000.0)
+            make.width.equalTo(self.timeView.snp.width).priority(1000.0)
+        })
+        self.endTimePicker.snp.remakeConstraints({ (make) in
+            make.top.equalTo(self.endTimeHeading.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.timeView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.timeView.snp.width).priority(1000.0)
+            make.height.equalTo(70).priority(1000.0)
+        })
+        self.endTimePicker.backgroundColor = UIColor.gray
+        self.daysSwitchOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.timeView.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.timeView.snp.leading).priority(1000.0)
+        }
+        self.everyDayLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.daysSwitchOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.daysSwitchOutlet.snp.trailing).offset(10).priority(1000.0)
+            make.height.equalTo(self.daysSwitchOutlet.snp.height).priority(1000.0)
+        }
+        self.daysView.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.daysSwitchOutlet.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.daysSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+            if (!self.daysSwitchOutlet.isOn) {
+                self.daysView.isHidden = false
+                make.height.equalTo(60).priority(1000.0)
+            } else {
+                self.daysView.isHidden = true
+                make.height.equalTo(0).priority(1000.0)
+            }
+        })
+        self.sunSwitchOutlet.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.daysView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        })
+        self.sunLabel.snp.remakeConstraints({ (make) in
+            make.top.equalTo(self.sunSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.sunSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.sunSwitchOutlet.snp.width).priority(1000.0)
+        })
+        self.monSwitchOutlet.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.sunSwitchOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        })
+        self.monLabel.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.monSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.monSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.monSwitchOutlet.snp.width).priority(1000.0)
+        })
+        self.tueSwitchOutlet.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.monSwitchOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        })
+        self.tueLabel.snp.remakeConstraints ({ (make) in
+            make.top.equalTo(self.tueSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.tueSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.tueSwitchOutlet.snp.width).priority(1000.0)
+        })
+        self.wedSwitchOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.tueSwitchOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        }
+        self.wedLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.wedSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.wedSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.wedSwitchOutlet.snp.width).priority(1000.0)
+        }
+        self.thuSwitchOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.wedSwitchOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        }
+        self.thuLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.thuSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.thuSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.thuSwitchOutlet.snp.width).priority(1000.0)
+        }
+        self.friSwitchOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.thuSwitchOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        }
+        self.friLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.friSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.friSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.friSwitchOutlet.snp.width).priority(1000.0)
+        }
+        self.satSwitchOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.daysView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.friSwitchOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.daysView.snp.width).dividedBy(7).priority(1000.0)
+        }
+        self.satLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.satSwitchOutlet.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.satSwitchOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.satSwitchOutlet.snp.width).priority(1000.0)
+        }
+
+        self.everyWeekSwitchOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.daysView.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.daysView.snp.leading).priority(1000.0)
+        }
+        self.everyWeekLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.everyWeekSwitchOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.everyWeekSwitchOutlet.snp.trailing).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailing).priority(1000.0)
+        }
+        self.weeksView.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.everyWeekSwitchOutlet.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.everyWeekSwitchOutlet.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+            if (!everyWeekSwitchOutlet.isOn) {
+                self.weeksView.isHidden = false
+                make.height.equalTo(60).priority(1000.0)
+            } else {
+                self.weeksView.isHidden = true
+                make.height.equalTo(0).priority(1000.0)
+            }
+        }
+        self.firstWeekOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.weeksView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.weeksView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.weeksView.snp.width).dividedBy(4).priority(1000.0)
+        }
+        self.firstWeekLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.firstWeekOutlet.snp.bottom).offset(5).priority(1000)
+            make.leading.equalTo(self.firstWeekOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.firstWeekOutlet.snp.width).priority(1000.0)
+        }
+        self.secondWeekOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.weeksView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.firstWeekOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.weeksView.snp.width).dividedBy(4).priority(1000.0)
+        }
+        self.secondWeekLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.secondWeekOutlet.snp.bottom).offset(5).priority(1000)
+            make.leading.equalTo(self.secondWeekOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.secondWeekOutlet.snp.width).priority(1000.0)
+        }
+        self.thirdWeekOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.weeksView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.secondWeekOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.weeksView.snp.width).dividedBy(4).priority(1000.0)
+        }
+        self.thirdWeekLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.thirdWeekOutlet.snp.bottom).offset(5).priority(1000)
+            make.leading.equalTo(self.thirdWeekOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.thirdWeekOutlet.snp.width).priority(1000.0)
+        }
+        self.fourthWeekOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.weeksView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.thirdWeekOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.weeksView.snp.width).dividedBy(4).priority(1000.0)
+        }
+        self.fourthWeekLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.fourthWeekOutlet.snp.bottom).offset(5).priority(1000)
+            make.leading.equalTo(self.fourthWeekOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.fourthWeekOutlet.snp.width).priority(1000.0)
+        }
+        self.everyMonthOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.weeksView.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.weeksView.snp.leading).priority(1000.0)
+        }
+        self.everyMonthLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.everyMonthOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.everyMonthOutlet.snp.trailing).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailing).priority(1000.0)
+        }
+        self.monthsView.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.everyMonthOutlet.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.everyMonthOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+            if (!everyMonthOutlet.isOn) {
+                self.monthsView.isHidden = false
+                make.height.equalTo(120).priority(1000.0)
+            } else {
+                self.monthsView.isHidden = true
+                make.height.equalTo(0).priority(1000.0)
+            }
+        }
+        self.janOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.monthsView.snp.top).priority(1000.0)
+            make.leading.equalTo(self.monthsView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.janLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.janOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.janOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.janOutlet.snp.width).priority(1000.0)
+        }
+        self.febOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.janOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.janOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.febLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.febOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.febOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.febOutlet.snp.width).priority(1000.0)
+        }
+        self.marOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.febOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.febOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.marLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.marOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.marOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.marOutlet.snp.width).priority(1000.0)
+        }
+        self.aprOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.marOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.marOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.aprLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.aprOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.aprOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.aprOutlet.snp.width).priority(1000.0)
+        }
+        self.mayOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.aprOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.aprOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.mayLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.mayOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.mayOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.mayOutlet.snp.width).priority(1000.0)
+        }
+        self.junOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.mayOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.mayOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.junLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.junOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.junOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.junOutlet.snp.width).priority(1000.0)
+        }
+        self.julOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.janLabel.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.monthsView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.julLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.julOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.julOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.julOutlet.snp.width).priority(1000.0)
+        }
+        self.augOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.julOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.julOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.augLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.augOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.augOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.augOutlet.snp.width).priority(1000.0)
+        }
+        self.sepOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.augOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.augOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.sepLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.sepOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.sepOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.sepOutlet.snp.width).priority(1000.0)
+        }
+        self.octOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.sepOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.sepOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.octLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.octOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.octOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.octOutlet.snp.width).priority(1000.0)
+        }
+        self.novOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.octOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.octOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.novLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.novOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.novOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.novOutlet.snp.width).priority(1000.0)
+        }
+        self.decOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.novOutlet.snp.top).priority(1000.0)
+            make.leading.equalTo(self.novOutlet.snp.trailing).priority(1000.0)
+            make.width.equalTo(self.monthsView.snp.width).dividedBy(6).priority(1000.0)
+        }
+        self.decLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.decOutlet.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.decOutlet.snp.leading).priority(1000)
+            make.width.equalTo(self.decOutlet.snp.width).priority(1000.0)
+        }
+        self.timeLimitField.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.monthsView.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.monthsView.snp.leading).priority(1000.0)
             make.width.equalTo(self.scrollView.snp.width).dividedBy(2).priority(1000.0)
             make.height.equalTo(45).priority(1000.0)
         }
@@ -462,14 +1169,19 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
             make.height.equalTo(45).priority(1000.0)
         }
-
+        self.angleImageView.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.angleOutlet.snp.bottom).offset(10).priority(1000.0)
+            make.centerX.equalTo(self.angleOutlet.snp.centerX).priority(1000.0)
+            make.width.equalTo(self.angleOutlet.snp.width).dividedBy(3).priority(1000.0)
+            make.height.equalTo(self.angleImageView.snp.width).multipliedBy(1.55).priority(1000.0)
+        }
         self.viewWillLayoutSubviews()
     }
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
-        scrollView.contentSize = CGSize(width: self.view.frame.width, height: 900)
-        curbView.contentSize = CGSize(width: self.view.frame.width, height: 360)
-        meterView.contentSize = CGSize(width: self.view.frame.width, height: 300)
+        scrollView.contentSize = CGSize(width: self.view.frame.width, height: 1600)
+        curbView.contentSize = CGSize(width: self.view.frame.width/1.25, height: 360)
+        //meterView.contentSize = CGSize(width: self.view.frame.width, height: 300)
     }
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -510,7 +1222,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     
     @objc func keyboardWillHide(notification:NSNotification){
         if (contentInsetOriginal != nil) {
-            self.scrollView.setContentOffset(CGPoint(x:contentInsetOriginal.left, y:0.0), animated: true)
+            //self.scrollView.setContentOffset(CGPoint(x:contentInsetOriginal.left, y:0.0), animated: true)
         }
     }
 
@@ -521,7 +1233,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if (textField.tag == 0) {
-           self.view.endEditing(true)
+            self.view.endEditing(true)
             self.dismissKeyboard()
         } else if (textField.tag == 1) {
             self.costField.resignFirstResponder()
