@@ -15,41 +15,41 @@ class Restriction : CustomStringConvertible {
     var months: [Bool] = [true, true, true, true, true, true, true, true, true, true, true, true]
     var fromTime: Int = 0
     var toTime: Int = 0
+    var enforcedHolidays: Bool = true
+    var vehicleType: Int = 0
     var timeLimit: Int?
     var permit: String?
     var cost: Float?
     var per: Int?
+    var side: Int = 0
     var isNew: Bool = true
     var isEdited: Bool = false
     var dateAdded: Date?
     var id: String = ""
     var creator_score: Int = 0
     var angle: Int = 0
-    init(type: Int, days: [Bool], weeks: [Bool], months: [Bool], from: Int, to: Int, angle: Int, limit: Int?, cost: Float?, per: Int?, permit: String?){
-        if let costFloat = cost {
-            self.cost = costFloat
-        }
-        if let perInt = per {
-            self.per = perInt
-        }
-        if let permitString = permit {
-            self.permit = permitString
-        }
+    init(type: Int, days: [Bool], weeks: [Bool], months: [Bool], from: Int, to: Int, angle: Int, holidays: Bool, vehicle: Int, side: Int, limit: Int?, cost: Float?, per: Int?, permit: String?){
+        self.cost = cost
+        self.per = per
+        self.permit = permit
         self.angle = angle
         self.type = type
         self.days = days
         self.weeks = weeks
         self.months = months
         self.fromTime = from
+        self.side = side
+        self.enforcedHolidays = holidays
+        self.vehicleType = vehicle
         self.toTime = to
         self.timeLimit = limit
     }
     var description: String  {
-        let format = "{'type': '%@', 'days': %@, 'weeks': %@, 'months': %@, 'fromTime': %d, 'toTime': %d, 'angle': %d, 'limit': %d, 'permit': '%@', 'cost': %4.2f, 'per': %d, 'id': '%@', 'creator_score': %d}"
+        let format = "{'type': %d, 'days': %@, 'weeks': %@, 'months': %@, 'start': %d, 'end': %d, 'angle': %d, 'side': %d, 'duration': %@, 'vehicle': %@, 'permit': '%@', 'cost': %@, 'per': %@, 'holiday': %@}"
         let daysJSON = JSONStringify(value: days as AnyObject, prettyPrinted: false)
         let monthsJSON = JSONStringify(value: months as AnyObject, prettyPrinted: false)
         let weeksJSON = JSONStringify(value: weeks as AnyObject, prettyPrinted: false)
-        return String(format: format, type, daysJSON, weeksJSON, monthsJSON, fromTime, toTime, angle, timeLimit != nil ? timeLimit! : 0, permit != nil ? permit! : "", cost != nil ? cost! : 0.0, per != nil ? per! : 0, id, creator_score)
+        return String(format: format, type, daysJSON, weeksJSON, monthsJSON, fromTime, toTime, angle, side, timeLimit != nil ? String(timeLimit!) : "null", String(vehicleType), permit != nil ? permit! : "null", cost != nil ? String(format: "%4.2f", cost!) : "null", per != nil ? String(per!) : "null", enforcedHolidays.description)
     }
     
     var debugDescription: String {
@@ -66,5 +66,25 @@ class Restriction : CustomStringConvertible {
             }
         }
         return ""
+    }
+}
+extension Restriction {
+    func asDictionary() -> [String: Any] {
+        return [
+            "type": type,
+            "days": days,
+            "weeks": weeks,
+            "months": months,
+            "start": fromTime,
+            "end": toTime,
+            "angle": angle,
+            "side": side,
+            "duration": timeLimit ?? nil,
+            "vehicle": vehicleType,
+            "permit": permit ?? nil,
+            "cost": cost ?? nil,
+            "per": per ?? nil,
+            "holiday": enforcedHolidays
+        ]
     }
 }

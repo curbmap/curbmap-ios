@@ -8,6 +8,7 @@
 
 import UIKit
 import SnapKit
+import NVActivityIndicatorView
 
 
 class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate {
@@ -15,6 +16,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     func setCancel(function: @escaping(Any)->Void) {
         self.cancelLine = function
     }
+    var loading: NVActivityIndicatorView!
     var cancelLine: ((Any) -> Void)?
     var startTimeDelegate: TimeDelegateData!
     var endTimeDelegate: TimeDelegateData!
@@ -22,16 +24,31 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     @IBOutlet weak var doneButtonOutlet: UIButton!
     @IBAction func doneButtonAction(_ sender: Any) {
         self.addCurrentRestriction()
-        //self.appDelegate.submitRestrictions()
+        self.appDelegate.submitRestrictions()
+        self.navigationController?.popViewController(animated: true)
     }
     @IBOutlet weak var addAnotherOutlet: UIButton!
     @IBAction func addAnotherAction(_ sender: Any) {
+        let size = self.view.frame.width/4
+        let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)
+        self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
+        self.view.addSubview(loading)
+        loading.startAnimating()
         self.addCurrentRestriction()
         self.createCentralViews()
         self.setupCentralViews()
+        self.loading.removeFromSuperview()
+        self.loading.stopAnimating()
+        self.loading = nil
     }
     @IBOutlet weak var cancelOutlet: UIButton!
     @IBAction func cancelAction(_ sender: Any) {
+        let size = self.view.frame.width/4
+        let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)
+        self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
+        self.view.addSubview(loading)
+        loading.startAnimating()
+
         if (self.appDelegate.restrictionsToAdd().count <= 0) {
             if let cancelLineFunction = self.cancelLine {
                 cancelLineFunction(self)
@@ -40,6 +57,9 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         } else {
             self.getLastRestriction()
         }
+        self.loading.removeFromSuperview()
+        self.loading.stopAnimating()
+        self.loading = nil
     }
     func addCurrentRestriction() {
         var type = 0
@@ -49,22 +69,22 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         } else if (self.curbColorValue == 2 && self.meterOutlet.isOn) {
             // short term metered parking
             type = 1
-        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.timeLimitField.text != nil && self.permitField.text == nil) {
+        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.timeLimitField.text != nil && (self.permitField.text == "" || self.permitField.text == nil)) {
             // Time Limited parking without a meter
             type = 2
-        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != nil && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 1) {
+        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != nil && self.timeLimitField.text != "" && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 1) {
             // metered parking without permit exemption
             type = 3
-        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitField.text != nil) {
+        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitField.text != nil && self.permitField.text != "") {
             // permit exemption to time limited parking
             type = 4
-        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != nil && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 0) {
+        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != "" && self.permitField.text != nil && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 0) {
             // metered parking with permit exemption
             type = 5
         } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 0) {
             // no parking
             type = 6
-        } else if (self.curbColorValue == 1 && self.permitField.text != nil) {
+        } else if (self.curbColorValue == 1 && self.permitField.text != "" && self.permitField.text != nil) {
             // no parking with permit exemption
             type = 7
         } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 1) {
@@ -98,9 +118,8 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             start = startTimePicker.selectedRow(inComponent: 0) * 60 + startTimePicker.selectedRow(inComponent: 1)
             end = endTimePicker.selectedRow(inComponent: 0) * 60 + endTimePicker.selectedRow(inComponent: 1)
         }
-        let restriction = Restriction(type: type, days: days, weeks: weeks, months: months, from: start, to: end, angle: self.angleOutlet.selectedSegmentIndex, limit: (self.timeLimitField.text != nil) ? Int(self.timeLimitField.text!) : nil, cost: self.costField.text != nil ? Float(self.costField.text!) : nil, per: self.perField.text != nil ? Int(self.perField.text!) : nil, permit: self.permitField.text != nil ? self.permitField.text : nil)
+        let restriction = Restriction(type: type, days: days, weeks: weeks, months: months, from: start, to: end, angle: self.angleOutlet.selectedSegmentIndex, holidays: self.holidaysSwitch.isOn, vehicle: self.vehicleType.selectedSegmentIndex, side: self.sideOutlet.selectedSegmentIndex, limit: (self.timeLimitField.text != nil && self.timeLimitField.text != "0") ? Int(self.timeLimitField.text!) : nil, cost: self.costField.text != nil && self.costField.text != "0.0" ? Float(self.costField.text!) : nil, per: self.perField.text != nil ? Int(self.perField.text!) : nil, permit: self.permitField.text != nil && self.permitField.text != "" ? self.permitField.text : nil)
         self.appDelegate.addRestriction(restriction)
-        
     }
     func resetAllDay() {
         self.startTimePicker.selectRow(8, inComponent: 0, animated: true)
@@ -189,15 +208,20 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 let s_minutes = restriction.fromTime - (60 * s_hours)
                 let e_hours = Int(floor(Double(restriction.toTime) / 60.0))
                 let e_minutes = restriction.toTime - (60 * s_hours)
+                self.allDaySwitchOutlet.setOn(false, animated: true)
                 startTimePicker.selectRow(s_hours, inComponent: 0, animated: true)
                 startTimePicker.selectRow(s_minutes, inComponent: 1, animated: true)
                 endTimePicker.selectRow(e_hours, inComponent: 0, animated: true)
                 endTimePicker.selectRow(e_minutes, inComponent: 1, animated: true)
             }
-            if let permit = restriction.permit {
+            if (restriction.permit != nil && restriction.permit != "") {
+                self.permitField.text = restriction.permit!
                 self.permitOutlet.selectedSegmentIndex = 0
-                self.permitField.text = permit
             }
+            
+            
+            self.vehicleType.selectedSegmentIndex = restriction.vehicleType
+            self.holidaysSwitch.setOn(restriction.enforcedHolidays, animated: true)
             self.angleOutlet.selectedSegmentIndex = restriction.angle
             self.angleAction(self)
             switch(restriction.type) {
@@ -263,7 +287,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.redCurbOutlet.layer.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 1.0, alpha: 0.8).cgColor
         self.curbColorValue = 1
         self.meterOutlet.setOn(false, animated: true)
-        self.permitOutlet.selectedSegmentIndex = 1
         self.setupCentralViews()
     }
     @IBOutlet weak var greenCurbOutlet: UIButton!
@@ -524,8 +547,15 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.setupCentralViews()
     }
     @IBOutlet weak var angleOutlet: UISegmentedControl!
+    
+    @IBOutlet weak var sideLabel: UILabel!
+    @IBOutlet weak var sideOutlet: UISegmentedControl!
+    
     var contentInsetOriginal:UIEdgeInsets!
-
+    var vehicleTypeHeading: UILabel = UILabel()
+    var vehicleType:UISegmentedControl = UISegmentedControl(items: ["all/any", "car", "motorcycle", "5+ tires", "camper/living"])
+    var holidaysSwitch: UISwitch = UISwitch()
+    var holidaysLabel: UILabel = UILabel()
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
     }
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
@@ -570,7 +600,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.timeLimitField.autocapitalizationType = .none
         self.timeLimitField.autocorrectionType = .no
         self.timeLimitField.placeholder = "e.g. 120"
-        self.permitOutlet.selectedSegmentIndex = 2
         self.npnsOutlet.selectedSegmentIndex = 0
         self.meterOutlet.setOn(false, animated: true)
         self.currencyOutlet.selectedSegmentIndex = 0
@@ -614,10 +643,29 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.angleOutlet.selectedSegmentIndex = 0
         self.angleAction(self)
         self.scrollView.addSubview(self.angleImageView)
+        self.holidaysSwitch.setOn(true, animated: true)
+        self.holidaysLabel.text = "Enforced on holidays"
+        self.holidaysLabel.textColor = UIColor.white
+        self.vehicleType.selectedSegmentIndex = 0
+        self.vehicleType.addTarget(self, action: #selector(self.changeVehicleType), for: .touchUpInside)
+        self.vehicleTypeHeading.text = "Rule pertains to:"
+        self.vehicleTypeHeading.font = UIFont.systemFont(ofSize: 18, weight: UIFont.Weight.medium)
+        self.vehicleTypeHeading.textColor = UIColor.white
+        self.scrollView.addSubview(self.holidaysSwitch)
+        self.scrollView.addSubview(self.holidaysLabel)
+        self.scrollView.addSubview(self.vehicleTypeHeading)
+        self.scrollView.addSubview(self.vehicleType)
+    }
+    @objc func changeVehicleType(_ sender: Any) {
+        
     }
     func setupCentralViews() {
         if (self.angleImageView.superview != self.scrollView) {
             self.scrollView.addSubview(self.angleImageView)
+            self.scrollView.addSubview(self.holidaysSwitch)
+            self.scrollView.addSubview(self.holidaysLabel)
+            self.scrollView.addSubview(self.vehicleTypeHeading)
+            self.scrollView.addSubview(self.vehicleType)
         }
         self.doneButtonOutlet.snp.remakeConstraints { (make) in
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
@@ -743,9 +791,20 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 make.height.equalTo(0).priority(1000.0)
             }
         }
-        self.meterOutlet.snp.remakeConstraints { (make) in
+        self.sideLabel.snp.remakeConstraints { (make) in
             make.top.equalTo(self.permitField.snp.bottom).offset(10).priority(1000.0)
             make.leading.equalTo(self.permitField.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+        }
+        self.sideOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.sideLabel.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.sideLabel.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+            make.height.equalTo(45).priority(1000.0)
+        }
+        self.meterOutlet.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.sideOutlet.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.sideOutlet.snp.leading).priority(1000.0)
         }
         self.meterLabel.snp.remakeConstraints { (make) in
             make.centerY.equalTo(self.meterOutlet.snp.centerY).priority(1000.0)
@@ -1175,6 +1234,26 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             make.width.equalTo(self.angleOutlet.snp.width).dividedBy(3).priority(1000.0)
             make.height.equalTo(self.angleImageView.snp.width).multipliedBy(1.55).priority(1000.0)
         }
+        self.vehicleTypeHeading.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.angleImageView.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.angleOutlet.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+        }
+        self.vehicleType.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.vehicleTypeHeading.snp.bottom).offset(5).priority(1000.0)
+            make.leading.equalTo(self.vehicleTypeHeading.snp.leading).priority(1000.0)
+            make.width.equalTo(self.scrollView.snp.width).priority(1000.0)
+        }
+        self.holidaysSwitch.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.vehicleType.snp.bottom).offset(10).priority(1000.0)
+            make.leading.equalTo(self.vehicleType.snp.leading).priority(1000.0)
+        }
+        self.holidaysLabel.snp.remakeConstraints { (make) in
+            make.centerY.equalTo(self.holidaysSwitch.snp.centerY).priority(1000.0)
+            make.leading.equalTo(self.holidaysSwitch.snp.trailing).offset(10).priority(1000.0)
+            make.trailing.equalTo(self.scrollView.snp.trailing).priority(1000.0)
+            make.height.equalTo(self.holidaysSwitch.snp.height).priority(1000.0)
+        }
         self.viewWillLayoutSubviews()
     }
     override func viewWillLayoutSubviews(){
@@ -1182,6 +1261,10 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         scrollView.contentSize = CGSize(width: self.view.frame.width, height: 1600)
         curbView.contentSize = CGSize(width: self.view.frame.width/1.25, height: 360)
         //meterView.contentSize = CGSize(width: self.view.frame.width, height: 300)
+        if (self.loading != nil) {
+            self.loading.stopAnimating()
+            self.loading.removeFromSuperview()
+        }
     }
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in

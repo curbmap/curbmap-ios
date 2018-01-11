@@ -12,6 +12,7 @@ import UserNotifications
 import AudioToolbox
 import AVFoundation
 import RealmSwift
+import Alamofire
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
@@ -40,6 +41,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
         self.getUser()
+        var results = self.realm.objects(Lines.self)
+        print(results)
         return true
     }
     func registerForLocalNotifications() {
@@ -111,6 +114,63 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     }
     func popRestriction() -> Restriction? {
         return self.restrictions.popLast()
+    }
+    
+    func submitRestrictions() -> Bool {
+        // store all restrictions to Realm
+        let begin = self.mapController.line[0].get_coordinate()
+        let end = self.mapController.line[1].get_coordinate()
+        let line = "[[\(begin.longitude),\(begin.latitude)],[\(end.longitude),\(end.latitude)]]"
+        let headers: Alamofire.HTTPHeaders = ["Content-Type": "application/json", "session": "X", "username": "curbmaptest"]
+        var restrParams: [Any] = []
+        for r in restrictions {
+            restrParams.append(r.asDictionary())
+        }
+        let parameters: Parameters = ["line": [[begin.longitude, begin.latitude], [end.longitude, end.latitude]],
+                          "restrictions": restrParams]
+        if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
+            Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+                guard self != nil else { return }
+                if var json = response.result.value as? [String: Any] {
+                    if let success = json["success"] as? Int {
+                        if (success == 1) {
+                            // put restrictions in realm as complete
+                            self?.storeRestrsInRealm(true, json["line_id"] as? String, line)
+                        } else {
+                            // put the restrictions in realm for later
+                            self?.storeRestrsInRealm(false, nil, line)
+                        }
+                    }
+                } else {
+                    self?.storeRestrsInRealm(false, nil, line)
+                    // put the restrictions in the realm for later
+                }
+            }
+        } else {
+            // put it in the db to try to upload later
+            self.storeRestrsInRealm(false, nil, line)
+        }
+        //mapController.findClosestLine(begin, end)
+        return false
+        
+    }
+    func storeRestrsInRealm(_ sentSuccessfully: Bool, _ id: String?, _ lineString: String) {
+        var restrs: String = "["
+        for r in restrictions {
+            let x = String(describing: r)
+            restrs.append(x+",")
+        }
+        let end = restrs.index(restrs.startIndex, offsetBy: restrs.count-1)
+        restrs = String(restrs[..<end]+"]")
+        let line = Lines()
+        line.line = lineString
+        line.date = Date()
+        line.restrictions = restrs
+        line.id = id
+        line.uploaded = sentSuccessfully
+        try! realm.write {
+            realm.add(line)
+        }
     }
     @objc func getUser() {
         do {
@@ -326,6 +386,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
 
 
 }
+class Lines : Object {
+    @objc dynamic var line: String!
+    @objc dynamic var restrictions: String!
+    @objc dynamic var id: String!
+    @objc dynamic var date: Date!
+    @objc dynamic var uploaded: Bool = false
+}
+
 class Images: Object {
     @objc dynamic var localIdentifier: String = ""
     @objc dynamic var heading: Double = 0.0

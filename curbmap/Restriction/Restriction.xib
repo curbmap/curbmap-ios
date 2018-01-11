@@ -87,6 +87,8 @@
                 <outlet property="secondWeekOutlet" destination="eSr-ag-Va8" id="Ssn-2e-gmf"/>
                 <outlet property="sepLabel" destination="WXc-5s-tf7" id="OVk-3b-6hr"/>
                 <outlet property="sepOutlet" destination="a2Y-ha-xij" id="jgb-Aa-6Vg"/>
+                <outlet property="sideLabel" destination="nJA-Hs-3XG" id="a6a-87-9IZ"/>
+                <outlet property="sideOutlet" destination="i1v-1Y-BuT" id="GrS-br-yjP"/>
                 <outlet property="startTimeHeading" destination="P0f-tD-rWA" id="H5k-8g-dnG"/>
                 <outlet property="startTimePicker" destination="nvB-ew-PWY" id="gAP-oM-VuM"/>
                 <outlet property="sunLabel" destination="OEd-ZU-wh5" id="7RE-Wc-0c3"/>
@@ -117,6 +119,27 @@
                     <rect key="frame" x="0.0" y="60" width="375" height="607"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Which side of the street is this?" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nJA-Hs-3XG" userLabel="Side Label">
+                            <rect key="frame" x="166" y="293" width="42" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                            <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="i1v-1Y-BuT" userLabel="Side Outlet">
+                            <rect key="frame" x="127" y="289" width="121" height="29"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <segments>
+                                <segment title="N"/>
+                                <segment title="S"/>
+                                <segment title="E"/>
+                                <segment title="W"/>
+                                <segment title="NE"/>
+                                <segment title="NW"/>
+                                <segment title="SE"/>
+                                <segment title="SW"/>
+                            </segments>
+                        </segmentedControl>
                         <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" restorationIdentifier="curbView" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bRj-wL-cIG" userLabel="Curb View">
                             <rect key="frame" x="0.0" y="0.0" width="367" height="76"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
