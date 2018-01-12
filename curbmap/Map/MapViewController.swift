@@ -736,6 +736,15 @@ extension PHPhotoLibrary {
             }
         )
     }
+    func load(identifier: String, appDelegate: AppDelegate, olc: String, heading: Double) {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil).firstObject else { return }
+        print("got asset xxxXXXyyy")
+        PHImageManager.default().requestImageData(for: asset, options: nil, resultHandler: { (data: Data?, localIdentifier: String?, orientation: UIImageOrientation, info: [AnyHashable: Any]?) -> Void in
+            if let data = data {
+                appDelegate.uploadPhoto(data: data, identifier: identifier, olc: olc, heading: heading)
+            }
+        })
+    }
     
 }
 // :- Date -: https://stackoverflow.com/questions/28016578/swift-how-to-create-a-date-time-stamp-and-format-as-iso-8601-rfc-3339-utc-tim

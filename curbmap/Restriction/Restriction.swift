@@ -45,11 +45,11 @@ class Restriction : CustomStringConvertible {
         self.timeLimit = limit
     }
     var description: String  {
-        let format = "{'type': %d, 'days': %@, 'weeks': %@, 'months': %@, 'start': %d, 'end': %d, 'angle': %d, 'side': %d, 'duration': %@, 'vehicle': %@, 'permit': '%@', 'cost': %@, 'per': %@, 'holiday': %@}"
+        let format = "{\"type\": %d, \"days\": %@, \"weeks\": %@, \"months\": %@, \"start\": %d, \"end\": %d, \"angle\": %d, \"side\": %d, \"duration\": %@, \"vehicle\": %@, \"permit\": %@, \"cost\": %@, \"per\": %@, \"holiday\": %@}"
         let daysJSON = JSONStringify(value: days as AnyObject, prettyPrinted: false)
         let monthsJSON = JSONStringify(value: months as AnyObject, prettyPrinted: false)
         let weeksJSON = JSONStringify(value: weeks as AnyObject, prettyPrinted: false)
-        return String(format: format, type, daysJSON, weeksJSON, monthsJSON, fromTime, toTime, angle, side, timeLimit != nil ? String(timeLimit!) : "null", String(vehicleType), permit != nil ? permit! : "null", cost != nil ? String(format: "%4.2f", cost!) : "null", per != nil ? String(per!) : "null", enforcedHolidays.description)
+        return String(format: format, type, daysJSON, weeksJSON, monthsJSON, fromTime, toTime, angle, side, timeLimit != nil ? String(timeLimit!) : "null", String(vehicleType), permit != nil ? "\""+permit!+"\"" : "null", cost != nil ? String(format: "%4.2f", cost!) : "null", per != nil ? String(per!) : "null", enforcedHolidays.description)
     }
     
     var debugDescription: String {

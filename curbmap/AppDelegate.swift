@@ -13,6 +13,8 @@ import AudioToolbox
 import AVFoundation
 import RealmSwift
 import Alamofire
+import Photos
+import OpenLocationCode
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
@@ -41,8 +43,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
         self.getUser()
-        var results = self.realm.objects(Lines.self)
-        print(results)
         return true
     }
     func registerForLocalNotifications() {
@@ -120,7 +120,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         // store all restrictions to Realm
         let begin = self.mapController.line[0].get_coordinate()
         let end = self.mapController.line[1].get_coordinate()
-        let line = "[[\(begin.longitude),\(begin.latitude)],[\(end.longitude),\(end.latitude)]]"
+        let line = "\(begin.longitude),\(begin.latitude),\(end.longitude),\(end.latitude)"
         let headers: Alamofire.HTTPHeaders = ["Content-Type": "application/json", "session": "X", "username": "curbmaptest"]
         var restrParams: [Any] = []
         for r in restrictions {
@@ -155,22 +155,133 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         
     }
     func storeRestrsInRealm(_ sentSuccessfully: Bool, _ id: String?, _ lineString: String) {
-        var restrs: String = "["
-        for r in restrictions {
-            let x = String(describing: r)
-            restrs.append(x+",")
-        }
-        let end = restrs.index(restrs.startIndex, offsetBy: restrs.count-1)
-        restrs = String(restrs[..<end]+"]")
         let line = Lines()
         line.line = lineString
         line.date = Date()
-        line.restrictions = restrs
+        for r in restrictions {
+            let x = RestrictionType()
+            x.type = r.type
+            x.angle = r.angle
+            x.cost = r.cost
+            x.per = r.per
+            for val in r.days {
+                x.days.append(val)
+            }
+            for val in r.weeks {
+                x.weeks.append(val)
+            }
+            for val in r.months {
+                x.months.append(val)
+            }
+            x.duration = r.timeLimit
+            x.start = r.fromTime
+            x.end = r.toTime
+            x.holiday = r.enforcedHolidays
+            x.permit = r.permit
+            x.side = r.side
+            line.restrictions.append(x)
+        }
         line.id = id
         line.uploaded = sentSuccessfully
         try! realm.write {
             realm.add(line)
         }
+    }
+    func uploadIfOnWifi() {
+        if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
+            let filteredLines = realm.objects(Lines.self).filter("uploaded == false")
+            if (filteredLines.count > 0) {
+                for line in filteredLines {
+                    let lineFloats = line.line!.split(separator: ",").map{Float($0)}
+                    let lineStruct = [[lineFloats[0], lineFloats[1]], [lineFloats[2], lineFloats[3]]]
+                    var restrictionString = "["
+                    for r in line.restrictions {
+                        let R = Restriction(type: r.type, days: Array(r.days), weeks: Array(r.weeks), months: Array(r.months), from: r.start, to: r.end, angle: r.angle, holidays: r.holiday, vehicle: r.vehicle, side: r.side, limit: r.duration, cost: r.cost, per: r.per, permit: r.permit)
+                        restrictionString += String(describing: R) + ","
+                    }
+                    let restrictionStringEnd = restrictionString.index(restrictionString.startIndex, offsetBy: restrictionString.count-1)
+                    restrictionString = String(restrictionString[..<restrictionStringEnd])+"]"
+                    let parameters: Parameters = [
+                        "line": lineStruct,
+                        "restrictions": restrictionString
+                        ]
+                    let headers: HTTPHeaders = [
+                        "Content-Type": "applicaiton/json",
+                        "session": self.user.get_session()
+                    ]
+                    Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+                        guard self != nil else { return }
+                        if var json = response.result.value as? [String: Any] {
+                            if let success = json["success"] as? Int {
+                                if (success == 1) {
+                                    // put restrictions in realm as complete
+                                    try! self?.realm.write {
+                                        line.uploaded = true
+                                        line.id = json["line_id"] as? String
+                                    }
+                                } else {
+                                    // do nothing, try later ???
+                                }
+                            }
+                        } else {
+                            // do nothing, try later ???
+                        }
+                    }
+
+                }
+            }
+            let filteredImages = realm.objects(Images.self).filter("uploaded == false")
+            if (filteredImages.count > 0) {
+                // get the image and upload it!
+                for image in filteredImages {
+                    if let olc = try? OpenLocationCode.encode(latitude: image.latitude, longitude: image.longitude, codeLength: 12) {
+                        PHPhotoLibrary.shared().load(identifier: image.localIdentifier, appDelegate: self, olc: olc, heading: image.heading)
+                    }
+                }
+            }
+        }
+    }
+    @objc func uploadPhoto(data: Data, identifier: String, olc: String, heading: Double) {
+        // do something
+        let headers = [
+            "Content-Type": "application/x-www-form-urlencoded",
+            "username": self.user.get_username(),
+            "session": self.user.get_session()
+        ]
+        Alamofire.upload(multipartFormData: { MultipartFormData in
+            MultipartFormData.append(olc.data(using: String.Encoding.utf8)!, withName: "olc")
+            MultipartFormData.append("\(heading)".data(using: String.Encoding.utf8)!, withName: "bearing")
+            MultipartFormData.append(data, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+        }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
+            switch encodingResult {
+            case .success(let upload, _, _):
+                upload.responseJSON { response in
+                    if let result = response.result.value {
+                        print(response)
+                        if let success = result as? NSDictionary {
+                            print("\(success["success"]! as! Bool) XXX")
+                            if ((success["success"]! as! Bool) == true) {
+                                
+                                guard let foundImage = self.realm.objects(Images.self).filter("localIdentifier == \"\(identifier)\"").first else {
+                                    return
+                                }
+                                try! self.realm.write {
+                                    foundImage.uploaded = true
+                                }
+                            }
+                            return
+                        }
+                        
+                    }
+                }
+                break
+            case .failure(let encodingError):
+                print("failed to send \(encodingError.localizedDescription)")
+            }
+        })
+
+        print("here in upload photo for \(identifier) with olc \(olc)")
+        
     }
     @objc func getUser() {
         do {
@@ -300,6 +411,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     @objc func finishedLogin(_ result: Int) {
         if (result == 1) {
             print("Successfully logged in")
+            self.uploadIfOnWifi()
         } else {
             if (result == 0) {
                 print("Incorrect password")
@@ -388,10 +500,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
 }
 class Lines : Object {
     @objc dynamic var line: String!
-    @objc dynamic var restrictions: String!
+    var restrictions = List<RestrictionType>()
     @objc dynamic var id: String!
     @objc dynamic var date: Date!
     @objc dynamic var uploaded: Bool = false
+}
+
+class RestrictionType : Object {
+    var days = List<Bool>()
+    var weeks = List<Bool>()
+    var months = List<Bool>()
+    @objc dynamic var type = 0
+    @objc dynamic var vehicle = 0
+    @objc dynamic var start = 0
+    @objc dynamic var end = 0
+    @objc dynamic var angle = 0
+    @objc dynamic var side = 0
+    var duration: Int?
+    var permit: String?
+    var cost: Float?
+    var per: Int?
+    @objc dynamic var holiday: Bool = true
 }
 
 class Images: Object {
