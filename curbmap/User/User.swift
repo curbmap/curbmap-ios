@@ -101,6 +101,10 @@ class User {
             "username": self.username,
             "password": self.password
         ]
+        if (self.username == "" || self.password == "") {
+            callback(0)
+            return
+        }
         
         let headers = [
             "Content-Type": "application/x-www-form-urlencoded"

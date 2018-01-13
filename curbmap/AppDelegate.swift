@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     var settingsController: SettingsViewController!
     var token: String!
     var window: UIWindow?
-    var windowLocation = 0;
+    var windowLocation = 1;
     var error : Error!
     let center = UNUserNotificationCenter.current()
     let options: UNAuthorizationOptions = [.alert, .sound];
@@ -35,6 +35,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     var registeredForRemote: Bool = false
     let realm = try! Realm()
     var restrictions: [Restriction] = []
+    let reachabilityManager = Alamofire.NetworkReachabilityManager(host: "www.google.com")
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -121,7 +122,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         let begin = self.mapController.line[0].get_coordinate()
         let end = self.mapController.line[1].get_coordinate()
         let line = "\(begin.longitude),\(begin.latitude),\(end.longitude),\(end.latitude)"
-        let headers: Alamofire.HTTPHeaders = ["Content-Type": "application/json", "session": "X", "username": "curbmaptest"]
+        let headers: Alamofire.HTTPHeaders = ["Content-Type": "application/json", "session": self.user.get_session(), "username": self.user.get_username()]
         var restrParams: [Any] = []
         for r in restrictions {
             restrParams.append(r.asDictionary())
@@ -136,19 +137,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                         if (success == 1) {
                             // put restrictions in realm as complete
                             self?.storeRestrsInRealm(true, json["line_id"] as? String, line)
+                            self?.mapController.cancelLine(self?.mapController)
                         } else {
                             // put the restrictions in realm for later
                             self?.storeRestrsInRealm(false, nil, line)
+                            self?.mapController.cancelLine(self?.mapController)
                         }
                     }
                 } else {
                     self?.storeRestrsInRealm(false, nil, line)
+                    self?.mapController.cancelLine(self?.mapController)
                     // put the restrictions in the realm for later
                 }
             }
         } else {
             // put it in the db to try to upload later
             self.storeRestrsInRealm(false, nil, line)
+            self.mapController.cancelLine(self.mapController)
         }
         //mapController.findClosestLine(begin, end)
         return false
@@ -188,8 +193,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         }
         self.restrictions = []
     }
+
     func uploadIfOnWifi() {
-        if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
+        if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! {
             let filteredLines = realm.objects(Lines.self).filter("uploaded == false")
             if (filteredLines.count > 0) {
                 for line in filteredLines {
@@ -295,6 +301,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     user.set_remember(remember: true)
                     user.login(callback: self.finishedLogin)
                 }
+            } else {
+                NetworkManager.shared.startNetworkReachabilityObserver()
             }
         } catch _ {
             print("cannot get username")
@@ -412,7 +420,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     @objc func finishedLogin(_ result: Int) {
         if (result == 1) {
             print("Successfully logged in")
-            self.uploadIfOnWifi()
+            NetworkManager.shared.startNetworkReachabilityObserver()
         } else {
             if (result == 0) {
                 print("Incorrect password")

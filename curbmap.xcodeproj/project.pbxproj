@@ -13,6 +13,9 @@
 		D527000D2002D61F0082B58A /* Restriction.xib in Resources */ = {isa = PBXBuildFile; fileRef = D5BF303E2002B35F007E8147 /* Restriction.xib */; };
 		D52CB09A1FFECD7300C50B41 /* MapMarkerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52CB0991FFECD7300C50B41 /* MapMarkerView.swift */; };
 		D55127D72009B5B100860069 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = D55127D62009B5B000860069 /* README.md */; };
+		D55127DA200A041500860069 /* UserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127D8200A041500860069 /* UserViewController.swift */; };
+		D55127DB200A041500860069 /* UserViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127D9200A041500860069 /* UserViewController.xib */; };
+		D55127DD200A144B00860069 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127DC200A144B00860069 /* NetworkManager.swift */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
@@ -76,6 +79,9 @@
 		D52CB08B1FFCA79400C50B41 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/Realm.framework"; sourceTree = "<group>"; };
 		D52CB0991FFECD7300C50B41 /* MapMarkerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapMarkerView.swift; sourceTree = "<group>"; };
 		D55127D62009B5B000860069 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		D55127D8200A041500860069 /* UserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserViewController.swift; sourceTree = "<group>"; };
+		D55127D9200A041500860069 /* UserViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UserViewController.xib; sourceTree = "<group>"; };
+		D55127DC200A144B00860069 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -162,6 +168,7 @@
 			isa = PBXGroup;
 			children = (
 				D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */,
+				D55127DC200A144B00860069 /* NetworkManager.swift */,
 			);
 			path = General;
 			sourceTree = "<group>";
@@ -170,6 +177,8 @@
 			isa = PBXGroup;
 			children = (
 				D59487FA1FD7350A008822A7 /* User.swift */,
+				D55127D8200A041500860069 /* UserViewController.swift */,
+				D55127D9200A041500860069 /* UserViewController.xib */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -450,6 +459,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D527000D2002D61F0082B58A /* Restriction.xib in Resources */,
+				D55127DB200A041500860069 /* UserViewController.xib in Resources */,
 				D59488121FD7C745008822A7 /* UserCell.xib in Resources */,
 				D5E1737A1FF21EFD00DF8B68 /* Main.storyboard in Resources */,
 				D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */,
@@ -667,6 +677,7 @@
 				D5BCACFD1FF1F02400EDB02A /* MenuView.swift in Sources */,
 				D52CB09A1FFECD7300C50B41 /* MapMarkerView.swift in Sources */,
 				D59488051FD736B2008822A7 /* Restriction.swift in Sources */,
+				D55127DD200A144B00860069 /* NetworkManager.swift in Sources */,
 				D5DE8F791FF718C800B715B9 /* AlarmUserNotification.swift in Sources */,
 				D5E1737D1FF2287000DF8B68 /* SettingsViewController.swift in Sources */,
 				D5A001BF1FF80A71003818C1 /* SignupViewController.swift in Sources */,
@@ -675,6 +686,7 @@
 				D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */,
 				D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */,
 				D59487FB1FD7350A008822A7 /* User.swift in Sources */,
+				D55127DA200A041500860069 /* UserViewController.swift in Sources */,
 				D59488071FD78096008822A7 /* MapViewController.swift in Sources */,
 				D5BF303F2002B35F007E8147 /* RestrictionViewController.swift in Sources */,
 			);

@@ -47,7 +47,7 @@ class MenuTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if (appDelegate.user.isLoggedIn()) {
             if (indexPath.row == appDelegate.windowLocation && indexPath.row == 0) {
-                
+                print("shouldn't be here")
             } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 1) {
                 let vc = navigationController?.topViewController as! MapViewController
                 vc.containerView.isHidden = true
@@ -58,6 +58,16 @@ class MenuTableViewController: UITableViewController {
                 vc.menuOpen = false
             }else if (indexPath.row == 0 && appDelegate.windowLocation != 0) {
                 // my places and other things!
+                print("here in row 0")
+                let userController = UserViewController(nibName: "UserViewController", bundle: nil)
+                if (appDelegate.windowLocation != 1) {
+                    navigationController?.popViewController(animated: true)
+                }
+                appDelegate.windowLocation = 0
+                let vc = navigationController?.topViewController as! MapViewController
+                vc.containerView.isHidden = true
+                vc.menuOpen = false
+                navigationController?.pushViewController(userController, animated: true)
             }
             else if (indexPath.row == 1 && appDelegate.windowLocation != 1) {
                 if (appDelegate.windowLocation != 1) {

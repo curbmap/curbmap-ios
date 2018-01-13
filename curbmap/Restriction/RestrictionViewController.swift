@@ -6,6 +6,8 @@
 //  Copyright © 2018 Eli Selkin. All rights reserved.
 //
 
+// TODO: Set up error checking to see if the rule the user is adding makes sense. If not, show an alert!
+
 import UIKit
 import SnapKit
 import NVActivityIndicatorView
@@ -1288,6 +1290,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.costField.endEditing(true)
         self.perField.endEditing(true)
         self.timeLimitField.endEditing(true)
+        self.permitField.endEditing(true)
     }
     
     
