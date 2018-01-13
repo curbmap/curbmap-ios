@@ -63,7 +63,6 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     }
     
     @objc func createCentralViews() {
-        print("XXX IN CENTRAL VIEWS")
         self.windowFrame =  self.view.frame
         self.scrollView.isExclusiveTouch = false
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false

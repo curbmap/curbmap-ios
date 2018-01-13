@@ -186,6 +186,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         try! realm.write {
             realm.add(line)
         }
+        self.restrictions = []
     }
     func uploadIfOnWifi() {
         if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {

@@ -34,7 +34,100 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     var firstTouchPosition:CGPoint!
     var line: [MapMarker] = []
     var picker: UIImagePickerController!
+    var alertCameraOrLineViewBG: UIView!
+    var alertCameraOrLineViewFG: UIView!
     
+    @IBAction func alertAddLine(_ sender: Any) {
+        self.alertCameraOrLineViewBG.removeFromSuperview()
+        self.alertCameraOrLineViewBG = nil
+        self.alertCameraOrLineViewFG.removeFromSuperview()
+        self.alertCameraOrLineViewFG = nil
+        handleAlert(action: "Line")
+    }
+    @IBAction func alertAddPhoto(_ sender: Any) {
+        self.alertCameraOrLineViewBG.removeFromSuperview()
+        self.alertCameraOrLineViewBG = nil
+        self.alertCameraOrLineViewFG.removeFromSuperview()
+        self.alertCameraOrLineViewFG = nil
+        handleAlert(action: "Photo")
+    }
+    @IBAction func alertCancel(_ sender: Any) {
+        self.alertCameraOrLineViewBG.removeFromSuperview()
+        self.alertCameraOrLineViewBG = nil
+        self.alertCameraOrLineViewFG.removeFromSuperview()
+        self.alertCameraOrLineViewFG = nil
+    }
+    func createAlertForCameraOrLineView() {
+        guard self.alertCameraOrLineViewBG == nil else {
+            return
+        }
+        let alertLabel = UILabel()
+        alertLabel.text = "You can add a line or a photo at the point you tapped. Don't worry if it's not exactly the right place. You can move the points once they are on the map :-)"
+        alertLabel.adjustsFontForContentSizeCategory = true
+        let alertCameraButton = UIButton(type: .system)
+        alertCameraButton.setTitle("add a photo", for: .normal)
+        alertCameraButton.addTarget(self, action: #selector(alertAddPhoto), for: .touchUpInside)
+        let alertLineButton = UIButton(type: .system)
+        alertLineButton.setTitle("add a line", for: .normal)
+        alertLineButton.addTarget(self, action: #selector(alertAddLine), for: .touchUpInside)
+        let alertCancelButton = UIButton(type: .system)
+        alertCancelButton.setTitle("cancel", for: .normal)
+        alertCancelButton.addTarget(self, action: #selector(alertCancel), for: .touchUpInside)
+        self.alertCameraOrLineViewBG = UIView()
+        self.alertCameraOrLineViewBG.backgroundColor = UIColor.clear
+        self.alertCameraOrLineViewBG.layer.backgroundColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 0.2).cgColor
+        self.alertCameraOrLineViewBG.isOpaque = false
+        self.alertCameraOrLineViewBG.alpha = 0.5
+        self.alertCameraOrLineViewFG = UIView()
+        alertCameraOrLineViewFG.backgroundColor = UIColor.white
+        alertCameraOrLineViewFG.layer.cornerRadius = 10.0
+        alertCameraOrLineViewFG.addSubview(alertLabel)
+        alertCameraOrLineViewFG.addSubview(alertCameraButton)
+        alertCameraOrLineViewFG.addSubview(alertLineButton)
+        alertCameraOrLineViewFG.addSubview(alertCancelButton)
+        self.alertCameraOrLineViewBG.isHidden = false
+        self.alertCameraOrLineViewFG.isHidden = false
+        self.view.addSubview(alertCameraOrLineViewBG)
+        self.view.addSubview(alertCameraOrLineViewFG)
+        let viewSize = self.view.frame.size
+        self.alertCameraOrLineViewBG.snp.remakeConstraints { (make) in
+            make.center.equalTo(self.view.snp.center).priority(1000)
+            make.height.equalTo(self.view.snp.height).priority(1000)
+            make.width.equalTo(self.view.snp.width).priority(1000)
+        }
+        alertCameraOrLineViewFG.snp.remakeConstraints { (make) in
+            make.center.equalTo(self.view.snp.center).priority(1000.0)
+            if (viewSize.height < viewSize.width) {
+                make.height.equalTo(self.view.snp.height).dividedBy(1.3).priority(1000.0)
+                make.width.equalTo(self.view.snp.width).dividedBy(2).priority(1000.0)
+            } else {
+                make.height.equalTo(self.view.snp.height).dividedBy(2).priority(1000.0)
+                make.width.equalTo(self.view.snp.width).dividedBy(1.3).priority(1000.0)
+            }
+        }
+        self.alertCameraOrLineViewFG.backgroundColor = UIColor.white
+        alertLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(alertCameraOrLineViewFG.snp.top).priority(1000.0)
+            make.leading.equalTo(alertCameraOrLineViewFG.snp.leadingMargin).offset(15).priority(1000.0)
+            make.trailing.equalTo(alertCameraOrLineViewFG.snp.trailingMargin).inset(15).priority(1000.0)
+            make.height.equalTo(alertCameraOrLineViewFG.snp.height).dividedBy(1.5).priority(1000.0)
+        }
+        alertLabel.numberOfLines = 0
+        alertLabel.lineBreakMode = .byWordWrapping
+        alertLabel.textAlignment = .center
+        alertCameraButton.snp.remakeConstraints { (make) in
+            make.top.equalTo(alertLabel.snp.bottom).priority(1000.0)
+            make.leading.equalTo(alertCameraOrLineViewFG.snp.leadingMargin).offset(15).priority(1000.0)
+        }
+        alertLineButton.snp.remakeConstraints { (make) in
+            make.top.equalTo(alertLabel.snp.bottom).priority(1000.0)
+            make.trailing.equalTo(alertCameraOrLineViewFG.snp.trailingMargin).inset(15).priority(1000.0)
+        }
+        alertCancelButton.snp.remakeConstraints { (make) in
+            make.bottom.equalTo(alertCameraOrLineViewFG.snp.bottomMargin).priority(1000.0)
+            make.centerX.equalTo(alertCameraOrLineViewFG.snp.centerX).priority(1000.0)
+        }
+    }
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var lineCancelButton: UIButton!
     
@@ -52,7 +145,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     @IBAction func looksGreat(_ sender: Any) {
         self.looksGreatButton.isEnabled = false
         if (self.photoAnnotation != nil) {
-            print("working photo annotation")
             let olc = try? OpenLocationCode.encode(latitude: self.photoAnnotation.coordinate.latitude, longitude: self.photoAnnotation.coordinate.longitude, codeLength: 12)
             let heading = self.photoAnnotation.heading
             if (olc != nil) {
@@ -119,7 +211,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                                 upload.responseJSON { response in
                                     if let result = response.result.value {
                                         if let success = result as? NSDictionary {
-                                            print(success["success"]! as! Bool)
                                             PHPhotoLibrary.shared().save(imageData: localDataWithExif, location: localCoord, heading: localHeading, appDelegate: self.appDelegate, completed: true)
                                             return
                                         }
@@ -250,10 +341,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         //geocoder.cancelGeocode()
-        print("HERE XXX IN GEOCODE")
         geocoder.geocodeAddressString((searchBar.text)!, completionHandler: { (placemarks, error) in
             // Process Response
-            print((searchBar.text)!)
             self.processGeocode(withPlacemarks: placemarks, error: error)
         })
         self.searchBar.endEditing(true)
@@ -307,7 +396,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             if (gesture is UITapGestureRecognizer) {
                 let gr = gesture as! UITapGestureRecognizer
                 if (gr.numberOfTapsRequired == 2) {
-                    print("removing and adding")
                     self.mapView.removeGestureRecognizer(gr)
                     self.doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(determineDoubleTapAction))
                     self.doubleTapGesture.delegate = self
@@ -360,7 +448,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
     }
     func coachMarksController(_ coachMarksController: CoachMarksController, willShow coachMark: inout CoachMark, afterSizeTransition: Bool, at index: Int) {
-        print("index: \(index)")
     }
     func coachMarksController(_ coachMarksController: CoachMarksController, willHide coachMark: CoachMark, at index: Int) {
         if (index == 3) {
@@ -392,7 +479,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
         self.searchBar.delegate = self
-        //setupViews(portrait_oriented)
         self.centerBox.translatesAutoresizingMaskIntoConstraints = false
         self.centerBox.snp.remakeConstraints { (make) in
             make.centerX.equalTo(self.view.snp.centerX).priority(1000.0)
@@ -411,7 +497,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         coachMarkSkip.layer.cornerRadius = 0
         coachMarkSkip.backgroundColor = UIColor.darkGray
         self.coachMarksController.skipView = self.coachMarkSkip
-        
     }
     
     func coachMarksController(_ coachMarksController: CoachMarksController, constraintsForSkipView skipView: UIView, inParent parentView: UIView) -> [NSLayoutConstraint]? {
@@ -475,16 +560,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         } else {
             // determine if user wants to add a line or a photo
             // 3d touch?
-            let alertController = UIAlertController(title: "Line or Photo", message:
-                "Would you like to draw a line or a photo?", preferredStyle: UIAlertControllerStyle.actionSheet)
-            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-            alertController.addAction(UIAlertAction(title: "Line", style: .default, handler: handleAlert))
-            alertController.addAction(UIAlertAction(title: "Photo", style: .default, handler: handleAlert))
-            self.present(alertController, animated: true, completion: nil)
+            self.createAlertForCameraOrLineView()
         }
     }
-    @objc func handleAlert(action: UIAlertAction) {
-        if (action.title == "Line") {
+    @objc func handleAlert(action: String) {
+        if (action == "Line") {
             self.line = [] // reset the line being added
             self.addingLine = true
             var mapMarker: MapMarker!
@@ -533,7 +613,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     
     
     @objc func updateCurrentLine(_ mapMarker: MapMarker?) {
-        print("update line being called")
         if (self.line.count > 0) {
             self.mapView.removeAnnotations(self.line) // remove all current annotations for the line
             if (self.polyline != nil) {
@@ -556,7 +635,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             self.photoToPlace = pickedImage
             dismiss(animated: true, completion: nil)
-            print(info)
             self.photoToPlace = pickedImage
             self.placePhoto()
         }
@@ -577,6 +655,13 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.portrait_oriented = orient.isPortrait
         }, completion: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             self.setupViews(self.portrait_oriented)
+            if (self.alertCameraOrLineViewBG != nil) {
+                self.alertCameraOrLineViewBG.removeFromSuperview()
+                self.alertCameraOrLineViewFG.removeFromSuperview()
+                self.alertCameraOrLineViewBG = nil
+                self.alertCameraOrLineViewFG = nil
+                self.createAlertForCameraOrLineView()
+            }
         })
     }
     
@@ -611,7 +696,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.trackUser = true
         }
         self.addingLine = false
-        
+        self.appDelegate.restrictions = []
     }
     @objc func cancelled() {
         self.cancelButton.isHidden = true
@@ -738,7 +823,6 @@ extension PHPhotoLibrary {
     }
     func load(identifier: String, appDelegate: AppDelegate, olc: String, heading: Double) {
         guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil).firstObject else { return }
-        print("got asset xxxXXXyyy")
         PHImageManager.default().requestImageData(for: asset, options: nil, resultHandler: { (data: Data?, localIdentifier: String?, orientation: UIImageOrientation, info: [AnyHashable: Any]?) -> Void in
             if let data = data {
                 appDelegate.uploadPhoto(data: data, identifier: identifier, olc: olc, heading: heading)

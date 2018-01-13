@@ -86,7 +86,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         // Do any additional setup after loading the view.
     }
     @objc func createCentralViews() {
-        print("XXX IN CENTRAL VIEWS")
         self.windowFrame =  self.view.frame
         self.scrollView.isExclusiveTouch = false
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -283,7 +282,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             self.navigationController?.popViewController(animated: true)
         } else {
             // alert user about error
-            print(result)
             if (result == 0) {
                 self.error.text = "Incorrect password. Please try again."
             } else if (result == -1) {
