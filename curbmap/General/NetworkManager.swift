@@ -16,7 +16,7 @@ class NetworkManager {
     //shared instance
     static let shared = NetworkManager()
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let reachabilityManager = Alamofire.NetworkReachabilityManager(host: "www.google.com")
+    let reachabilityManager = Alamofire.NetworkReachabilityManager(host: "curbmap.com")
     
     func startNetworkReachabilityObserver() {
         

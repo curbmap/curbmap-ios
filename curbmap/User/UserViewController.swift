@@ -9,8 +9,23 @@
 import UIKit
 
 class UserViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    var menu = false
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var menuButtonOutlet: UIButton!
+    @IBAction func menuButtonAction(_ sender: Any) {
+        menu = !menu
+        if (menu) {
+            self.menuView.isHidden = false
+        } else {
+            self.menuView.isHidden = true
+        }
+    }
+    @IBOutlet weak var menuView: UIView!
+    @IBAction func logoutAction(_ sender: Any) {
+    }
     
+    @IBAction func syncAction(_ sender: Any) {
+    }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 3
     }
