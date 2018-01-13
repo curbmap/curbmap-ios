@@ -48,10 +48,6 @@
                         <action selector="syncAction:" destination="-1" eventType="touchUpInside" id="GnD-8C-CcV"/>
                     </connections>
                 </button>
-                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1z8-dm-uWS">
-                    <rect key="frame" x="16" y="76" width="240" height="571"/>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                </view>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zgJ-Nr-nN2">
                     <rect key="frame" x="16" y="20" width="48" height="48"/>
                     <constraints>
@@ -62,6 +58,10 @@
                         <action selector="menuButtonAction:" destination="-1" eventType="touchUpInside" id="HgE-b5-YDT"/>
                     </connections>
                 </button>
+                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1z8-dm-uWS">
+                    <rect key="frame" x="16" y="76" width="240" height="571"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                </view>
             </subviews>
             <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
             <constraints>

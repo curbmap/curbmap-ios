@@ -13,7 +13,7 @@ import SnapKit
 class SettingsViewController: UIViewController {
     var menuTableViewController: UITableViewController!
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-
+    
     @IBOutlet weak var logoutButtonOutlet: UIButton!
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var menuButtonOutlet: UIButton!
@@ -21,10 +21,10 @@ class SettingsViewController: UIViewController {
         self.appDelegate.user.logout(callback: self.finishedLogout)
     }
     @objc func finishedLogout() {
-        self.menuTableViewController.tableView.reloadData()
+        self.tableView.reloadData()
         print("Logged out")
     }
-    
+    var tableView: UITableView!
     @IBOutlet weak var mapstyleLabel: UILabel!
     @IBOutlet weak var mapsstyleOutlet: UISwitch!
     @IBAction func mapstyleSwitch(_ sender: Any) {
@@ -127,12 +127,12 @@ class SettingsViewController: UIViewController {
     @IBAction func menuButton(_ sender: Any) {
         self.containerView.isHidden = menuOpen
         menuOpen = !menuOpen
-        self.menuTableViewController.tableView.reloadData()
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.appDelegate.settingsController = self
+        self.containerView.backgroundColor = UIColor.clear
         if (self.appDelegate.user.settings["mapstyle"] == "l") {
             self.mapsstyleOutlet.setOn(true, animated: false)
             self.mapstyleLabel.text = "Light is awesome"
@@ -168,13 +168,29 @@ class SettingsViewController: UIViewController {
             self.offlineOutlet.setOn(true, animated: false)
             self.offlineLabel.text = "I only want to use wifi"
         }
+        self.containerView.backgroundColor = UIColor.clear
+        let vcMenu = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
+        vcMenu.willMove(toParentViewController: self)
+        self.containerView.addSubview(vcMenu.tableView)
+        vcMenu.tableView.frame = self.containerView.frame
+        vcMenu.tableView.snp.remakeConstraints { (make) in
+            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
+            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
+            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
+        }
+        self.tableView = vcMenu.tableView
+        self.addChildViewController(vcMenu)
+        vcMenu.didMove(toParentViewController: self)
         if (UIApplication.shared.statusBarOrientation.isPortrait) {
             self.setupCentralViews(1)
         } else {
             self.setupCentralViews(2)
         }
     }
-
+    
     @objc func setupCentralViews(_ firstTime: Int) {
         viewSize = self.view.frame.size
         
@@ -185,14 +201,14 @@ class SettingsViewController: UIViewController {
         }
         
         self.menuButtonOutlet.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
+            make.leading.equalTo(self.view.snp.leading).priority(1000.0)
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
             make.width.equalTo(64).priority(1000.0)
             make.height.equalTo(64).priority(1000.0)
         }
         // They should call it wasPortrait
         self.containerView.snp.remakeConstraints({(make) in
-            make.leading.equalTo(self.menuButtonOutlet.snp.leadingMargin).priority(1000.0)
+            make.leading.equalTo(self.menuButtonOutlet.snp.leading).priority(1000.0)
             make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
             make.bottom.equalTo(self.view.snp.bottomMargin)
             if (viewSize.width < viewSize.height) {
@@ -307,11 +323,4 @@ class SettingsViewController: UIViewController {
         self.appDelegate.settingsController = nil
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let vc = segue.destination as? UITableViewController,
-            segue.identifier == "ShowMenuFromSettings" {
-            self.menuTableViewController = vc
-        }
-    }
-
 }

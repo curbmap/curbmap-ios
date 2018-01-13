@@ -40,13 +40,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         appDelegate.user.login(callback: self.completeLogin)
     }
     @IBOutlet weak var loginButton: UIButton!
-    var menuTableViewController: UITableViewController!
+    var tableView: UITableView!
     var menuOpen = false
     // Hide table view tap on map or button
     @IBAction func menuButtonPressed(_ sender: Any) {
         self.containerView.isHidden = menuOpen
         menuOpen = !menuOpen
-        self.menuTableViewController.tableView.reloadData()
+        self.tableView.reloadData()
     }
     @IBOutlet weak var remember: UISwitch!
     @IBOutlet weak var password: UITextField!
@@ -55,12 +55,28 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     var ratio = 660.0/620.0 // for logo dimension ratio
     var windowFrame: CGRect!
     var viewSize: CGSize!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.scrollView.isExclusiveTouch = false
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
         self.scrollView.backgroundColor = UIColor.black
+        self.containerView.backgroundColor = UIColor.clear
+        let vc = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
+        vc.willMove(toParentViewController: self)
+        self.containerView.addSubview(vc.tableView)
+        self.tableView = vc.tableView
+        vc.tableView.frame = self.containerView.frame
+        vc.tableView.snp.remakeConstraints { (make) in
+            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
+            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
+            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
+        }
+        self.addChildViewController(vc)
+        vc.didMove(toParentViewController: self)
+
         self.createCentralViews()
         if (UIApplication.shared.statusBarOrientation.isPortrait) {
             self.setupCentralViews(1)
@@ -277,7 +293,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                     print("cannot get username")
                 }
             }
-            self.menuTableViewController.tableView.reloadData()
+            self.tableView.reloadData()
             self.appDelegate.windowLocation = 0
             self.navigationController?.popViewController(animated: true)
         } else {
@@ -307,14 +323,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         }
         return false
     }
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let vc = segue.destination as? UITableViewController,
-            segue.identifier == "ShowMenuFromLogin" {
-            self.menuTableViewController = vc
-        }
-    }
-    
-
-    
 }
+
 

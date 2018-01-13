@@ -81,6 +81,21 @@ class UserViewController: UIViewController, UITableViewDelegate, UITableViewData
         self.tableView.delegate = self
         self.tableView.dataSource = self
         self.tableView.backgroundColor = UIColor.black
+        self.menuView.backgroundColor = UIColor.clear
+        let vc = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
+        vc.willMove(toParentViewController: self)
+        self.menuView.addSubview(vc.tableView)
+        vc.tableView.frame = self.menuView.frame
+        vc.tableView.snp.remakeConstraints { (make) in
+            make.width.equalTo(self.menuView.snp.width).priority(1000.0)
+            make.height.equalTo(self.menuView.snp.height).priority(1000.0)
+            make.leading.equalTo(self.menuView.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.menuView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.menuView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.menuView.snp.bottom).priority(1000.0)
+        }
+        self.addChildViewController(vc)
+        vc.didMove(toParentViewController: self)
         // Do any additional setup after loading the view.
     }
 

@@ -33,7 +33,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             return 61
         }
     }
-
+    
     @IBOutlet weak var menuButtonOutlet: UIButton!
     var menuOpen = false
     // Hide table view tap on map or button
@@ -146,7 +146,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             viewSize = CGSize(width: viewSize.height, height: viewSize.width)
         }
         print("XXXX: \(viewSize)")
-
+        
         self.menuButtonOutlet.snp.remakeConstraints { (make) in
             make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
@@ -182,7 +182,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             make.trailing.equalTo(self.view.snp.trailingMargin).priority(1000.0)
             make.height.equalTo(viewSize.height/2)
         }
-
+        
         self.view.layoutSubviews()
         self.view.layoutIfNeeded()
     }
@@ -198,13 +198,29 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             self.timerLabel.text = "Timer finished :-("
         }
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.picker.dataSource = self
         self.picker.delegate = self
         self.picker.selectRow(1, inComponent: 0, animated: true)
         self.picker.selectRow(1, inComponent: 1, animated: true)
+        self.containerView.backgroundColor = UIColor.clear
+        let vc = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
+        vc.willMove(toParentViewController: self)
+        self.containerView.addSubview(vc.tableView)
+        vc.tableView.frame = self.containerView.frame
+        vc.tableView.snp.remakeConstraints { (make) in
+            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
+            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
+            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
+        }
+        self.addChildViewController(vc)
+        vc.didMove(toParentViewController: self)
+
         appDelegate.notificationDelegate.timerController = self
         if (UIApplication.shared.statusBarOrientation.isPortrait) {
             self.setupCentralViews(1)
@@ -216,9 +232,9 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         self.setupCentralViews(0)
     }
-
+    
     override func viewWillAppear(_ animated: Bool) {
-            self.checkTimeLeft()
+        self.checkTimeLeft()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -244,13 +260,5 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let vc = segue.destination as? UITableViewController,
-            segue.identifier == "ShowMenuFromAlarm" {
-            self.menuTableViewController = vc
-        }
-    }
-
 }
+

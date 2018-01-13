@@ -16,7 +16,6 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     var isPortrait: Bool!
     var originalOrientation: Bool!
     var loading: NVActivityIndicatorView!
-    
     @IBOutlet weak var containerView: UIView! // for menu controller
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var menuButton: UIButton!
@@ -49,6 +48,21 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.scrollView.isUserInteractionEnabled = true
         self.scrollView.isScrollEnabled = true
         self.containerView.isHidden = true
+        self.containerView.backgroundColor = UIColor.clear
+        let vc = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
+        vc.willMove(toParentViewController: self)
+        self.containerView.addSubview(vc.tableView)
+        vc.tableView.frame = self.containerView.frame
+        vc.tableView.snp.remakeConstraints { (make) in
+            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
+            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
+            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
+        }
+        self.addChildViewController(vc)
+        vc.didMove(toParentViewController: self)
         self.createCentralViews()
         if (UIApplication.shared.statusBarOrientation.isPortrait) {
             self.setupCentralViews(1)
@@ -112,7 +126,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.scrollView.layoutSubviews()
         self.scrollView.layoutIfNeeded()
     }
-
+    
     @objc func setupCentralViews(_ firstTime: Int) {
         self.viewSize = self.view.frame.size
         
@@ -121,7 +135,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
                 (UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width < viewSize.height))) {
             viewSize = CGSize(width: viewSize.height, height: viewSize.width)
         }
-
+        
         self.menuButton.snp.remakeConstraints { (make) in
             make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
@@ -262,12 +276,12 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         //self.scrollView.layoutSubviews()
         self.scrollView.layoutIfNeeded()
     }
-
+    
     @objc func destroyViews() {
         
     }
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
-            self.setupCentralViews(0)
+        self.setupCentralViews(0)
     }
     override func viewWillLayoutSubviews(){
         super.viewWillLayoutSubviews()
@@ -332,7 +346,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
         self.view.addSubview(self.loading)
         self.loading.startAnimating()
-
+        
         self.usernameError.text = "UsernameError"
         self.passwordError.isHidden = true
         self.passwordError.text = "PasswordError"
@@ -442,7 +456,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
             var newSet = navigationController?.viewControllers
             newSet?.remove(at: vcToRemove)
             navigationController?.viewControllers = newSet!
-
+            
         } else if (result == 0) {
             empty()
         } else if (result == -1) {
@@ -472,7 +486,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
         return emailTest.evaluate(with: testStr)
     }
-
+    
     
     @objc func alertUsernameAllows() {
         self.usernameError.numberOfLines = 3
@@ -483,7 +497,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
-
+    
     @objc func alertPasswordMustContain() {
         self.passwordError.numberOfLines = 3
         self.passwordError.lineBreakMode = .byWordWrapping
@@ -513,12 +527,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
         self.loading.removeFromSuperview()
         self.setupCentralViews(1)
     }
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if (segue.identifier == "ShowMenuFromSignup") {
-            let vc = segue.destination as! MenuTableViewController
-            self.menuTableViewController = vc
-        }
-    }
+
 }
 // MARK: - Padding for textfields
 // https://stackoverflow.com/questions/25367502/create-space-at-the-beginning-of-a-uitextfield
@@ -534,5 +543,6 @@ extension UITextField {
         self.rightViewMode = .always
     }
 }
+
 
 

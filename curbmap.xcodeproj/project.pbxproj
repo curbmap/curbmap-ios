@@ -16,6 +16,16 @@
 		D55127DA200A041500860069 /* UserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127D8200A041500860069 /* UserViewController.swift */; };
 		D55127DB200A041500860069 /* UserViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127D9200A041500860069 /* UserViewController.xib */; };
 		D55127DD200A144B00860069 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127DC200A144B00860069 /* NetworkManager.swift */; };
+		D55127E2200AABD800860069 /* MenuTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127E0200AABD800860069 /* MenuTableViewController.swift */; };
+		D55127E3200AABD800860069 /* MenuTableViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127E1200AABD800860069 /* MenuTableViewController.xib */; };
+		D55127E6200AADB900860069 /* AlarmViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127E4200AADB900860069 /* AlarmViewController.swift */; };
+		D55127E7200AADB900860069 /* AlarmViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127E5200AADB900860069 /* AlarmViewController.xib */; };
+		D55127EA200AAE6F00860069 /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127E8200AAE6F00860069 /* SignupViewController.swift */; };
+		D55127EB200AAE6F00860069 /* SignupViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127E9200AAE6F00860069 /* SignupViewController.xib */; };
+		D55127EE200AAED200860069 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127EC200AAED200860069 /* LoginViewController.swift */; };
+		D55127EF200AAED200860069 /* LoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127ED200AAED200860069 /* LoginViewController.xib */; };
+		D55127F2200AB4EA00860069 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127F0200AB4EA00860069 /* SettingsViewController.swift */; };
+		D55127F3200AB4EA00860069 /* SettingsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127F1200AB4EA00860069 /* SettingsViewController.xib */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
@@ -27,10 +37,6 @@
 		D59488121FD7C745008822A7 /* UserCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D59488101FD7C745008822A7 /* UserCell.xib */; };
 		D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */; };
 		D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */; };
-		D5A001BF1FF80A71003818C1 /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A001BE1FF80A71003818C1 /* SignupViewController.swift */; };
-		D5BCACF11FF1A12900EDB02A /* MenuTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACF01FF1A12900EDB02A /* MenuTableViewController.swift */; };
-		D5BCACF61FF1BCF700EDB02A /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACF51FF1BCF700EDB02A /* LoginViewController.swift */; };
-		D5BCACFA1FF1CBB300EDB02A /* AlarmViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACF81FF1CBB300EDB02A /* AlarmViewController.swift */; };
 		D5BCACFD1FF1F02400EDB02A /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACFC1FF1F02400EDB02A /* MenuView.swift */; };
 		D5BCAD001FF2079000EDB02A /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5BCACFF1FF2079000EDB02A /* MapKit.framework */; };
 		D5BF303C2001F5F2007E8147 /* MapBoxExtended.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BF303B2001F5F2007E8147 /* MapBoxExtended.swift */; };
@@ -44,7 +50,6 @@
 		D5DE8F791FF718C800B715B9 /* AlarmUserNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DE8F781FF718C800B715B9 /* AlarmUserNotification.swift */; };
 		D5DE8F7B1FF727D500B715B9 /* railroad.aiff in Resources */ = {isa = PBXBuildFile; fileRef = D5DE8F7A1FF727D500B715B9 /* railroad.aiff */; };
 		D5E1737A1FF21EFD00DF8B68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D5E173781FF21EFD00DF8B68 /* Main.storyboard */; };
-		D5E1737D1FF2287000DF8B68 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E1737C1FF2287000DF8B68 /* SettingsViewController.swift */; };
 		E006261727C49B3638A2A28B /* Pods_curbmapTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF737786B8BB78488E092F27 /* Pods_curbmapTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -82,6 +87,16 @@
 		D55127D8200A041500860069 /* UserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserViewController.swift; sourceTree = "<group>"; };
 		D55127D9200A041500860069 /* UserViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UserViewController.xib; sourceTree = "<group>"; };
 		D55127DC200A144B00860069 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+		D55127E0200AABD800860069 /* MenuTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableViewController.swift; sourceTree = "<group>"; };
+		D55127E1200AABD800860069 /* MenuTableViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MenuTableViewController.xib; sourceTree = "<group>"; };
+		D55127E4200AADB900860069 /* AlarmViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmViewController.swift; sourceTree = "<group>"; };
+		D55127E5200AADB900860069 /* AlarmViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AlarmViewController.xib; sourceTree = "<group>"; };
+		D55127E8200AAE6F00860069 /* SignupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
+		D55127E9200AAE6F00860069 /* SignupViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SignupViewController.xib; sourceTree = "<group>"; };
+		D55127EC200AAED200860069 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		D55127ED200AAED200860069 /* LoginViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LoginViewController.xib; sourceTree = "<group>"; };
+		D55127F0200AB4EA00860069 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		D55127F1200AB4EA00860069 /* SettingsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SettingsViewController.xib; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -93,10 +108,6 @@
 		D59488101FD7C745008822A7 /* UserCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UserCell.xib; sourceTree = "<group>"; };
 		D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralMenuCell.swift; sourceTree = "<group>"; };
 		D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GeneralMenuCell.xib; sourceTree = "<group>"; };
-		D5A001BE1FF80A71003818C1 /* SignupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
-		D5BCACF01FF1A12900EDB02A /* MenuTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableViewController.swift; sourceTree = "<group>"; };
-		D5BCACF51FF1BCF700EDB02A /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
-		D5BCACF81FF1CBB300EDB02A /* AlarmViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmViewController.swift; sourceTree = "<group>"; };
 		D5BCACFC1FF1F02400EDB02A /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		D5BCACFE1FF2052200EDB02A /* curbmap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = curbmap.entitlements; sourceTree = "<group>"; };
 		D5BCACFF1FF2079000EDB02A /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
@@ -118,7 +129,6 @@
 		D5DE8F781FF718C800B715B9 /* AlarmUserNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmUserNotification.swift; sourceTree = "<group>"; };
 		D5DE8F7A1FF727D500B715B9 /* railroad.aiff */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; path = railroad.aiff; sourceTree = "<group>"; };
 		D5E173791FF21EFD00DF8B68 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		D5E1737C1FF2287000DF8B68 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EF737786B8BB78488E092F27 /* Pods_curbmapTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_curbmapTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -213,9 +223,10 @@
 				D59488101FD7C745008822A7 /* UserCell.xib */,
 				D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */,
 				D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */,
-				D5BCACF01FF1A12900EDB02A /* MenuTableViewController.swift */,
 				D5BCACFC1FF1F02400EDB02A /* MenuView.swift */,
 				D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */,
+				D55127E0200AABD800860069 /* MenuTableViewController.swift */,
+				D55127E1200AABD800860069 /* MenuTableViewController.xib */,
 			);
 			path = Menu;
 			sourceTree = "<group>";
@@ -223,7 +234,8 @@
 		D5A001BD1FF809EA003818C1 /* Signup */ = {
 			isa = PBXGroup;
 			children = (
-				D5A001BE1FF80A71003818C1 /* SignupViewController.swift */,
+				D55127E8200AAE6F00860069 /* SignupViewController.swift */,
+				D55127E9200AAE6F00860069 /* SignupViewController.xib */,
 			);
 			path = Signup;
 			sourceTree = "<group>";
@@ -231,7 +243,8 @@
 		D5BCACF21FF1BCA700EDB02A /* Login */ = {
 			isa = PBXGroup;
 			children = (
-				D5BCACF51FF1BCF700EDB02A /* LoginViewController.swift */,
+				D55127EC200AAED200860069 /* LoginViewController.swift */,
+				D55127ED200AAED200860069 /* LoginViewController.xib */,
 			);
 			path = Login;
 			sourceTree = "<group>";
@@ -239,8 +252,9 @@
 		D5BCACF71FF1CB9C00EDB02A /* Alarm */ = {
 			isa = PBXGroup;
 			children = (
-				D5BCACF81FF1CBB300EDB02A /* AlarmViewController.swift */,
 				D5DE8F781FF718C800B715B9 /* AlarmUserNotification.swift */,
+				D55127E4200AADB900860069 /* AlarmViewController.swift */,
+				D55127E5200AADB900860069 /* AlarmViewController.xib */,
 			);
 			path = Alarm;
 			sourceTree = "<group>";
@@ -313,7 +327,8 @@
 		D5E1737B1FF2283A00DF8B68 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				D5E1737C1FF2287000DF8B68 /* SettingsViewController.swift */,
+				D55127F0200AB4EA00860069 /* SettingsViewController.swift */,
+				D55127F1200AB4EA00860069 /* SettingsViewController.xib */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -462,8 +477,13 @@
 				D55127DB200A041500860069 /* UserViewController.xib in Resources */,
 				D59488121FD7C745008822A7 /* UserCell.xib in Resources */,
 				D5E1737A1FF21EFD00DF8B68 /* Main.storyboard in Resources */,
+				D55127E3200AABD800860069 /* MenuTableViewController.xib in Resources */,
+				D55127F3200AB4EA00860069 /* SettingsViewController.xib in Resources */,
 				D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */,
+				D55127EB200AAE6F00860069 /* SignupViewController.xib in Resources */,
+				D55127E7200AADB900860069 /* AlarmViewController.xib in Resources */,
 				D5D419391FC7B04E0052849D /* LaunchScreen.storyboard in Resources */,
+				D55127EF200AAED200860069 /* LoginViewController.xib in Resources */,
 				D5D419361FC7B04E0052849D /* Assets.xcassets in Resources */,
 				D55127D72009B5B100860069 /* README.md in Resources */,
 				D5DE8F7B1FF727D500B715B9 /* railroad.aiff in Resources */,
@@ -665,29 +685,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D5BCACF61FF1BCF700EDB02A /* LoginViewController.swift in Sources */,
 				D50F8D41200499B20029E4FF /* TimeDelegateData.swift in Sources */,
 				D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */,
 				D5BF303C2001F5F2007E8147 /* MapBoxExtended.swift in Sources */,
 				D59488011FD7368D008822A7 /* MapMarker.swift in Sources */,
-				D5BCACF11FF1A12900EDB02A /* MenuTableViewController.swift in Sources */,
 				D59488111FD7C745008822A7 /* UserCell.swift in Sources */,
 				D5D419311FC7B04E0052849D /* ViewController.swift in Sources */,
 				D5D4192F1FC7B04E0052849D /* AppDelegate.swift in Sources */,
 				D5BCACFD1FF1F02400EDB02A /* MenuView.swift in Sources */,
+				D55127F2200AB4EA00860069 /* SettingsViewController.swift in Sources */,
 				D52CB09A1FFECD7300C50B41 /* MapMarkerView.swift in Sources */,
 				D59488051FD736B2008822A7 /* Restriction.swift in Sources */,
 				D55127DD200A144B00860069 /* NetworkManager.swift in Sources */,
 				D5DE8F791FF718C800B715B9 /* AlarmUserNotification.swift in Sources */,
-				D5E1737D1FF2287000DF8B68 /* SettingsViewController.swift in Sources */,
-				D5A001BF1FF80A71003818C1 /* SignupViewController.swift in Sources */,
-				D5BCACFA1FF1CBB300EDB02A /* AlarmViewController.swift in Sources */,
+				D55127E6200AADB900860069 /* AlarmViewController.swift in Sources */,
+				D55127E2200AABD800860069 /* MenuTableViewController.swift in Sources */,
 				D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */,
 				D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */,
 				D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */,
 				D59487FB1FD7350A008822A7 /* User.swift in Sources */,
 				D55127DA200A041500860069 /* UserViewController.swift in Sources */,
+				D55127EA200AAE6F00860069 /* SignupViewController.swift in Sources */,
 				D59488071FD78096008822A7 /* MapViewController.swift in Sources */,
+				D55127EE200AAED200860069 /* LoginViewController.swift in Sources */,
 				D5BF303F2002B35F007E8147 /* RestrictionViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

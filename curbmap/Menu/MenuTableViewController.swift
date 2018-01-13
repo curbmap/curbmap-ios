@@ -10,7 +10,7 @@ import UIKit
 
 class MenuTableViewController: UITableViewController {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.backgroundColor = UIColor.clear
@@ -19,18 +19,18 @@ class MenuTableViewController: UITableViewController {
         self.tableView.register(UINib(nibName: "UserCell", bundle: nil), forCellReuseIdentifier: "UserCell")
         self.tableView.register(UINib(nibName: "GeneralMenuCell", bundle: nil), forCellReuseIdentifier: "GeneralMenuCell")
         
-
+        
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
+    
     // MARK: - Table view data source
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
         return 1
@@ -43,20 +43,19 @@ class MenuTableViewController: UITableViewController {
             return 6
         }
     }
-    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
         if (appDelegate.user.isLoggedIn()) {
             if (indexPath.row == appDelegate.windowLocation && indexPath.row == 0) {
                 print("shouldn't be here")
             } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 1) {
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
             } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 2) {
                 let vc = navigationController?.topViewController as! AlarmViewController
                 vc.containerView.isHidden = true
                 vc.menuOpen = false
-            }else if (indexPath.row == 0 && appDelegate.windowLocation != 0) {
+            } else if (indexPath.row == 0 && appDelegate.windowLocation != 0) {
                 // my places and other things!
                 print("here in row 0")
                 let userController = UserViewController(nibName: "UserViewController", bundle: nil)
@@ -64,9 +63,8 @@ class MenuTableViewController: UITableViewController {
                     navigationController?.popViewController(animated: true)
                 }
                 appDelegate.windowLocation = 0
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 navigationController?.pushViewController(userController, animated: true)
             }
             else if (indexPath.row == 1 && appDelegate.windowLocation != 1) {
@@ -74,29 +72,26 @@ class MenuTableViewController: UITableViewController {
                     navigationController?.popViewController(animated: true)
                 }
                 appDelegate.windowLocation = 1
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
             } else if (indexPath.row == 2 && appDelegate.windowLocation != 2) {
-                let alarmViewController = self.storyboard?.instantiateViewController(withIdentifier: "Alarm") as! AlarmViewController
-                if (appDelegate.windowLocation != 0) {
+                let alarmViewController = AlarmViewController(nibName: "AlarmViewController", bundle: nil)
+                if (appDelegate.windowLocation != 1) {
                     navigationController?.popViewController(animated: true)
                 }
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 appDelegate.windowLocation = 2
                 navigationController?.pushViewController(alarmViewController, animated: true)
             } else if (indexPath.row == 3 && appDelegate.windowLocation != 3) {
                 // about
             } else if (indexPath.row == 4 && appDelegate.windowLocation != 4) {
-                let settingsViewController = self.storyboard?.instantiateViewController(withIdentifier: "Settings") as! SettingsViewController
+                let settingsViewController = SettingsViewController(nibName: "SettingsViewController", bundle: nil)
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
                 }
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 appDelegate.windowLocation = 4
                 navigationController?.pushViewController(settingsViewController, animated: true)
             }
@@ -133,45 +128,41 @@ class MenuTableViewController: UITableViewController {
                 vc.menuOpen = false
                 appDelegate.windowLocation = 0
             } else if (indexPath.row == 1 && appDelegate.windowLocation != 1) {
-                let alarmViewController = self.storyboard?.instantiateViewController(withIdentifier: "Alarm") as! AlarmViewController
+                let alarmViewController = AlarmViewController(nibName: "AlarmViewController", bundle: nil)
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
                 }
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 appDelegate.windowLocation = 1
                 navigationController?.pushViewController(alarmViewController, animated: true)
             } else if (indexPath.row == 2 && appDelegate.windowLocation != 2) {
-                let loginViewController = self.storyboard?.instantiateViewController(withIdentifier: "Login") as! LoginViewController
+                let loginViewController = LoginViewController(nibName: "LoginViewController", bundle: nil)
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
                 }
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 appDelegate.windowLocation = 2
                 navigationController?.pushViewController(loginViewController, animated: true)
             } else if (indexPath.row == 3 && appDelegate.windowLocation != 3) {
-                let signupViewController = self.storyboard?.instantiateViewController(withIdentifier: "Signup") as! SignupViewController
+                let signupViewController = SignupViewController(nibName: "SignupViewController", bundle: nil)
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
                 }
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 appDelegate.windowLocation = 3
                 navigationController?.pushViewController(signupViewController, animated: true)
             } else if (indexPath.row == 4 && appDelegate.windowLocation != 4) {
                 // about
             } else {
-                let settingsViewController = self.storyboard?.instantiateViewController(withIdentifier: "Settings") as! SettingsViewController
+                let settingsViewController = SettingsViewController(nibName: "SettingsViewController", bundle: nil)
                 if (appDelegate.windowLocation != 0) {
                     navigationController?.popViewController(animated: true)
                 }
-                let vc = navigationController?.topViewController as! MapViewController
-                vc.containerView.isHidden = true
-                vc.menuOpen = false
+                self.appDelegate.mapController.containerView.isHidden = true
+                self.appDelegate.mapController.menuOpen = false
                 appDelegate.windowLocation = 5
                 navigationController?.pushViewController(settingsViewController, animated: true)
             }
@@ -182,20 +173,10 @@ class MenuTableViewController: UITableViewController {
             if (indexPath.row == 0) {
                 return 100;
             } else {
-                let cell = tableView.cellForRow(at: indexPath)
-                if (cell != nil) {
-                    return cell!.frame.height
-                } else {
-                    return 62.0
-                }
-            }
-        } else {
-            let cell = tableView.cellForRow(at: indexPath)
-            if (cell != nil) {
-                return cell!.frame.height
-            } else {
                 return 62.0
             }
+        } else {
+            return 62.0
         }
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -224,7 +205,7 @@ class MenuTableViewController: UITableViewController {
                     cell.cellImage.image = UIImage(named: "settings")
                     cell.cellDescription.text = "change defaults!"
                 }
-
+                
                 return cell
             }
         } else {
@@ -258,16 +239,17 @@ class MenuTableViewController: UITableViewController {
             return cell
         }
     }
-
-
+    
+    
     /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+     // MARK: - Navigation
+     
+     // In a storyboard-based application, you will often want to do a little preparation before navigation
+     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+     // Get the new view controller using segue.destinationViewController.
+     // Pass the selected object to the new view controller.
+     }
+     */
+    
 }
+
