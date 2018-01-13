@@ -12,6 +12,7 @@
 		D50F8D41200499B20029E4FF /* TimeDelegateData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50F8D40200499B20029E4FF /* TimeDelegateData.swift */; };
 		D527000D2002D61F0082B58A /* Restriction.xib in Resources */ = {isa = PBXBuildFile; fileRef = D5BF303E2002B35F007E8147 /* Restriction.xib */; };
 		D52CB09A1FFECD7300C50B41 /* MapMarkerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52CB0991FFECD7300C50B41 /* MapMarkerView.swift */; };
+		D55127D72009B5B100860069 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = D55127D62009B5B000860069 /* README.md */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
@@ -74,6 +75,7 @@
 		D52CB08A1FFCA79400C50B41 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/RealmSwift.framework"; sourceTree = "<group>"; };
 		D52CB08B1FFCA79400C50B41 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../../../../Desktop/realm-swift-3.0.2/ios/swift-4.0.2/Realm.framework"; sourceTree = "<group>"; };
 		D52CB0991FFECD7300C50B41 /* MapMarkerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapMarkerView.swift; sourceTree = "<group>"; };
+		D55127D62009B5B000860069 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 		D5D4192D1FC7B04E0052849D /* curbmap */ = {
 			isa = PBXGroup;
 			children = (
+				D55127D62009B5B000860069 /* README.md */,
 				D55B6E221FFA06A7001C9337 /* General */,
 				D5DE8F7A1FF727D500B715B9 /* railroad.aiff */,
 				D5BCACFE1FF2052200EDB02A /* curbmap.entitlements */,
@@ -452,6 +455,7 @@
 				D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */,
 				D5D419391FC7B04E0052849D /* LaunchScreen.storyboard in Resources */,
 				D5D419361FC7B04E0052849D /* Assets.xcassets in Resources */,
+				D55127D72009B5B100860069 /* README.md in Resources */,
 				D5DE8F7B1FF727D500B715B9 /* railroad.aiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
