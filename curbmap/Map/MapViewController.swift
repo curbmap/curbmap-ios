@@ -540,7 +540,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         let touched = gestureRecognizer.location(in: self.mapView)
         self.coordTouched = mapView.convert(touched, toCoordinateFrom: self.mapView)
         if (self.addingLine) {
-            if (self.line.count < 2) {
+            if (self.line.count < 4) {
                 // put another point on the map
                 var mapMarker: MapMarker!
                 if let heading = self.userHeading {
@@ -553,7 +553,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                 mapMarker.tag = line.count
                 self.updateCurrentLine(mapMarker)
             } else {
-                let alertController = UIAlertController(title: "2 Points Max", message: "We only allow 2 points on a line, but you can move around the two points you currently have by long pressing them.", preferredStyle: UIAlertControllerStyle.actionSheet)
+                let alertController = UIAlertController(title: "4 Points Max", message: "We only allow 4 points on a line, but you can move around the points you currently have by long pressing them.", preferredStyle: UIAlertControllerStyle.actionSheet)
                 alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
                 self.present(alertController, animated: true, completion: nil)
             }
@@ -624,7 +624,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
         self.mapView.addAnnotations(self.line)
         if (self.line.count > 1) {
-            self.polyline = CurbmapPolyLine(coordinates: [self.line[0].coordinate, self.line[1].coordinate], count: 2)
+            var coordinatesArray: [CLLocationCoordinate2D] = []
+            for point in self.line {
+                coordinatesArray.append(point.coordinate)
+            }
+            self.polyline = CurbmapPolyLine(coordinates: coordinatesArray, count: UInt(coordinatesArray.count))
             self.mapView.add(self.polyline)
             self.lineLooksGreatButton.isHidden = false
             self.lineCancelButton.isHidden = false

@@ -73,6 +73,8 @@ class UserViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     func constructTableViewContributions() {
+        var frame = CGRect(x: self.view.center.x-50, y: self.view.center.y-50, width: 100, height: 100)
+        self.loading = NVActivityIndicatorView(frame: self.view.frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: .white, padding: 150.0)
         self.loading.startAnimating()
         self.view.addSubview(self.loading)
         self.alertViewBG = UIView()
@@ -86,11 +88,13 @@ class UserViewController: UIViewController, UITableViewDelegate, UITableViewData
         let tableView = UITableView()
         tableView.register(UINib(nibName: "ContributionCell", bundle: nil), forCellReuseIdentifier: "ContributionCell")
         let tableViewDD = ContributionsDD()
-        tableViewDD.contributionsPhotos = appDelegate.getPhotoContributions()!
-        tableViewDD.contributionsLines = appDelegate.getLineContributions()!
+        //tableViewDD.contributionsPhotos = appDelegate.getPhotoContributions()!
+        //tableViewDD.contributionsLines = appDelegate.getLineContributions()!
+        Timer.scheduledTimer(timeInterval: 1.1, target: self, selector: #selector(removeLoading), userInfo: nil, repeats: false)
+    }
+    @objc func removeLoading() {
         self.loading.stopAnimating()
         self.loading.removeFromSuperview()
-
     }
     func constructTableViewPhotoQueue() {
         

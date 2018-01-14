@@ -126,6 +126,11 @@ class SettingsViewController: UIViewController {
     // Hide table view tap on map or button
     @IBAction func menuButton(_ sender: Any) {
         self.containerView.isHidden = menuOpen
+        if (!menuOpen) {
+            self.scrollView.isScrollEnabled = false
+        } else {
+            self.scrollView.isScrollEnabled = true
+        }
         menuOpen = !menuOpen
     }
     

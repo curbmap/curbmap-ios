@@ -87,7 +87,7 @@ class MenuTableViewController: UITableViewController {
                 // about
             } else if (indexPath.row == 4 && appDelegate.windowLocation != 4) {
                 let settingsViewController = SettingsViewController(nibName: "SettingsViewController", bundle: nil)
-                if (appDelegate.windowLocation != 0) {
+                if (appDelegate.windowLocation != 1) {
                     navigationController?.popViewController(animated: true)
                 }
                 self.appDelegate.mapController.containerView.isHidden = true
