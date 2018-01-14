@@ -19,6 +19,7 @@ enum RestrictionError: Error {
     case perNotSpecifiedForMeter
     case timeLimitNotSpecified
     case incongruentPerTypeForMeter
+    case permitRequired
 }
 
 class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate {
@@ -97,6 +98,8 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 errorAlert("Per values help people expect how much parking will cost them. Thanks for adding one.")
             } else if (error == RestrictionError.timeLimitNotSpecified) {
                 errorAlert("It'd be a wonderful world if there were no time limits on parking. Please add one for this type of restriction.")
+            } else if (error == RestrictionError.permitRequired) {
+                errorAlert("This type of restriction needs a name for the permit required. Usually it's posted on the sign. We'd appreciate this information. Thank you!")
             }
         } catch {
             //catchall
@@ -187,7 +190,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                     throw RestrictionError.timeLimitNotSpecified
                 }
                 if let intTime = Int(timelimit) {
-                    if (intTime < 60) {
+                    if (intTime < 60 && intTime > 0) {
                         // short term unmetered parking
                         type = 0
                     } else {
@@ -201,7 +204,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                     throw RestrictionError.timeLimitNotSpecified
                 }
                 if let intTime = Int(timelimit) {
-                    if (intTime >= 60) {
+                    if (intTime >= 60 || intTime <= 0) {
                         throw RestrictionError.incongruentTimeWithRestriction
                     }
                 } else {
@@ -229,7 +232,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 } else {
                     throw RestrictionError.perNotSpecifiedForMeter
                 }
-            } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && (self.permitField.text == "" || self.permitField.text == nil)) {
+            } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && (self.permitField.text == "" || self.permitField.text == nil) && self.permitOutlet.selectedSegmentIndex == 1) {
                 guard let timelimit = self.timeLimitField.text else {
                     throw RestrictionError.timeLimitNotSpecified
                 }
@@ -276,12 +279,19 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 } else {
                     throw RestrictionError.perNotSpecifiedForMeter
                 }
-            } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitOutlet.selectedSegmentIndex == 0 && self.permitField.text != nil && self.permitField.text != "") {
+            } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitOutlet.selectedSegmentIndex == 0) {
+                guard let permit = self.permitField.text else {
+                    throw RestrictionError.permitRequired
+                }
+                if permit == "" {
+                    throw RestrictionError.permitRequired
+                }
+
                 guard let timelimit = self.timeLimitField.text else {
                     throw RestrictionError.timeLimitNotSpecified
                 }
                 if let intTime = Int(timelimit) {
-                    if (intTime < 60) {
+                    if (intTime < 60 || intTime > 1440) {
                         throw RestrictionError.incongruentTimeWithRestriction
                     }
                 } else {
@@ -289,12 +299,18 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 }
                 // permit exemption to time limited parking
                 type = 4
-            } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.permitField.text != nil && self.permitField.text != "" && self.permitOutlet.selectedSegmentIndex == 0) {
+            } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.permitOutlet.selectedSegmentIndex == 0) {
+                guard let permit = self.permitField.text else {
+                    throw RestrictionError.permitRequired
+                }
+                if permit == "" {
+                    throw RestrictionError.permitRequired
+                }
                 guard let timelimit = self.timeLimitField.text else {
                     throw RestrictionError.timeLimitNotSpecified
                 }
                 if let intTime = Int(timelimit) {
-                    if (intTime < 60) {
+                    if (intTime < 60 || intTime > 1440) {
                         throw RestrictionError.incongruentTimeWithRestriction
                     }
                 } else {
@@ -329,7 +345,14 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                     throw RestrictionError.incongruentCurbTypeWithMeter
                 }
                 type = 6
-            } else if (self.curbColorValue == 1 && self.permitField.text != nil && self.permitField.text != "") {
+            } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 0 && self.permitOutlet.selectedSegmentIndex == 0) {
+                guard let permit = self.permitField.text else {
+                    throw RestrictionError.permitRequired
+                }
+                if permit == "" {
+                    throw RestrictionError.permitRequired
+                }
+
                 if (self.meterOutlet.isOn) {
                     throw RestrictionError.incongruentCurbTypeWithMeter
                 }
