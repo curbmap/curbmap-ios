@@ -7,9 +7,11 @@
 //
 
 import UIKit
+import NVActivityIndicatorView
 
 class UserViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     var menu = false
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var menuButtonOutlet: UIButton!
     @IBAction func menuButtonAction(_ sender: Any) {
@@ -26,6 +28,9 @@ class UserViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     @IBAction func syncAction(_ sender: Any) {
     }
+    var alertViewBG: UIView!
+    var alertViewFG: UIView!
+    var loading: NVActivityIndicatorView!
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 3
     }
@@ -68,7 +73,24 @@ class UserViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     func constructTableViewContributions() {
-        
+        self.loading.startAnimating()
+        self.view.addSubview(self.loading)
+        self.alertViewBG = UIView()
+        self.alertViewBG.isOpaque = false
+        self.alertViewBG.alpha = 0.5
+        self.alertViewBG.backgroundColor = UIColor.gray
+        self.alertViewFG = UIView()
+        self.alertViewFG.backgroundColor = UIColor.white
+        let closeButton = UIButton()
+        closeButton.titleLabel?.text = "Close"
+        let tableView = UITableView()
+        tableView.register(UINib(nibName: "ContributionCell", bundle: nil), forCellReuseIdentifier: "ContributionCell")
+        let tableViewDD = ContributionsDD()
+        tableViewDD.contributionsPhotos = appDelegate.getPhotoContributions()!
+        tableViewDD.contributionsLines = appDelegate.getLineContributions()!
+        self.loading.stopAnimating()
+        self.loading.removeFromSuperview()
+
     }
     func constructTableViewPhotoQueue() {
         

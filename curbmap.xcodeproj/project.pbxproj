@@ -26,6 +26,9 @@
 		D55127EF200AAED200860069 /* LoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127ED200AAED200860069 /* LoginViewController.xib */; };
 		D55127F2200AB4EA00860069 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127F0200AB4EA00860069 /* SettingsViewController.swift */; };
 		D55127F3200AB4EA00860069 /* SettingsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127F1200AB4EA00860069 /* SettingsViewController.xib */; };
+		D55127F5200ABD8F00860069 /* ContributionsDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127F4200ABD8F00860069 /* ContributionsDD.swift */; };
+		D55127F8200ABFA800860069 /* ContributionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55127F6200ABFA800860069 /* ContributionCell.swift */; };
+		D55127F9200ABFA800860069 /* ContributionCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127F7200ABFA800860069 /* ContributionCell.xib */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
@@ -97,6 +100,9 @@
 		D55127ED200AAED200860069 /* LoginViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LoginViewController.xib; sourceTree = "<group>"; };
 		D55127F0200AB4EA00860069 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		D55127F1200AB4EA00860069 /* SettingsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SettingsViewController.xib; sourceTree = "<group>"; };
+		D55127F4200ABD8F00860069 /* ContributionsDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionsDD.swift; sourceTree = "<group>"; };
+		D55127F6200ABFA800860069 /* ContributionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionCell.swift; sourceTree = "<group>"; };
+		D55127F7200ABFA800860069 /* ContributionCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ContributionCell.xib; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -189,6 +195,9 @@
 				D59487FA1FD7350A008822A7 /* User.swift */,
 				D55127D8200A041500860069 /* UserViewController.swift */,
 				D55127D9200A041500860069 /* UserViewController.xib */,
+				D55127F4200ABD8F00860069 /* ContributionsDD.swift */,
+				D55127F6200ABFA800860069 /* ContributionCell.swift */,
+				D55127F7200ABFA800860069 /* ContributionCell.xib */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -473,6 +482,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D55127F9200ABFA800860069 /* ContributionCell.xib in Resources */,
 				D527000D2002D61F0082B58A /* Restriction.xib in Resources */,
 				D55127DB200A041500860069 /* UserViewController.xib in Resources */,
 				D59488121FD7C745008822A7 /* UserCell.xib in Resources */,
@@ -703,6 +713,8 @@
 				D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */,
 				D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */,
 				D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */,
+				D55127F5200ABD8F00860069 /* ContributionsDD.swift in Sources */,
+				D55127F8200ABFA800860069 /* ContributionCell.swift in Sources */,
 				D59487FB1FD7350A008822A7 /* User.swift in Sources */,
 				D55127DA200A041500860069 /* UserViewController.swift in Sources */,
 				D55127EA200AAE6F00860069 /* SignupViewController.swift in Sources */,

@@ -501,6 +501,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         }
         return false
     }
+    func getLineContributions() -> [LineContributions]? {
+        let headers : HTTPHeaders = [
+            "Content-Type": "application/x-www-form-urlencoded",
+            "username": self.user.get_username(),
+            "session": self.user.get_session()
+        ]
+        Alamofire.request("https://curbmap.com/getMyLines", method: .get, headers: headers).responseJSON { [weak self] response in
+            guard self != nil else { return }
+            if var json = response.result.value as? [String: Any] {
+                if json.keys.contains("success") {
+                    if let success = json["success"] as? Int {
+                        if (success == 1) {
+                        }
+                    }
+                }
+            }
+        }
+        return nil
+    }
+    func getPhotoContributions() -> [PhotoContributions]? {
+        return nil
+    }
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
