@@ -12,9 +12,19 @@ import UIKit
 import SnapKit
 import NVActivityIndicatorView
 
+enum RestrictionError: Error {
+    case incongruentTimeWithRestriction
+    case incongruentCurbTypeWithMeter
+    case costNotSpecifiedForMeter
+    case perNotSpecifiedForMeter
+    case timeLimitNotSpecified
+    case incongruentPerTypeForMeter
+}
 
 class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    var alertFG: UIView!
+    var alertBG: UIView!
     func setCancel(function: @escaping(Any)->Void) {
         self.cancelLine = function
     }
@@ -25,9 +35,33 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     
     @IBOutlet weak var doneButtonOutlet: UIButton!
     @IBAction func doneButtonAction(_ sender: Any) {
-        self.addCurrentRestriction()
-        self.appDelegate.submitRestrictions()
-        self.navigationController?.popViewController(animated: true)
+        do {
+            let added = try self.addCurrentRestriction()
+            if (added == true) {
+                self.appDelegate.submitRestrictions()
+                self.navigationController?.popViewController(animated: true)
+            } else {
+                // put up error
+                // No suitable type was found!
+                errorAlert("No suitable type for this restriction was found. Let us know what happened by email at curbmap@curbmap.com. We'd love to hear about it!")
+            }
+        } catch let error as RestrictionError {
+            if (error == RestrictionError.costNotSpecifiedForMeter) {
+                errorAlert("Metered costs should be some decimal value like 0.25 or 1. You're making an excellent impact!")
+            } else if (error == RestrictionError.incongruentCurbTypeWithMeter) {
+                errorAlert("The type was incongruent with a meter. Like, red and a meter. Keep going!")
+            } else if (error == RestrictionError.incongruentPerTypeForMeter) {
+                errorAlert("Per values should be increments like 15 minutes or 20 minutes. We're not big fans of meters either.")
+            } else if (error == RestrictionError.incongruentTimeWithRestriction) {
+                errorAlert("For green restrictions, time limit should be under 60 minutes. For gray 60+. Thanks.")
+            } else if (error == RestrictionError.perNotSpecifiedForMeter) {
+                errorAlert("Per values help people expect how much parking will cost them. Thanks for adding one.")
+            } else if (error == RestrictionError.timeLimitNotSpecified) {
+                errorAlert("It'd be a wonderful world if there were no time limits on parking. Please add one for this type of restriction.")
+            }
+        } catch {
+            //catchall
+        }
     }
     @IBOutlet weak var addAnotherOutlet: UIButton!
     @IBAction func addAnotherAction(_ sender: Any) {
@@ -36,13 +70,96 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
         self.view.addSubview(loading)
         loading.startAnimating()
-        self.addCurrentRestriction()
-        self.createCentralViews()
-        self.setupCentralViews()
-        self.loading.removeFromSuperview()
-        self.loading.stopAnimating()
-        self.loading = nil
+        do {
+            let added = try self.addCurrentRestriction()
+            if (added == true) {
+                self.createCentralViews()
+                self.setupCentralViews()
+                self.loading.removeFromSuperview()
+                self.loading.stopAnimating()
+                self.loading = nil
+            } else {
+                // put up error
+                // No suitable type was found!
+                errorAlert("No suitable type for this restriction was found. Let us know what happened by email at curbmap@curbmap.com. We'd love to hear about it!")
+            }
+        } catch let error as RestrictionError {
+            // put up error
+            if (error == RestrictionError.costNotSpecifiedForMeter) {
+                errorAlert("Metered costs should be some decimal value like 0.25 or 1. You're making an excellent impact!")
+            } else if (error == RestrictionError.incongruentCurbTypeWithMeter) {
+                errorAlert("The type was incongruent with a meter. Like, red and a meter. Keep going!")
+            } else if (error == RestrictionError.incongruentPerTypeForMeter) {
+                errorAlert("Per values should be increments like 15 minutes or 20 minutes. We're not big fans of meters either.")
+            } else if (error == RestrictionError.incongruentTimeWithRestriction) {
+                errorAlert("For green restrictions, time limit should be under 60 minutes. For gray 60+. Thanks.")
+            } else if (error == RestrictionError.perNotSpecifiedForMeter) {
+                errorAlert("Per values help people expect how much parking will cost them. Thanks for adding one.")
+            } else if (error == RestrictionError.timeLimitNotSpecified) {
+                errorAlert("It'd be a wonderful world if there were no time limits on parking. Please add one for this type of restriction.")
+            }
+        } catch {
+            //catchall
+        }
     }
+    @objc func okPressed(_sender: Any) {
+        self.alertFG.removeFromSuperview()
+        self.alertBG.removeFromSuperview()
+        self.alertFG = nil
+        self.alertBG = nil
+    }
+
+    func generateAlert(_ message: String) -> UIView {
+        let alertView = UIView()
+        let label = UILabel()
+        label.text = message
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        label.adjustsFontSizeToFitWidth = true
+        let ok = UIButton(type: .system)
+        ok.setTitle("Ok!", for: .normal)
+        ok.addTarget(self, action: #selector(okPressed), for: .touchUpInside)
+        alertView.addSubview(label)
+        alertView.addSubview(ok)
+        label.snp.remakeConstraints { (make) in
+            make.top.equalTo(alertView.snp.topMargin).offset(10).priority(1000.0)
+            make.leading.equalTo(alertView.snp.leadingMargin).offset(10).priority(1000.0)
+            make.trailing.equalTo(alertView.snp.trailingMargin).inset(10).priority(1000.0)
+            make.height.equalTo(alertView.snp.height).dividedBy(1.6)
+        }
+        label.textAlignment = .center
+        
+        ok.snp.remakeConstraints { (make) in
+            make.top.equalTo(label.snp.bottom).offset(10).priority(1000.0)
+            make.centerX.equalTo(alertView.snp.centerX).priority(1000.0)
+        }
+        alertView.backgroundColor = UIColor(red: 0.8, green: 1.0, blue: 1.0, alpha: 1.0)
+        alertView.layer.cornerRadius = 10.0
+        alertView.layer.borderColor = UIColor.black.cgColor
+        alertView.layer.borderWidth = 1.0
+        self.view.addSubview(alertView)
+        return alertView
+    }
+    func errorAlert(_ alertText: String) {
+        self.alertBG = UIView()
+        self.alertBG.backgroundColor = UIColor.gray
+        self.alertBG.alpha = 0.5
+        self.alertBG.isOpaque = false
+        self.view.addSubview(self.alertBG)
+        self.alertFG = generateAlert(alertText)
+        self.alertBG.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.view.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottom).priority(1000.0)
+            make.leading.equalTo(self.view.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.view.snp.trailing).priority(1000.0)
+        }
+        self.alertFG.snp.remakeConstraints { (make) in
+            make.center.equalTo(self.view.snp.center).priority(1000.0)
+            make.width.equalTo(self.view.snp.width).dividedBy(1.5).priority(1000.0)
+            make.height.equalTo(self.view.snp.height).dividedBy(1.5).priority(1000.0)
+        }
+    }
+    
     @IBOutlet weak var cancelOutlet: UIButton!
     @IBAction func cancelAction(_ sender: Any) {
         let size = self.view.frame.width/4
@@ -63,44 +180,188 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.loading.stopAnimating()
         self.loading = nil
     }
-    func addCurrentRestriction() {
-        var type = 0
-        if (self.curbColorValue == 2 && !self.meterOutlet.isOn) {
-            // short term unmetered parking
-            type = 0
-        } else if (self.curbColorValue == 2 && self.meterOutlet.isOn) {
-            // short term metered parking
-            type = 1
-        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.timeLimitField.text != nil && (self.permitField.text == "" || self.permitField.text == nil)) {
-            // Time Limited parking without a meter
-            type = 2
-        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != nil && self.timeLimitField.text != "" && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 1) {
-            // metered parking without permit exemption
-            type = 3
-        } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitField.text != nil && self.permitField.text != "") {
-            // permit exemption to time limited parking
-            type = 4
-        } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.timeLimitField.text != "" && self.permitField.text != nil && Int(self.timeLimitField.text!)! >= 60 && self.permitOutlet.selectedSegmentIndex == 0) {
-            // metered parking with permit exemption
-            type = 5
-        } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 0) {
-            // no parking
-            type = 6
-        } else if (self.curbColorValue == 1 && self.permitField.text != "" && self.permitField.text != nil) {
-            // no parking with permit exemption
-            type = 7
-        } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 1) {
-            // no stopping
-            type = 8
-        } else if (self.curbColorValue == 3 && self.permitOutlet.selectedSegmentIndex == 0) {
-            // Disabled parking
-            type = 10
-        } else if (self.curbColorValue == 4) {
-            // Yellow zone
-            type = 12
-        } else if (self.curbColorValue == 5) {
-            //White zone
-            type = 11
+    func addCurrentRestriction() throws -> Bool  {
+        var type = -1
+            if (self.curbColorValue == 2 && !self.meterOutlet.isOn) {
+                guard let timelimit = self.timeLimitField.text else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                if let intTime = Int(timelimit) {
+                    if (intTime < 60) {
+                        // short term unmetered parking
+                        type = 0
+                    } else {
+                        throw RestrictionError.incongruentTimeWithRestriction
+                    }
+                } else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+            } else if (self.curbColorValue == 2 && self.meterOutlet.isOn) {
+                guard let timelimit = self.timeLimitField.text else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                if let intTime = Int(timelimit) {
+                    if (intTime >= 60) {
+                        throw RestrictionError.incongruentTimeWithRestriction
+                    }
+                } else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                guard let cost = self.costField.text else {
+                    throw RestrictionError.costNotSpecifiedForMeter
+                }
+                if let floatCost = Float(cost) {
+                    guard (floatCost > 0)  else {
+                        throw RestrictionError.costNotSpecifiedForMeter
+                    }
+                } else {
+                    throw RestrictionError.costNotSpecifiedForMeter
+                }
+                guard let per = self.permitField.text else {
+                    throw RestrictionError.perNotSpecifiedForMeter
+                }
+                if let intPer = Int(per) {
+                    if (intPer > 0 && intPer < Int(timelimit)!) {
+                        type = 1
+                    } else {
+                        throw RestrictionError.incongruentPerTypeForMeter
+                    }
+                } else {
+                    throw RestrictionError.perNotSpecifiedForMeter
+                }
+            } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && (self.permitField.text == "" || self.permitField.text == nil)) {
+                guard let timelimit = self.timeLimitField.text else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                if let intTime = Int(timelimit) {
+                    if (intTime >= 60) {
+                        // Time Limited parking without a meter and without a permit
+                        type = 2
+                    } else {
+                        throw RestrictionError.incongruentTimeWithRestriction
+                    }
+                } else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+            } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.permitOutlet.selectedSegmentIndex == 1) {
+                guard let timelimit = self.timeLimitField.text else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                if let intTime = Int(timelimit) {
+                    if (intTime < 60) {
+                        throw RestrictionError.incongruentTimeWithRestriction
+                    }
+                } else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                guard let cost = self.costField.text else {
+                    throw RestrictionError.costNotSpecifiedForMeter
+                }
+                if let floatCost = Float(cost) {
+                    guard (floatCost > 0)  else {
+                        throw RestrictionError.costNotSpecifiedForMeter
+                    }
+                } else {
+                    throw RestrictionError.costNotSpecifiedForMeter
+                }
+                guard let per = self.permitField.text else {
+                    throw RestrictionError.perNotSpecifiedForMeter
+                }
+                if let intPer = Int(per) {
+                    if (intPer > 0 && intPer <= Int(timelimit)!) {
+                        type = 3
+                    } else {
+                        throw RestrictionError.incongruentPerTypeForMeter
+                    }
+                } else {
+                    throw RestrictionError.perNotSpecifiedForMeter
+                }
+            } else if (self.curbColorValue == 0 && !self.meterOutlet.isOn && self.permitOutlet.selectedSegmentIndex == 0 && self.permitField.text != nil && self.permitField.text != "") {
+                guard let timelimit = self.timeLimitField.text else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                if let intTime = Int(timelimit) {
+                    if (intTime < 60) {
+                        throw RestrictionError.incongruentTimeWithRestriction
+                    }
+                } else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                // permit exemption to time limited parking
+                type = 4
+            } else if (self.curbColorValue == 0 && self.meterOutlet.isOn && self.permitField.text != nil && self.permitField.text != "" && self.permitOutlet.selectedSegmentIndex == 0) {
+                guard let timelimit = self.timeLimitField.text else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                if let intTime = Int(timelimit) {
+                    if (intTime < 60) {
+                        throw RestrictionError.incongruentTimeWithRestriction
+                    }
+                } else {
+                    throw RestrictionError.timeLimitNotSpecified
+                }
+                guard let cost = self.costField.text else {
+                    throw RestrictionError.costNotSpecifiedForMeter
+                }
+                if let floatCost = Float(cost) {
+                    guard (floatCost > 0)  else {
+                        throw RestrictionError.costNotSpecifiedForMeter
+                    }
+                } else {
+                    throw RestrictionError.costNotSpecifiedForMeter
+                }
+                guard let per = self.permitField.text else {
+                    throw RestrictionError.perNotSpecifiedForMeter
+                }
+                if let intPer = Int(per) {
+                    if (intPer > 0 && intPer <= Int(timelimit)!) {
+                        // metered parking with permit exemption
+                        type = 5
+                    } else {
+                        throw RestrictionError.incongruentPerTypeForMeter
+                    }
+                } else {
+                    throw RestrictionError.perNotSpecifiedForMeter
+                }
+            } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 0) {
+                // no parking
+                if (self.meterOutlet.isOn) {
+                    throw RestrictionError.incongruentCurbTypeWithMeter
+                }
+                type = 6
+            } else if (self.curbColorValue == 1 && self.permitField.text != nil && self.permitField.text != "") {
+                if (self.meterOutlet.isOn) {
+                    throw RestrictionError.incongruentCurbTypeWithMeter
+                }
+                // no parking with permit exemption
+                type = 7
+            } else if (self.curbColorValue == 1 && self.npnsOutlet.selectedSegmentIndex == 1) {
+                if (self.meterOutlet.isOn) {
+                    throw RestrictionError.incongruentCurbTypeWithMeter
+                }
+                // no stopping
+                type = 8
+            } else if (self.curbColorValue == 3) {
+                if (self.meterOutlet.isOn) {
+                    throw RestrictionError.incongruentCurbTypeWithMeter
+                }
+                // Disabled parking
+                type = 10
+            } else if (self.curbColorValue == 4) {
+                // Yellow zone
+                if (self.meterOutlet.isOn) {
+                    throw RestrictionError.incongruentCurbTypeWithMeter
+                }
+                type = 12
+            } else if (self.curbColorValue == 5) {
+                if (self.meterOutlet.isOn) {
+                    throw RestrictionError.incongruentCurbTypeWithMeter
+                }
+                //White zone
+                type = 11
+            }
+        if (type == -1) {
+            return false
         }
         var days = [true, true, true, true, true, true, true]
         if (!self.daysSwitchOutlet.isOn) {
@@ -122,6 +383,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         }
         let restriction = Restriction(type: type, days: days, weeks: weeks, months: months, from: start, to: end, angle: self.angleOutlet.selectedSegmentIndex, holidays: self.holidaysSwitch.isOn, vehicle: self.vehicleType.selectedSegmentIndex, side: self.sideOutlet.selectedSegmentIndex, limit: (self.timeLimitField.text != nil && self.timeLimitField.text != "0") ? Int(self.timeLimitField.text!) : nil, cost: self.costField.text != nil && self.costField.text != "0.0" ? Float(self.costField.text!) : nil, per: self.perField.text != nil ? Int(self.perField.text!) : nil, permit: self.permitField.text != nil && self.permitField.text != "" ? self.permitField.text : nil)
         self.appDelegate.addRestriction(restriction)
+        return true
     }
     func resetAllDay() {
         self.startTimePicker.selectRow(8, inComponent: 0, animated: true)

@@ -27,6 +27,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var rememberLabel: UILabel!
     @IBOutlet weak var rememberSwitch: UISwitch!
     @IBAction func loginButtonPressed(_ sender: Any) {
+        if !((self.appDelegate.reachabilityManager?.isReachable)!){
+            self.error.text = "Network not reachable"
+            self.setupCentralViews(2)
+            return
+        }
         self.error.text = "ErrorLabel"
         self.setupCentralViews(2)
         appDelegate.user.set_username(username: username.text!)
@@ -306,7 +311,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             } else if (result == -2) {
                 self.error.text = "Check that you entered your username correctly. It didn't appear in our system. You can log in either with your username or email address."
             }
-            self.setupCentralViews(0)
+            self.setupCentralViews(2)
         }
     }
     override func didReceiveMemoryWarning() {

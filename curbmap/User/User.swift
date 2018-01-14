@@ -114,15 +114,18 @@ class User {
         Alamofire.request("https://curbmap.com/login", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }
             if var json = response.result.value as? [String: Any] {
-                let cookie = HTTPCookieStorage.shared.cookies![0]
-                let URL = response.request?.url
-                self?.set_cookie(cookie, URL!)
-                if (json["success"] as! Int == 1) {
-                    full_dictionary = json
-                    self?.runDict(full_dictionary: full_dictionary, callback: callback)
-                } else {
-                    // got error
-                    callback(json["success"] as! Int)
+                if let cookie = HTTPCookieStorage.shared.cookies?[0] {
+                    if (json.keys.contains("success")) {
+                        let URL = response.request?.url
+                        self?.set_cookie(cookie, URL!)
+                        if (json["success"] as! Int == 1) {
+                            full_dictionary = json
+                            self?.runDict(full_dictionary: full_dictionary, callback: callback)
+                        } else {
+                            // got error
+                            callback(json["success"] as! Int)
+                        }
+                    }
                 }
             }
         }
