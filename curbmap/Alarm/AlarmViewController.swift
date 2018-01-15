@@ -145,8 +145,6 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
                 (UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width < viewSize.height))) {
             viewSize = CGSize(width: viewSize.height, height: viewSize.width)
         }
-        print("XXXX: \(viewSize)")
-        
         self.menuButtonOutlet.snp.remakeConstraints { (make) in
             make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)

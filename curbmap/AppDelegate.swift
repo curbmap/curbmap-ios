@@ -119,15 +119,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     
     func submitRestrictions() -> Bool {
         // store all restrictions to Realm
-        let begin = self.mapController.line[0].get_coordinate()
-        let end = self.mapController.line[1].get_coordinate()
-        let line = "\(begin.longitude),\(begin.latitude),\(end.longitude),\(end.latitude)"
-        let headers: Alamofire.HTTPHeaders = ["Content-Type": "application/json", "session": self.user.get_session(), "username": self.user.get_username()]
-        var restrParams: [Any] = []
+        var line: [[Double]] = []
+        var lineString = ""
+        for i in 0..<self.mapController.line.count {
+            line.append([self.mapController.line[i].coordinate.longitude, self.mapController.line[i].coordinate.latitude])
+            lineString += String(self.mapController.line[i].coordinate.longitude) + "," + String(self.mapController.line[i].coordinate.latitude) + ","
+        }
+        let lineStringEnd = lineString.index(lineString.startIndex, offsetBy: lineString.count-1)
+        lineString = String(lineString[lineString.startIndex..<lineStringEnd]) // not including last ,
+        
+        let headers: HTTPHeaders = [
+            "Content-Type": "application/json",
+            "session": self.user.get_session(),
+            ]
+
+        var restrParams: [[String: Any]] = []
         for r in restrictions {
             restrParams.append(r.asDictionary())
         }
-        let parameters: Parameters = ["line": [[begin.longitude, begin.latitude], [end.longitude, end.latitude]],
+        let parameters: Parameters = ["line": line,
                           "restrictions": restrParams]
         if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
             Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
@@ -136,23 +146,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     if let success = json["success"] as? Int {
                         if (success == 1) {
                             // put restrictions in realm as complete
-                            self?.storeRestrsInRealm(true, json["line_id"] as? String, line)
+                            self?.storeRestrsInRealm(true, json["line_id"] as? String, lineString)
                             self?.mapController.cancelLine(self?.mapController)
                         } else {
                             // put the restrictions in realm for later
-                            self?.storeRestrsInRealm(false, nil, line)
+                            self?.storeRestrsInRealm(false, nil, lineString)
                             self?.mapController.cancelLine(self?.mapController)
                         }
                     }
                 } else {
-                    self?.storeRestrsInRealm(false, nil, line)
+                    self?.storeRestrsInRealm(false, nil, lineString)
                     self?.mapController.cancelLine(self?.mapController)
                     // put the restrictions in the realm for later
                 }
             }
         } else {
             // put it in the db to try to upload later
-            self.storeRestrsInRealm(false, nil, line)
+            self.storeRestrsInRealm(false, nil, lineString)
             self.mapController.cancelLine(self.mapController)
         }
         //mapController.findClosestLine(begin, end)
@@ -197,28 +207,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     func uploadIfOnWifi() {
         if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! {
             let filteredLines = realm.objects(Lines.self).filter("uploaded == false")
+            print(filteredLines)
             if (filteredLines.count > 0) {
                 for line in filteredLines {
-                    let lineFloats = line.line!.split(separator: ",").map{Float($0)}
-                    let lineStruct = [[lineFloats[0], lineFloats[1]], [lineFloats[2], lineFloats[3]]]
-                    var restrictionString = "["
+                    let lineFloats = line.line!.split(separator: ",").map{Double($0)!}
+                    var lineStruct : [[Double]] = []
+                    for i in stride(from: 0, to: lineFloats.count, by: 2) {
+                        lineStruct.append([lineFloats[i], lineFloats[i+1]])
+                    }
+                    var restrictionArray: [[String: Any]] = []
                     for r in line.restrictions {
                         let R = Restriction(type: r.type, days: Array(r.days), weeks: Array(r.weeks), months: Array(r.months), from: r.start, to: r.end, angle: r.angle, holidays: r.holiday, vehicle: r.vehicle, side: r.side, limit: r.duration, cost: r.cost, per: r.per, permit: r.permit)
-                        restrictionString += String(describing: R) + ","
+                        restrictionArray.append(R.asDictionary())
                     }
-                    let restrictionStringEnd = restrictionString.index(restrictionString.startIndex, offsetBy: restrictionString.count-1)
-                    restrictionString = String(restrictionString[..<restrictionStringEnd])+"]"
                     let parameters: Parameters = [
                         "line": lineStruct,
-                        "restrictions": restrictionString
+                        "restrictions": restrictionArray
                         ]
+                    print(parameters)
                     let headers: HTTPHeaders = [
-                        "Content-Type": "applicaiton/json",
-                        "session": self.user.get_session()
+                        "Content-Type": "application/json",
+                        "session": self.user.get_session(),
                     ]
                     Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                         guard self != nil else { return }
                         if var json = response.result.value as? [String: Any] {
+                            print("xxxzzz")
+                            print(json)
                             if let success = json["success"] as? Int {
                                 if (success == 1) {
                                     // put restrictions in realm as complete
