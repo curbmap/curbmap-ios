@@ -52,11 +52,15 @@ class SearchSettingsViewController: UIViewController {
     
     @IBAction func timePickerChanged(_ sender: Any) {
     }
-    // https://stackoverflow.com/questions/33397101/how-to-get-mondays-date-of-the-current-week-in-swift
+
     func getNext(_ weekday: Int, _ hour: Int, _ minute: Int, considerToday consider: Bool = true) -> Date {
         let calendar = Calendar.current
-        let yesterday = Calendar.current.date(byAdding: DateComponents(day: -1), to: Date())
-        
+        var yesterday: Date!
+        if (consider) {
+            yesterday = Calendar.current.date(byAdding: DateComponents(day: -1), to: Date())
+        } else {
+            yesterday = Date()
+        }
         let following = calendar.nextDate(after: yesterday!, matching: DateComponents(hour: hour, minute: minute, weekday: weekday), matchingPolicy: .nextTime)
         return following!
     }
