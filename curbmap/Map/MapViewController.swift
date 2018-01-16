@@ -16,6 +16,7 @@ import SnapKit
 import Photos
 import AVFoundation
 import RxCocoa
+import Mixpanel
 
 class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate, CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     var viewSize: CGSize!
@@ -461,28 +462,28 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             make.width.equalTo(48).priority(1000.0)
         }
         self.cancelButton.snp.remakeConstraints { (make) in
-            make.trailing.equalTo(self.view.snp.trailingMargin).inset(20).priority(1000.0)
-            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
-            make.height.equalTo(45).priority(1000.0)
-            make.width.equalTo(45).priority(1000.0)
+            make.trailing.equalTo(self.view.snp.trailingMargin).inset(30).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(30).priority(1000.0)
+            make.height.equalTo(80).priority(1000.0)
+            make.width.equalTo(80).priority(1000.0)
         }
         self.lineCancelButton.snp.remakeConstraints { (make) in
-            make.trailing.equalTo(self.view.snp.trailingMargin).inset(20).priority(1000.0)
-            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
-            make.height.equalTo(45).priority(1000.0)
-            make.width.equalTo(45).priority(1000.0)
+            make.trailing.equalTo(self.view.snp.trailingMargin).inset(30).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(30).priority(1000.0)
+            make.height.equalTo(80).priority(1000.0)
+            make.width.equalTo(80).priority(1000.0)
         }
         self.looksGreatButton.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.view.snp.leadingMargin).offset(20).priority(1000.0)
-            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
-            make.height.equalTo(45).priority(1000.0)
-            make.width.equalTo(45).priority(1000.0)
+            make.leading.equalTo(self.view.snp.leadingMargin).offset(30).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(30).priority(1000.0)
+            make.height.equalTo(80).priority(1000.0)
+            make.width.equalTo(80).priority(1000.0)
         }
         self.lineLooksGreatButton.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.view.snp.leadingMargin).offset(20).priority(1000.0)
-            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
-            make.height.equalTo(45).priority(1000.0)
-            make.width.equalTo(45).priority(1000.0)
+            make.leading.equalTo(self.view.snp.leadingMargin).offset(30).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(30).priority(1000.0)
+            make.height.equalTo(80).priority(1000.0)
+            make.width.equalTo(80).priority(1000.0)
         }
         self.searchBar.snp.remakeConstraints { (make) in
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
@@ -664,6 +665,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     @objc func handleAlert(action: String) {
         if (action == "Line") {
+            Mixpanel.sharedInstance()?.timeEvent("double tapped line")
             self.line = [] // reset the line being added
             self.addingLine = true
             var mapMarker: MapMarker!
@@ -679,6 +681,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.updateCurrentLine(mapMarker)
             // handle putting the first point on the map with the coordinate in memory self.coordTouched
         } else {
+            Mixpanel.sharedInstance()?.timeEvent("double tapped photo")
             //create photo view controller and push onto navigation
             self.trackUser = false
             // when we add the possibility to add a photo for another location we should not user locationManager, but the touched coord

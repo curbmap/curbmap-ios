@@ -11,6 +11,7 @@
 import UIKit
 import SnapKit
 import NVActivityIndicatorView
+import Mixpanel
 
 enum RestrictionError: Error {
     case incongruentTimeWithRestriction
@@ -40,6 +41,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             let added = try self.addCurrentRestriction()
             if (added == true) {
                 self.appDelegate.submitRestrictions()
+                Mixpanel.sharedInstance()?.track("double tapped line", properties: ["number of restrictions added": String(self.appDelegate.restrictions.count)])
                 self.navigationController?.popViewController(animated: true)
             } else {
                 // put up error
@@ -176,6 +178,8 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 cancelLineFunction(self)
             }
             self.navigationController?.popViewController(animated: true)
+            Mixpanel.sharedInstance()?.track("double tapped line", properties: ["number of restrictions added": -1])
+
         } else {
             self.getLastRestriction()
         }
