@@ -30,6 +30,13 @@ class User {
         "units": "mi",
         "offline": "n"
     ]
+    var searchSettings: [String: Any] = [
+        "weekday": 0,
+        "hour": 0,
+        "minute": 0,
+        "limit": 0,
+        "distance": 0.0
+    ]
     init(username: String, password: String) {
         self.username = username
         self.password = password

@@ -40,6 +40,8 @@
 		D59488121FD7C745008822A7 /* UserCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D59488101FD7C745008822A7 /* UserCell.xib */; };
 		D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */; };
 		D59488161FD7CA5C008822A7 /* GeneralMenuCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */; };
+		D594940E200D657E00709328 /* SearchSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D594940C200D657E00709328 /* SearchSettingsViewController.swift */; };
+		D594940F200D657E00709328 /* SearchSettingsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D594940D200D657E00709328 /* SearchSettingsViewController.xib */; };
 		D5BCACFD1FF1F02400EDB02A /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BCACFC1FF1F02400EDB02A /* MenuView.swift */; };
 		D5BCAD001FF2079000EDB02A /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5BCACFF1FF2079000EDB02A /* MapKit.framework */; };
 		D5BF303C2001F5F2007E8147 /* MapBoxExtended.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BF303B2001F5F2007E8147 /* MapBoxExtended.swift */; };
@@ -114,6 +116,8 @@
 		D59488101FD7C745008822A7 /* UserCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UserCell.xib; sourceTree = "<group>"; };
 		D59488131FD7CA5C008822A7 /* GeneralMenuCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralMenuCell.swift; sourceTree = "<group>"; };
 		D59488141FD7CA5C008822A7 /* GeneralMenuCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GeneralMenuCell.xib; sourceTree = "<group>"; };
+		D594940C200D657E00709328 /* SearchSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsViewController.swift; sourceTree = "<group>"; };
+		D594940D200D657E00709328 /* SearchSettingsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SearchSettingsViewController.xib; sourceTree = "<group>"; };
 		D5BCACFC1FF1F02400EDB02A /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		D5BCACFE1FF2052200EDB02A /* curbmap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = curbmap.entitlements; sourceTree = "<group>"; };
 		D5BCACFF1FF2079000EDB02A /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
@@ -240,6 +244,15 @@
 			path = Menu;
 			sourceTree = "<group>";
 		};
+		D594940B200D655700709328 /* Search Settings */ = {
+			isa = PBXGroup;
+			children = (
+				D594940C200D657E00709328 /* SearchSettingsViewController.swift */,
+				D594940D200D657E00709328 /* SearchSettingsViewController.xib */,
+			);
+			path = "Search Settings";
+			sourceTree = "<group>";
+		};
 		D5A001BD1FF809EA003818C1 /* Signup */ = {
 			isa = PBXGroup;
 			children = (
@@ -293,6 +306,7 @@
 		D5D4192D1FC7B04E0052849D /* curbmap */ = {
 			isa = PBXGroup;
 			children = (
+				D594940B200D655700709328 /* Search Settings */,
 				D55127D62009B5B000860069 /* README.md */,
 				D55B6E221FFA06A7001C9337 /* General */,
 				D5DE8F7A1FF727D500B715B9 /* railroad.aiff */,
@@ -496,6 +510,7 @@
 				D55127EF200AAED200860069 /* LoginViewController.xib in Resources */,
 				D5D419361FC7B04E0052849D /* Assets.xcassets in Resources */,
 				D55127D72009B5B100860069 /* README.md in Resources */,
+				D594940F200D657E00709328 /* SearchSettingsViewController.xib in Resources */,
 				D5DE8F7B1FF727D500B715B9 /* railroad.aiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -610,6 +625,7 @@
 				"${BUILT_PRODUCTS_DIR}/KeychainAccess/KeychainAccess.framework",
 				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework",
 				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM",
+				"${BUILT_PRODUCTS_DIR}/Mixpanel/Mixpanel.framework",
 				"${BUILT_PRODUCTS_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.framework",
 				"${BUILT_PRODUCTS_DIR}/OpenLocationCode/OpenLocationCode.framework",
 				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
@@ -626,6 +642,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KeychainAccess.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Mapbox.framework",
 				"${DWARF_DSYM_FOLDER_PATH}/Mapbox.framework.dSYM",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Mixpanel.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/NVActivityIndicatorView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenLocationCode.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
@@ -704,6 +721,7 @@
 				D5D4192F1FC7B04E0052849D /* AppDelegate.swift in Sources */,
 				D5BCACFD1FF1F02400EDB02A /* MenuView.swift in Sources */,
 				D55127F2200AB4EA00860069 /* SettingsViewController.swift in Sources */,
+				D594940E200D657E00709328 /* SearchSettingsViewController.swift in Sources */,
 				D52CB09A1FFECD7300C50B41 /* MapMarkerView.swift in Sources */,
 				D59488051FD736B2008822A7 /* Restriction.swift in Sources */,
 				D55127DD200A144B00860069 /* NetworkManager.swift in Sources */,

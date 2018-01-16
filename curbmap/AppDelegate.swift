@@ -15,6 +15,7 @@ import RealmSwift
 import Alamofire
 import Photos
 import OpenLocationCode
+import Mixpanel
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
@@ -44,6 +45,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
         self.getUser()
+        Mixpanel.initialize()
+        Mixpanel.sharedInstance(withToken: "80e860803728a01261a426e576895b30")
+        
         return true
     }
     func registerForLocalNotifications() {
@@ -168,6 +172,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         //mapController.findClosestLine(begin, end)
         return false
         
+    }
+    func saveSearchSettings(limit: String, distance: String, date: DateComponents){
+        guard let settings = realm.objects(SearchSettings.self).first else {
+            let newSettings = SearchSettings()
+            newSettings.day = date.weekday!
+            newSettings.hour = date.hour!
+            newSettings.minute = date.minute!
+            newSettings.distance = Float(distance)!
+            newSettings.limit = Int(limit)!
+            try! realm.write {
+                realm.add(newSettings)
+            }
+            return
+        }
+        try! realm.write {
+                settings.day = date.weekday!
+                settings.hour = date.hour!
+                settings.minute = date.minute!
+                settings.distance = Float(distance)!
+                settings.limit = Int(limit)!
+        }
     }
     func storeRestrsInRealm(_ sentSuccessfully: Bool, _ id: String?, _ lineString: String) {
         let line = Lines()
@@ -379,6 +404,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                 realm.add(newSettings)
             }
         }
+        guard let searchSettings = realm.objects(SearchSettings.self).first else {
+            return
+        }
+        self.user.searchSettings.updateValue(searchSettings.day, forKey: "weekday")
+        self.user.searchSettings.updateValue(searchSettings.hour, forKey: "hour")
+        self.user.searchSettings.updateValue(searchSettings.minute, forKey: "minute")
+        self.user.searchSettings.updateValue(searchSettings.limit, forKey: "limit")
+        self.user.searchSettings.updateValue(searchSettings.distance, forKey: "distance")
+        
     }
     
     @objc func save_image_data(localIdentifier: String, heading: Double, lat:  Double, lng: Double, uploaded: Bool) {
@@ -591,4 +625,12 @@ class CoachMarksStatus: Object {
     @objc dynamic var signup: Bool = false
     @objc dynamic var settings: Bool = false
     @objc dynamic var alarm: Bool = false
+}
+
+class SearchSettings: Object {
+    @objc dynamic var limit: Int = 0
+    @objc dynamic var distance: Float = 0.0
+    @objc dynamic var day: Int = 0
+    @objc dynamic var hour: Int = 0
+    @objc dynamic var minute: Int = 0
 }

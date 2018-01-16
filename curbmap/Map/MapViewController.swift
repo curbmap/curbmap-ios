@@ -18,6 +18,7 @@ import AVFoundation
 import RxCocoa
 
 class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate, CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    var viewSize: CGSize!
     let coachMarksController = CoachMarksController()
     let coachMarkSkip = CoachMarkSkipDefaultView()
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -240,6 +241,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     @IBOutlet weak var centerBox: UIView!
     var zoomLevel: Double = 15.0
     @IBOutlet weak var containerView: UIView!
+    var tableView: UITableView!
     var menuOpen = false
     // Hide table view tap on map or button
     @IBOutlet weak var buttonForMenu: UIButton!
@@ -249,6 +251,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.menuTableViewController.tableView.reloadData()
     }
     @IBOutlet weak var searchBar: UISearchBar!
+    @IBOutlet weak var searchSettingsButton: UIButton!
+    @IBAction func searchSettingsButtonPressed(_ sender: Any) {
+        let vc = SearchSettingsViewController(nibName: "SearchSettingsViewController", bundle: nil)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
     @IBAction func iconPressed(_ sender: Any) {
         self.trackUser = true
         self.locationManager.startUpdatingLocation()
@@ -411,6 +418,87 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
         self.appDelegate.mapController = self        
     }
+    
+    @objc func setupCentralViews(_ firstTime: Int) {
+        viewSize = self.view.frame.size
+        
+        if ((firstTime != 1 && firstTime != 2) &&
+            ((!UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width > viewSize.height) ||
+                (UIApplication.shared.statusBarOrientation.isPortrait && viewSize.width < viewSize.height))) {
+            viewSize = CGSize(width: viewSize.height, height: viewSize.width)
+        }
+        
+        self.buttonForMenu.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.view.snp.leading).priority(1000.0)
+            make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
+            make.width.equalTo(64).priority(1000.0)
+            make.height.equalTo(64).priority(1000.0)
+        }
+        // They should call it wasPortrait
+        self.containerView.snp.remakeConstraints({(make) in
+            make.leading.equalTo(self.buttonForMenu.snp.leading).priority(1000.0)
+            make.top.equalTo(self.buttonForMenu.snp.bottom).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin)
+            if (viewSize.width < viewSize.height) {
+                make.width.equalTo(viewSize.width/1.5).priority(1000.0)
+            } else {
+                make.width.equalTo(viewSize.width/2.0).priority(1000.0)
+            }
+        })
+        self.tableView.frame = self.containerView.frame
+        self.tableView.snp.remakeConstraints { (make) in
+            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
+            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
+            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
+            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
+        }
+        self.icon.snp.remakeConstraints { (make) in
+            make.trailing.equalTo(self.view.snp.trailingMargin).inset(25).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(25).priority(1000.0)
+            make.height.equalTo(48).priority(1000.0)
+            make.width.equalTo(48).priority(1000.0)
+        }
+        self.cancelButton.snp.remakeConstraints { (make) in
+            make.trailing.equalTo(self.view.snp.trailingMargin).inset(20).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
+            make.height.equalTo(45).priority(1000.0)
+            make.width.equalTo(45).priority(1000.0)
+        }
+        self.lineCancelButton.snp.remakeConstraints { (make) in
+            make.trailing.equalTo(self.view.snp.trailingMargin).inset(20).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
+            make.height.equalTo(45).priority(1000.0)
+            make.width.equalTo(45).priority(1000.0)
+        }
+        self.looksGreatButton.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.view.snp.leadingMargin).offset(20).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
+            make.height.equalTo(45).priority(1000.0)
+            make.width.equalTo(45).priority(1000.0)
+        }
+        self.lineLooksGreatButton.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.view.snp.leadingMargin).offset(20).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).inset(20).priority(1000.0)
+            make.height.equalTo(45).priority(1000.0)
+            make.width.equalTo(45).priority(1000.0)
+        }
+        self.searchBar.snp.remakeConstraints { (make) in
+            make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
+            make.leading.equalTo(self.buttonForMenu.snp.trailing).priority(1000.0)
+            make.height.equalTo(self.buttonForMenu.snp.height).priority(1000.0)
+            make.trailing.equalTo(self.searchSettingsButton.snp.leading).priority(1000.0)
+        }
+        self.searchSettingsButton.snp.remakeConstraints { (make) in
+            make.centerY.equalTo(self.searchBar.snp.centerY).priority(1000.0)
+            make.trailing.equalTo(self.view.snp.trailing).priority(1000.0)
+            make.width.equalTo(48).priority(1000.0)
+            make.height.equalTo(48).priority(1000.0)
+        }
+        
+    }
+    
     func numberOfCoachMarks(for coachMarksController: CoachMarksController) -> Int {
         return 4
     }
@@ -463,6 +551,17 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupMap()
+        menuTableViewController = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
+        menuTableViewController.willMove(toParentViewController: self)
+        self.containerView.addSubview(menuTableViewController.tableView)
+        self.tableView = menuTableViewController.tableView
+        self.addChildViewController(menuTableViewController)
+        menuTableViewController.didMove(toParentViewController: self)
+        if (UIApplication.shared.statusBarOrientation.isPortrait) {
+            self.setupCentralViews(1)
+        } else {
+            self.setupCentralViews(2)
+        }
         self.appDelegate.getSettings()
         self.locationManager = CLLocationManager()
         self.locationManager.delegate = self
@@ -477,7 +576,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         pan.delegate = self
         view.addGestureRecognizer(pan)
         tap.cancelsTouchesInView = false
-        view.addGestureRecognizer(tap)
+        self.mapView.addGestureRecognizer(tap)
         self.searchBar.delegate = self
         self.centerBox.translatesAutoresizingMaskIntoConstraints = false
         self.centerBox.snp.remakeConstraints { (make) in

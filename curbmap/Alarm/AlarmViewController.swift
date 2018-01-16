@@ -146,7 +146,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             viewSize = CGSize(width: viewSize.height, height: viewSize.width)
         }
         self.menuButtonOutlet.snp.remakeConstraints { (make) in
-            make.leading.equalTo(self.view.snp.leadingMargin).priority(1000.0)
+            make.leading.equalTo(self.view.snp.leading).priority(1000.0)
             make.top.equalTo(self.view.snp.topMargin).priority(1000.0)
             make.width.equalTo(64).priority(1000.0)
             make.height.equalTo(64).priority(1000.0)

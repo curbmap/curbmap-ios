@@ -137,7 +137,6 @@ class SettingsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.appDelegate.settingsController = self
-        self.containerView.backgroundColor = UIColor.clear
         if (self.appDelegate.user.settings["mapstyle"] == "l") {
             self.mapsstyleOutlet.setOn(true, animated: false)
             self.mapstyleLabel.text = "Light is awesome"
@@ -177,15 +176,6 @@ class SettingsViewController: UIViewController {
         let vcMenu = MenuTableViewController(nibName: "MenuTableViewController", bundle: nil)
         vcMenu.willMove(toParentViewController: self)
         self.containerView.addSubview(vcMenu.tableView)
-        vcMenu.tableView.frame = self.containerView.frame
-        vcMenu.tableView.snp.remakeConstraints { (make) in
-            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
-            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
-            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
-            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
-            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
-            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
-        }
         self.tableView = vcMenu.tableView
         self.addChildViewController(vcMenu)
         vcMenu.didMove(toParentViewController: self)
@@ -213,23 +203,32 @@ class SettingsViewController: UIViewController {
         }
         // They should call it wasPortrait
         self.containerView.snp.remakeConstraints({(make) in
-            make.leading.equalTo(self.menuButtonOutlet.snp.leading).priority(1000.0)
+            make.left.equalTo(self.menuButtonOutlet.snp.left).priority(1000.0)
             make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
-            make.bottom.equalTo(self.view.snp.bottomMargin)
-            if (viewSize.width < viewSize.height) {
-                make.width.equalTo(viewSize.width/1.5).priority(1000.0)
+            make.bottom.equalTo(self.view.snp.bottomMargin).priority(1000.0)
+            if (viewSize.width > viewSize.height) {
+                make.width.equalTo(self.view.snp.width).dividedBy(2)
             } else {
-                make.width.equalTo(viewSize.width/2.0).priority(1000.0)
+                make.width.equalTo(self.view.snp.width).dividedBy(1.5)
             }
         })
+        self.tableView.snp.remakeConstraints { (make) in
+            make.leading.equalTo(self.containerView.snp.leading).priority(1000.0)
+            make.width.equalTo(self.containerView.snp.width).priority(1000.0)
+            make.height.equalTo(self.containerView.snp.height).priority(1000.0)
+            make.trailing.equalTo(self.containerView.snp.trailing).priority(1000.0)
+            make.top.equalTo(self.containerView.snp.top).priority(1000.0)
+            make.bottom.equalTo(self.containerView.snp.bottom).priority(1000.0)
+        }
+
         self.scrollView.snp.remakeConstraints { (make) in
             if (viewSize.width > viewSize.height) {
-                make.leading.equalTo(self.view.snp.leading).offset(5).priority(1000.0)
+                make.leading.equalTo(self.view.snp.leadingMargin).offset(5).priority(1000.0)
                 make.trailing.equalTo(self.view.snp.trailing).inset(5).priority(1000.0)
                 make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
                 make.bottom.equalTo(self.view.snp.bottomMargin).priority(1000.0)
             } else {
-                make.leading.equalTo(self.view.snp.leading).offset(5).priority(1000.0)
+                make.leading.equalTo(self.view.snp.leadingMargin).offset(5).priority(1000.0)
                 make.trailing.equalTo(self.view.snp.trailing).inset(5).priority(1000.0)
                 make.top.equalTo(self.menuButtonOutlet.snp.bottom).priority(1000.0)
                 make.bottom.equalTo(self.view.snp.bottomMargin).priority(1000.0)
