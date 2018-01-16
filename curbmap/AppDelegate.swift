@@ -45,9 +45,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
         self.getUser()
-        Mixpanel.initialize()
-        Mixpanel.sharedInstance(withToken: "80e860803728a01261a426e576895b30")
-        
+        Mixpanel.initialize(token: "80e860803728a01261a426e576895b30")
+        Mixpanel.mainInstance().loggingEnabled = true
+        Mixpanel.mainInstance().flushInterval = 5
         return true
     }
     func registerForLocalNotifications() {

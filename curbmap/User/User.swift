@@ -10,6 +10,7 @@ import Foundation
 import Alamofire
 import KeychainAccess
 import MapKit
+import Mixpanel
 
 class User {
     let keychain = Keychain(service: "com.curbmap.keys")
@@ -127,6 +128,10 @@ class User {
                         self?.set_cookie(cookie, URL!)
                         if (json["success"] as! Int == 1) {
                             full_dictionary = json
+                            Mixpanel.mainInstance().identify(
+                                distinctId: Mixpanel.mainInstance().distinctId)
+                            Mixpanel.mainInstance().people.set(properties: ["$name": (self?.get_username())!])
+
                             self?.runDict(full_dictionary: full_dictionary, callback: callback)
                         } else {
                             // got error

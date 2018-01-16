@@ -135,6 +135,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     
     @IBAction func cancel(_ sender: Any) {
         self.mapView.removeAnnotation(photoAnnotation)
+        Mixpanel.mainInstance().track(event: "double_tapped_photo",
+                                      properties: ["photo cancelled": "yes",
+                                                   "on wifi": "no"])
         self.cancelled()
     }
     @IBAction func cancelLine(_ sender: Any) {
@@ -194,7 +197,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                 mutable.setValue(GPSDictionary, forKey: kCGImagePropertyGPSDictionary as String)
                 CGImageDestinationAddImageFromSource(destination, cgImgSource, 0, (mutable as CFDictionary))
                 CGImageDestinationFinalize(destination)
-
+                Mixpanel.mainInstance().track(event: "double_tapped_photo",
+                                              properties: ["photo added": self.appDelegate.restrictions.count,
+                                                           "on wifi": (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)!,
+                                                           "olc": olc!])
                 if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! {
                     let annotation = self.photoAnnotation!
                     DispatchQueue.global(qos: .background).async {
@@ -665,7 +671,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     @objc func handleAlert(action: String) {
         if (action == "Line") {
-            Mixpanel.sharedInstance()?.timeEvent("double tapped line")
+            Mixpanel.mainInstance().time(event: "double_tapped_line")
             self.line = [] // reset the line being added
             self.addingLine = true
             var mapMarker: MapMarker!
@@ -681,7 +687,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.updateCurrentLine(mapMarker)
             // handle putting the first point on the map with the coordinate in memory self.coordTouched
         } else {
-            Mixpanel.sharedInstance()?.timeEvent("double tapped photo")
+            Mixpanel.mainInstance().time(event: "double_tapped_photo")
             //create photo view controller and push onto navigation
             self.trackUser = false
             // when we add the possibility to add a photo for another location we should not user locationManager, but the touched coord
@@ -795,6 +801,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         setupViews(self.portrait_oriented)
     }
     @objc func lineCancelled() {
+        Mixpanel.mainInstance().track(event: "double_tapped_line", properties: ["number of restrictions added": -1])
         self.lineCancelButton.isHidden = true
         self.lineLooksGreatButton.isHidden = true
         self.zoomLevel = 15.0
@@ -811,6 +818,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         if (self.appDelegate.user.settings["follow"] == "y"){
             self.trackUser = true
         }
+        
         self.movingPhotoAnnotation = false
         self.photoToPlace = nil
         self.photoAnnotation = nil

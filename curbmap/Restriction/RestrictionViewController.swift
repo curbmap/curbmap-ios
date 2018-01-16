@@ -41,7 +41,8 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             let added = try self.addCurrentRestriction()
             if (added == true) {
                 self.appDelegate.submitRestrictions()
-                Mixpanel.sharedInstance()?.track("double tapped line", properties: ["number of restrictions added": String(self.appDelegate.restrictions.count)])
+                Mixpanel.mainInstance().track(event: "double_tapped_line", properties: ["number of restrictions added": self.appDelegate.restrictions.count])
+
                 self.navigationController?.popViewController(animated: true)
             } else {
                 // put up error
@@ -177,9 +178,8 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             if let cancelLineFunction = self.cancelLine {
                 cancelLineFunction(self)
             }
+            Mixpanel.mainInstance().track(event: "double_tapped_line", properties: ["number of restrictions added": -1])
             self.navigationController?.popViewController(animated: true)
-            Mixpanel.sharedInstance()?.track("double tapped line", properties: ["number of restrictions added": -1])
-
         } else {
             self.getLastRestriction()
         }

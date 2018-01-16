@@ -3,7 +3,9 @@ PODS:
   - Instructions (1.1.0)
   - KeychainAccess (3.1.0)
   - Mapbox-iOS-SDK (3.7.2)
-  - Mixpanel (3.2.5)
+  - Mixpanel-swift (2.2.2):
+    - Mixpanel-swift/Complete (= 2.2.2)
+  - Mixpanel-swift/Complete (2.2.2)
   - NVActivityIndicatorView (4.1.1):
     - NVActivityIndicatorView/Presenter (= 4.1.1)
   - NVActivityIndicatorView/Presenter (4.1.1)
@@ -24,7 +26,7 @@ DEPENDENCIES:
   - Instructions (~> 1.1.0)
   - KeychainAccess
   - Mapbox-iOS-SDK (~> 3.7)
-  - Mixpanel
+  - Mixpanel-swift (from `https://github.com/mixpanel/mixpanel-swift.git`, branch `swift4`)
   - NVActivityIndicatorView
   - OpenLocationCode
   - RealmSwift
@@ -34,11 +36,17 @@ DEPENDENCIES:
   - SwiftyCam (from `https://github.com/Awalz/SwiftyCam.git`, branch `Swift4`)
 
 EXTERNAL SOURCES:
+  Mixpanel-swift:
+    :branch: swift4
+    :git: https://github.com/mixpanel/mixpanel-swift.git
   SwiftyCam:
     :branch: Swift4
     :git: https://github.com/Awalz/SwiftyCam.git
 
 CHECKOUT OPTIONS:
+  Mixpanel-swift:
+    :commit: a057763547eeac578e1effe05a4e26319c8197bd
+    :git: https://github.com/mixpanel/mixpanel-swift.git
   SwiftyCam:
     :commit: 85d713d643159cda72db2f3e230777af50cded94
     :git: https://github.com/Awalz/SwiftyCam.git
@@ -48,7 +56,7 @@ SPEC CHECKSUMS:
   Instructions: ff5738d6a637a46d1638a77d77261649f4da36a7
   KeychainAccess: 94c5540b32eabf7bc32bfb976a268e8ea05fd6da
   Mapbox-iOS-SDK: d882f53debc26649b728755df5b7a160d9086367
-  Mixpanel: 7445c8e19c00df6d792ea8dda1b4d32f5acd4ac2
+  Mixpanel-swift: 2cd7aac92ad4e9ba2957479c6e6db9b9170944bb
   NVActivityIndicatorView: 60109b9bf46efc2e71ab81453196ccdfdfeea870
   OpenLocationCode: 9fcfb120d9e11a91842b91e3517ab432a3c23c3b
   Realm: 6f23fd1f178a09342eac21bfa7c2bf4312a7a180
@@ -58,6 +66,6 @@ SPEC CHECKSUMS:
   SnapKit: a42d492c16e80209130a3379f73596c3454b7694
   SwiftyCam: 7c826b73a5b208677aee29390582c771bf748661
 
-PODFILE CHECKSUM: 33fce330ec33109486b8a071da44e5e972adbe21
+PODFILE CHECKSUM: 0b2eea2d517ed2cf84cdd2a58eaa172a322d612e
 
 COCOAPODS: 1.4.0.beta.2

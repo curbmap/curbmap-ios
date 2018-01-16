@@ -10,6 +10,7 @@ import UIKit
 import KeychainAccess
 import SnapKit
 import NVActivityIndicatorView
+import Mixpanel
 
 class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -43,6 +44,8 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        Mixpanel.mainInstance().time(event: "signup_screen")
+
         self.windowFrame = self.scrollView.frame
         //self.scrollView = UIScrollView(frame: self.scrollView.frame)
         self.scrollView.isUserInteractionEnabled = true
@@ -456,7 +459,7 @@ class SignupViewController: UIViewController, UITextFieldDelegate, UIScrollViewD
             var newSet = navigationController?.viewControllers
             newSet?.remove(at: vcToRemove)
             navigationController?.viewControllers = newSet!
-            
+            Mixpanel.mainInstance().track(event: "signup_screen", properties: ["successful": 1])
         } else if (result == 0) {
             empty()
         } else if (result == -1) {
