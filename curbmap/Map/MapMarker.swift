@@ -20,6 +20,8 @@ class MapMarker: MGLPointAnnotation {
     enum AnnotationType : Int {
         case photo = 0
         case line = 1
+        case photoNotDraggable = 2
+        case lineNotDraggable = 3
     }
     
     init(coordinate: CLLocationCoordinate2D){

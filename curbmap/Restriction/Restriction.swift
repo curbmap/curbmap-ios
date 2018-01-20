@@ -51,9 +51,34 @@ class Restriction : CustomStringConvertible {
         let weeksJSON = JSONStringify(value: weeks as AnyObject, prettyPrinted: false)
         return String(format: format, type, daysJSON, weeksJSON, monthsJSON, fromTime, toTime, angle, side, timeLimit != nil ? String(timeLimit!) : "null", String(vehicleType), permit != nil ? "\""+permit!+"\"" : "null", cost != nil ? String(format: "%4.2f", cost!) : "null", per != nil ? String(per!) : "null", enforcedHolidays.description)
     }
-    
     var debugDescription: String {
         return self.description
+    }
+    func isActiveNow() -> Bool {
+        let DateNow = Calendar.current.dateComponents([.weekday, .weekOfMonth, .month, .hour, .minute], from: Date())
+        var weekday = DateNow.weekday! - 2
+        if (weekday < 0) {
+            weekday = 6
+        }
+        let month = DateNow.month! - 1
+        let week = DateNow.weekOfMonth! - 1
+        if (!self.days[weekday]) {
+            return false
+        }
+        if (week < 4 && !self.weeks[week]) {
+            return false
+        }
+        if (!self.months[month]) {
+            return false
+        }
+        let time = DateNow.hour! * 60 + DateNow.minute!
+        print(time)
+        print(fromTime)
+        print(toTime)
+        if (self.fromTime > time || self.toTime < time) {
+            return false
+        }
+        return true
     }
     
     // https://gist.github.com/santoshrajan/97aa46871cde0c0cb8a8

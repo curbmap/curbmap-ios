@@ -36,6 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     var registeredForRemote: Bool = false
     let realm = try! Realm()
     var restrictions: [Restriction] = []
+    var linesToDraw: [CurbmapPolyLine] = []
     let reachabilityManager = Alamofire.NetworkReachabilityManager(host: "www.google.com")
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -44,6 +45,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         registerForPushNotifications()
         registerForLocalNotifications()
         center.getPendingNotificationRequests(completionHandler: notificationDelegate.gotPendingNotification)
+        self.getSettings()
         self.getUser()
         Mixpanel.initialize(token: "80e860803728a01261a426e576895b30")
         Mixpanel.mainInstance().loggingEnabled = true
@@ -125,6 +127,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         // store all restrictions to Realm
         var line: [[Double]] = []
         var lineString = ""
+        var newLine : [CurbmapPolyLine] = []
         for i in 0..<self.mapController.line.count {
             line.append([self.mapController.line[i].coordinate.longitude, self.mapController.line[i].coordinate.latitude])
             lineString += String(self.mapController.line[i].coordinate.longitude) + "," + String(self.mapController.line[i].coordinate.latitude) + ","
@@ -140,6 +143,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         var restrParams: [[String: Any]] = []
         for r in restrictions {
             restrParams.append(r.asDictionary())
+            newLine[0].restrictions = restrictions
         }
         let parameters: Parameters = ["line": line,
                           "restrictions": restrParams]
@@ -151,7 +155,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                         if (success == 1) {
                             // put restrictions in realm as complete
                             self?.storeRestrsInRealm(true, json["line_id"] as? String, lineString)
-                            self?.mapController.cancelLine(self?.mapController)
+                            self?.mapController.doneWithLine(self?.mapController)
                         } else {
                             // put the restrictions in realm for later
                             self?.storeRestrsInRealm(false, nil, lineString)
@@ -228,13 +232,81 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         }
         self.restrictions = []
     }
-
-    func uploadIfOnWifi() {
-        if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! {
-            let filteredLines = realm.objects(Lines.self).filter("uploaded == false")
-            print(filteredLines)
-            if (filteredLines.count > 0) {
-                for line in filteredLines {
+    func getLinesAndPhotos() {
+        self.linesToDraw = []
+        let lines = realm.objects(Lines.self)
+        var linesToSend: [Lines] = []
+        for line in lines {
+            if (!line.uploaded) {
+                linesToSend.append(line)
+            }
+            var tempRestr: [Restriction] = []
+            var lineStruct : [CLLocationCoordinate2D] = []
+            var tempPoly: CurbmapPolyLine!
+            let lineFloats = line.line!.split(separator: ",").map{Double($0)!}
+            for i in stride(from: 0, to: lineFloats.count, by: 2) {
+                let M = CLLocationCoordinate2D(latitude: lineFloats[i+1], longitude: lineFloats[i])
+                lineStruct.append(M)
+            }
+            tempPoly = CurbmapPolyLine(coordinates: lineStruct, count: UInt(lineStruct.count))
+            var typeCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+            var permits: [String] = []
+            for r in line.restrictions {
+                let R = Restriction(type: r.type, days: Array(r.days), weeks: Array(r.weeks), months: Array(r.months), from: r.start, to: r.end, angle: r.angle, holidays: r.holiday, vehicle: r.vehicle, side: r.side, limit: r.duration, cost: r.cost, per: r.per, permit: r.permit)
+                if (R.isActiveNow()) {
+                    print(lineFloats)
+                    print(r.type)
+                    typeCount[r.type] += 1
+                }
+                if (R.permit != nil) {
+                    permits.append(R.permit!)
+                }
+                tempRestr.append(R)
+            }
+            // only the first point of a line gets
+            tempPoly.restrictions = tempRestr
+            let max = typeCount.max()
+            print(max!, ": max")
+            print(typeCount, ": max typecount")
+            if (typeCount[6] > 0 || typeCount[8] > 0 || (typeCount[7] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+                tempPoly.color = UIColor.red
+            } else if (typeCount[10] > 0) {
+                tempPoly.color = UIColor.blue
+            } else if (typeCount[0] > 0 || typeCount[1] > 0) {
+                tempPoly.color = UIColor.green
+            } else if (typeCount[2] > 0 || (typeCount[4] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+                tempPoly.color = UIColor.gray
+            } else if (typeCount[3] > 0 || (typeCount[5] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+                tempPoly.color = UIColor.purple
+            } else if (typeCount[9] > 0) {
+                tempPoly.color = UIColor.brown
+            } else if (typeCount[11] > 0) {
+                tempPoly.color = UIColor.white
+            } else if (typeCount[12] > 0) {
+                tempPoly.color = UIColor.yellow
+            } else if (typeCount.max()! > 0){
+                tempPoly.color = UIColor.black
+            } else {
+                tempPoly.color = UIColor.clear
+            }
+            self.linesToDraw.append(tempPoly)
+        }
+        let photos = realm.objects(Images.self)
+        var photosToSend: [Images] = []
+        for photo in photos {
+            if (!photo.uploaded) {
+                photosToSend.append(photo)
+            }
+        }
+        if (mapController != nil) {
+            mapController.triggerDrawLines()
+        }
+        uploadIfOnWifi(lines: linesToSend, photos: photosToSend)
+    }
+    func uploadIfOnWifi(lines: [Lines], photos: [Images]) {
+        if ((NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n")) {
+            if (lines.count > 0) {
+                for line in lines {
                     let lineFloats = line.line!.split(separator: ",").map{Double($0)!}
                     var lineStruct : [[Double]] = []
                     for i in stride(from: 0, to: lineFloats.count, by: 2) {
@@ -257,8 +329,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                         guard self != nil else { return }
                         if var json = response.result.value as? [String: Any] {
-                            print("xxxzzz")
-                            print(json)
                             if let success = json["success"] as? Int {
                                 if (success == 1) {
                                     // put restrictions in realm as complete
@@ -277,11 +347,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
 
                 }
             }
-            let filteredImages = realm.objects(Images.self).filter("uploaded == false")
-            if (filteredImages.count > 0) {
+            if (photos.count > 0) {
                 // get the image and upload it!
-                for image in filteredImages {
+                for image in photos {
                     if let olc = try? OpenLocationCode.encode(latitude: image.latitude, longitude: image.longitude, codeLength: 12) {
+                        // this function was an extesion to PHPhotoLibrary which
+                        // calls uploadPhoto when image is retrieved
                         PHPhotoLibrary.shared().load(identifier: image.localIdentifier, appDelegate: self, olc: olc, heading: image.heading)
                     }
                 }
@@ -306,7 +377,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     if let result = response.result.value {
                         print(response)
                         if let success = result as? NSDictionary {
-                            print("\(success["success"]! as! Bool) XXX")
                             if ((success["success"]! as! Bool) == true) {
                                 
                                 guard let foundImage = self.realm.objects(Images.self).filter("localIdentifier == \"\(identifier)\"").first else {
@@ -470,6 +540,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         if (result == 1) {
             print("Successfully logged in")
             NetworkManager.shared.startNetworkReachabilityObserver()
+            self.getLinesAndPhotos()
         } else {
             if (result == 0) {
                 print("Incorrect password")

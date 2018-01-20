@@ -38,7 +38,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     var picker: UIImagePickerController!
     var alertCameraOrLineViewBG: UIView!
     var alertCameraOrLineViewFG: UIView!
-    
+    let photoMessages = ["Your photos are beautiful. Ansel Adams would be jealous."]
+    let photoImages = ["greatphoto0"]
+    let lineMessages = ["Thank you for adding such a beautiful line. It's the best line. Nobody makes any better lines!"]
+    let lineImages = ["greatline0"]
+    let responseMessages = ["Yay!", "Excellent!", "I'm glad I helped", "I'd do it again!"]
     @IBAction func alertAddLine(_ sender: Any) {
         self.alertCameraOrLineViewBG.removeFromSuperview()
         self.alertCameraOrLineViewBG = nil
@@ -58,6 +62,83 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.alertCameraOrLineViewBG = nil
         self.alertCameraOrLineViewFG.removeFromSuperview()
         self.alertCameraOrLineViewFG = nil
+    }
+    func createThankYouAlert(isPhoto photo: Bool) {
+        guard self.alertCameraOrLineViewBG == nil else {
+            return
+        }
+        let alertImageView = UIImageView()
+        let alertLabel = UILabel()
+        if (photo) {
+            let randomIdx = Int(arc4random_uniform(UInt32(photoImages.count)))
+            alertImageView.image = UIImage(named: photoImages[randomIdx])
+            alertLabel.text = photoMessages[randomIdx]
+        } else {
+            let randomIdx = Int(arc4random_uniform(UInt32(lineImages.count)))
+            alertImageView.image = UIImage(named: lineImages[randomIdx])
+            alertLabel.text = lineMessages[randomIdx]
+        }
+        let randomIdx = Int(arc4random_uniform(UInt32(responseMessages.count)))
+        alertLabel.adjustsFontForContentSizeCategory = true
+        let alertCancelButton = UIButton(type: .system)
+        alertCancelButton.setTitle(responseMessages[randomIdx], for: .normal)
+        alertCancelButton.addTarget(self, action: #selector(alertCancel), for: .touchUpInside)
+        self.alertCameraOrLineViewBG = UIView()
+        self.alertCameraOrLineViewBG.backgroundColor = UIColor.clear
+        self.alertCameraOrLineViewBG.layer.backgroundColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 0.3).cgColor
+        self.alertCameraOrLineViewBG.isOpaque = false
+        self.alertCameraOrLineViewBG.alpha = 0.4
+        self.alertCameraOrLineViewFG = UIView()
+        alertCameraOrLineViewFG.backgroundColor = UIColor.white
+        alertCameraOrLineViewFG.layer.cornerRadius = 10.0
+        alertCameraOrLineViewFG.addSubview(alertImageView)
+        alertCameraOrLineViewFG.addSubview(alertLabel)
+        alertCameraOrLineViewFG.addSubview(alertCancelButton)
+        self.alertCameraOrLineViewBG.isHidden = false
+        self.alertCameraOrLineViewFG.isHidden = false
+        self.view.addSubview(alertCameraOrLineViewBG)
+        self.view.addSubview(alertCameraOrLineViewFG)
+        let viewSize = self.view.frame.size
+        self.alertCameraOrLineViewBG.snp.remakeConstraints { (make) in
+            make.center.equalTo(self.view.snp.center).priority(1000)
+            make.height.equalTo(self.view.snp.height).priority(1000)
+            make.width.equalTo(self.view.snp.width).priority(1000)
+        }
+        alertCameraOrLineViewFG.snp.remakeConstraints { (make) in
+            make.center.equalTo(self.view.snp.center).priority(1000.0)
+            if (viewSize.height < viewSize.width) {
+                make.height.equalTo(self.view.snp.height).dividedBy(1.3).priority(1000.0)
+                make.width.equalTo(self.view.snp.width).dividedBy(2).priority(1000.0)
+            } else {
+                make.height.equalTo(self.view.snp.height).dividedBy(2).priority(1000.0)
+                make.width.equalTo(self.view.snp.width).dividedBy(1.3).priority(1000.0)
+            }
+        }
+        self.alertCameraOrLineViewFG.backgroundColor = UIColor.white
+        alertImageView.snp.remakeConstraints { (make) in
+            make.top.equalTo(alertCameraOrLineViewFG.snp.top).priority(1000.0)
+            make.centerX.equalTo(alertCameraOrLineViewFG.snp.centerX).priority(1000.0)
+            make.height.equalTo(alertCameraOrLineViewFG.snp.height).dividedBy(3.3).priority(1000)
+            make.width.equalTo(alertImageView.snp.height).priority(1000)
+        }
+        
+        alertLabel.snp.remakeConstraints { (make) in
+            make.top.equalTo(alertImageView.snp.bottom).offset(8).priority(1000.0)
+            make.leading.equalTo(alertCameraOrLineViewFG.snp.leadingMargin).offset(15).priority(1000.0)
+            make.trailing.equalTo(alertCameraOrLineViewFG.snp.trailingMargin).inset(15).priority(1000.0)
+            make.bottom.equalTo(alertCancelButton.snp.top).offset(8).priority(1000)
+            make.height.equalTo(alertCameraOrLineViewFG.snp.height).dividedBy(2).priority(1000.0)
+        }
+        alertLabel.numberOfLines = 0
+        alertLabel.lineBreakMode = .byWordWrapping
+        alertLabel.textAlignment = .left
+        alertCancelButton.snp.remakeConstraints { (make) in
+            make.bottom.equalTo(alertCameraOrLineViewFG.snp.bottomMargin).offset(0).priority(1000.0)
+            make.centerX.equalTo(alertCameraOrLineViewFG.snp.centerX).priority(1000.0)
+            make.width.equalTo(alertCameraOrLineViewFG.snp.width).priority(1000)
+            make.height.equalTo(alertCameraOrLineViewFG.snp.height).dividedBy(5.1).priority(1000)
+        }
+
     }
     func createAlertForCameraOrLineView() {
         guard self.alertCameraOrLineViewBG == nil else {
@@ -116,7 +197,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
         alertLabel.numberOfLines = 0
         alertLabel.lineBreakMode = .byWordWrapping
-        alertLabel.textAlignment = .center
+        alertLabel.textAlignment = .left
         alertCameraButton.snp.remakeConstraints { (make) in
             make.top.equalTo(alertLabel.snp.bottom).priority(1000.0)
             make.leading.equalTo(alertCameraOrLineViewFG.snp.leadingMargin).offset(15).priority(1000.0)
@@ -145,6 +226,13 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.mapView.remove(self.polyline)
         self.lineCancelled()
     }
+    @IBAction func doneWithLine(_ sender: Any) {
+        createThankYouAlert(isPhoto: false)
+        self.cancelLine(self)
+        // show cute message
+        
+    }
+    
     @IBOutlet weak var looksGreatButton: UIButton!
     @IBOutlet weak var lineLooksGreatButton: UIButton!
     @IBAction func looksGreat(_ sender: Any) {
@@ -569,7 +657,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         } else {
             self.setupCentralViews(2)
         }
-        self.appDelegate.getSettings()
         self.locationManager = CLLocationManager()
         self.locationManager.delegate = self
         self.locationManager.requestWhenInUseAuthorization()
@@ -809,7 +896,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.trackUser = true
         }
         self.addingLine = false
-        self.appDelegate.restrictions = []
     }
     @objc func cancelled() {
         self.cancelButton.isHidden = true
@@ -831,7 +917,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                     // do stuff
                     self.locationManager.startUpdatingLocation()
                     self.locationManager.startUpdatingHeading()
-                    self.centerMapOnLocation(location: self.locationManager.location!)
+                    if (self.locationManager.location != nil) {
+                        self.centerMapOnLocation(location: self.locationManager.location!)
+                    }
                 }
             }
         }
@@ -894,11 +982,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         // Then turn off dragging of map and add a pan gesture which moves the marker only
         self.zoomLevel = 17
         centerMapOnLocation(location: CLLocation(latitude: self.coordTouched.latitude, longitude: self.coordTouched.longitude))
+        self.photoAnnotation = MapMarker(coordinate: self.coordTouched)
         if (self.userHeading != nil) {
-            self.photoAnnotation = MapMarker(coordinate: self.coordTouched)
             self.photoAnnotation.set_heading(heading: self.userHeading!)
-        } else {
-            self.photoAnnotation = MapMarker(coordinate: self.coordTouched)
         }
         self.photoAnnotation.type = .photo
         self.movingPhotoAnnotation = true
@@ -907,8 +993,25 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.cancelButton.isHidden = false
         self.icon.isHidden = true
     }
-
     
+    func triggerDrawLines() {
+        self.mapView.addOverlays(self.appDelegate.linesToDraw)
+    }
+    
+    func mapView(_ mapView: MGLMapView, lineWidthForPolylineAnnotation annotation: MGLPolyline) -> CGFloat {
+        return 2.0
+    }
+    func mapView(_ mapView: MGLMapView, alphaForShapeAnnotation annotation: MGLShape) -> CGFloat {
+        return 0.9
+    }
+    func mapView(_ mapView: MGLMapView, strokeColorForShapeAnnotation annotation: MGLShape) -> UIColor {
+        if (annotation.isKind(of: CurbmapPolyLine.self)) {
+            let annotationCPL = annotation as! CurbmapPolyLine
+            return annotationCPL.color!
+        } else {
+            return UIColor.blue
+        }
+    }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc = segue.destination as? UITableViewController,
             segue.identifier == "ShowMenuFromMap" {

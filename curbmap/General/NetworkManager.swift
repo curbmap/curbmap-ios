@@ -24,7 +24,6 @@ class NetworkManager {
             switch status {
             case .reachable(.ethernetOrWiFi):
                 print("The network is reachable over the WiFi connection")
-                self.appDelegate.uploadIfOnWifi()
             default:
                 break                
             }

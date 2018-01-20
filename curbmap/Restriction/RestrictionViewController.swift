@@ -23,14 +23,15 @@ enum RestrictionError: Error {
     case permitRequired
 }
 
-class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate {
+class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate, NVActivityIndicatorViewable {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    var activityDataCancel: ActivityData!
+    var activityDataSaving: ActivityData!
     var alertFG: UIView!
     var alertBG: UIView!
     func setCancel(function: @escaping(Any)->Void) {
         self.cancelLine = function
     }
-    var loading: NVActivityIndicatorView!
     var cancelLine: ((Any) -> Void)?
     var startTimeDelegate: TimeDelegateData!
     var endTimeDelegate: TimeDelegateData!
@@ -50,6 +51,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 errorAlert("No suitable type for this restriction was found. Let us know what happened by email at curbmap@curbmap.com. We'd love to hear about it!")
             }
         } catch let error as RestrictionError {
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: self.stopActivity)
             if (error == RestrictionError.costNotSpecifiedForMeter) {
                 errorAlert("Metered costs should be some decimal value like 0.25 or 1. You're making an excellent impact!")
             } else if (error == RestrictionError.incongruentCurbTypeWithMeter) {
@@ -69,25 +71,18 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     }
     @IBOutlet weak var addAnotherOutlet: UIButton!
     @IBAction func addAnotherAction(_ sender: Any) {
-        let size = self.view.frame.width/4
-        let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)
-        self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
-        self.view.addSubview(loading)
-        loading.startAnimating()
         do {
             let added = try self.addCurrentRestriction()
             if (added == true) {
                 self.createCentralViews()
                 self.setupCentralViews()
-                self.loading.removeFromSuperview()
-                self.loading.stopAnimating()
-                self.loading = nil
             } else {
                 // put up error
                 // No suitable type was found!
                 errorAlert("No suitable type for this restriction was found. Let us know what happened by email at curbmap@curbmap.com. We'd love to hear about it!")
             }
         } catch let error as RestrictionError {
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: self.stopActivity)
             // put up error
             if (error == RestrictionError.costNotSpecifiedForMeter) {
                 errorAlert("Metered costs should be some decimal value like 0.25 or 1. You're making an excellent impact!")
@@ -170,10 +165,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
     @IBAction func cancelAction(_ sender: Any) {
         let size = self.view.frame.width/4
         let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)
-        self.loading = NVActivityIndicatorView(frame: frame, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 7)
-        self.view.addSubview(loading)
-        loading.startAnimating()
-
         if (self.appDelegate.restrictionsToAdd().count <= 0) {
             if let cancelLineFunction = self.cancelLine {
                 cancelLineFunction(self)
@@ -183,11 +174,9 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         } else {
             self.getLastRestriction()
         }
-        self.loading.removeFromSuperview()
-        self.loading.stopAnimating()
-        self.loading = nil
     }
     func addCurrentRestriction() throws -> Bool  {
+        NVActivityIndicatorPresenter.sharedInstance.startAnimating(self.activityDataSaving)
         var type = -1
             if (self.curbColorValue == 2 && !self.meterOutlet.isOn) {
                 guard let timelimit = self.timeLimitField.text else {
@@ -224,9 +213,12 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 } else {
                     throw RestrictionError.costNotSpecifiedForMeter
                 }
-                guard let per = self.permitField.text else {
+                print(self.perField.text)
+                guard let per = self.perField.text else {
+                    print("went wrong")
                     throw RestrictionError.perNotSpecifiedForMeter
                 }
+                print("did not go wrong", per)
                 if let intPer = Int(per) {
                     if (intPer > 0 && intPer < Int(timelimit)!) {
                         type = 1
@@ -271,9 +263,13 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 } else {
                     throw RestrictionError.costNotSpecifiedForMeter
                 }
-                guard let per = self.permitField.text else {
+                
+                print(self.perField.text)
+                guard let per = self.perField.text else {
+                    print("went wrong")
                     throw RestrictionError.perNotSpecifiedForMeter
                 }
+                print("did not go wrong", per)
                 if let intPer = Int(per) {
                     if (intPer > 0 && intPer <= Int(timelimit)!) {
                         type = 3
@@ -330,9 +326,12 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
                 } else {
                     throw RestrictionError.costNotSpecifiedForMeter
                 }
-                guard let per = self.permitField.text else {
+                print(self.perField.text)
+                guard let per = self.perField.text else {
+                    print("went wrong")
                     throw RestrictionError.perNotSpecifiedForMeter
                 }
+                print("did not go wrong", per)
                 if let intPer = Int(per) {
                     if (intPer > 0 && intPer <= Int(timelimit)!) {
                         // metered parking with permit exemption
@@ -410,13 +409,15 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         }
         let restriction = Restriction(type: type, days: days, weeks: weeks, months: months, from: start, to: end, angle: self.angleOutlet.selectedSegmentIndex, holidays: self.holidaysSwitch.isOn, vehicle: self.vehicleType.selectedSegmentIndex, side: self.sideOutlet.selectedSegmentIndex, limit: (self.timeLimitField.text != nil && self.timeLimitField.text != "0") ? Int(self.timeLimitField.text!) : nil, cost: self.costField.text != nil && self.costField.text != "0.0" ? Float(self.costField.text!) : nil, per: self.perField.text != nil ? Int(self.perField.text!) : nil, permit: self.permitField.text != nil && self.permitField.text != "" ? self.permitField.text : nil)
         self.appDelegate.addRestriction(restriction)
+        NVActivityIndicatorPresenter.sharedInstance.setMessage("saved")
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: self.stopActivity)
         return true
     }
     func resetAllDay() {
-        self.startTimePicker.selectRow(8, inComponent: 0, animated: true)
-        self.startTimePicker.selectRow(0, inComponent: 1, animated: true)
-        self.endTimePicker.selectRow(10, inComponent: 0, animated: true)
-        self.endTimePicker.selectRow(0, inComponent: 1, animated: true)
+        self.startTimePicker.selectRow(8, inComponent: 0, animated: false)
+        self.startTimePicker.selectRow(0, inComponent: 1, animated: false)
+        self.endTimePicker.selectRow(10, inComponent: 0, animated: false)
+        self.endTimePicker.selectRow(0, inComponent: 1, animated: false)
     }
     func resetDays() {
         self.sunSwitchOutlet.setOn(false, animated: false)
@@ -447,20 +448,24 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.novOutlet.setOn(false, animated: false)
         self.decOutlet.setOn(false, animated: false)
     }
+    func finishedGetLastRestriction(t: Timer) {
+    }
     
     func getLastRestriction() {
+        self.cancelOutlet.isEnabled = false
         self.createCentralViews()
-        self.setupCentralViews()
+        NVActivityIndicatorPresenter.sharedInstance.startAnimating(activityDataCancel)
         if let restriction = self.appDelegate.popRestriction() {
             if let limit = restriction.timeLimit {
                 self.timeLimitField.text = String(limit)
             }
             if let cost = restriction.cost {
                 self.costField.text = String(cost)
-                self.meterOutlet.setOn(true, animated: true)
+                self.meterOutlet.setOn(true, animated: false)
             }
             if let per = restriction.per {
                 self.perField.text = String(per)
+                self.meterOutlet.setOn(true, animated: false)
             }
             if (restriction.days.contains(false)) {
                 self.daysSwitchOutlet.setOn(false, animated: true)
@@ -544,10 +549,16 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
             default:
                 break
             }
+            self.setupCentralViews()
         } else {
             // do nothing
         }
-        self.setupCentralViews()
+        self.cancelOutlet.isEnabled = true
+        NVActivityIndicatorPresenter.sharedInstance.setMessage("Done")
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: self.stopActivity)
+    }
+    func stopActivity(_ t: Timer) {
+        NVActivityIndicatorPresenter.sharedInstance.stopAnimating()
     }
     
     @IBOutlet weak var scrollView: UIScrollView!
@@ -563,7 +574,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.redCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.curbColorValue = 0
         self.meterOutlet.isHidden = false
-        self.meterOutlet.setOn(false, animated: true)
         self.setupCentralViews()
     }
     @IBOutlet weak var curbColor: UILabel!
@@ -577,7 +587,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.greenCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.redCurbOutlet.layer.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 1.0, alpha: 0.8).cgColor
         self.curbColorValue = 1
-        self.meterOutlet.setOn(false, animated: true)
         self.setupCentralViews()
     }
     @IBOutlet weak var greenCurbOutlet: UIButton!
@@ -589,7 +598,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.greenCurbOutlet.layer.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 1.0, alpha: 0.8).cgColor
         self.redCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.curbColorValue = 2
-        self.meterOutlet.setOn(false, animated: true)
         self.setupCentralViews()
     }
     @IBOutlet weak var blueCurbOutlet: UIButton!
@@ -601,7 +609,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.greenCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.redCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.curbColorValue = 3
-        self.meterOutlet.setOn(false, animated: true)
         self.setupCentralViews()
     }
     
@@ -614,7 +621,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.greenCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.redCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.curbColorValue = 4
-        self.meterOutlet.setOn(false, animated: true)
         self.setupCentralViews()
     }
     @IBOutlet weak var whiteCurbOutlet: UIButton!
@@ -626,7 +632,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.greenCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.redCurbOutlet.layer.backgroundColor = UIColor.clear.cgColor
         self.curbColorValue = 5
-        self.meterOutlet.setOn(false, animated: true)
         self.setupCentralViews()
     }
     @IBOutlet weak var npnsOutlet: UISegmentedControl!
@@ -892,7 +897,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.timeLimitField.autocorrectionType = .no
         self.timeLimitField.placeholder = "e.g. 120"
         self.npnsOutlet.selectedSegmentIndex = 0
-        self.meterOutlet.setOn(false, animated: true)
+        self.meterOutlet.setOn(false, animated: false)
         self.currencyOutlet.selectedSegmentIndex = 0
         self.angleOutlet.selectedSegmentIndex = 0
         self.permitOutlet.selectedSegmentIndex = 1
@@ -915,26 +920,25 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         self.startTimeDelegate = TimeDelegateData()
         self.endTimeDelegate = TimeDelegateData()
         self.grayCurbAction(self)
-        self.meterOutlet.setOn(false, animated: true)
         self.costField.text = nil
         self.perField.text = nil
         self.startTimePicker.delegate = self.startTimeDelegate
         self.startTimePicker.dataSource = self.startTimeDelegate
         self.endTimePicker.dataSource = self.endTimeDelegate
         self.endTimePicker.delegate = self.endTimeDelegate
-        self.allDaySwitchOutlet.setOn(true, animated: true)
+        self.allDaySwitchOutlet.setOn(true, animated: false)
         self.resetAllDay()
-        self.daysSwitchOutlet.setOn(true, animated: true)
+        self.daysSwitchOutlet.setOn(true, animated: false)
         self.resetDays()
-        self.everyWeekSwitchOutlet.setOn(true, animated: true)
+        self.everyWeekSwitchOutlet.setOn(true, animated: false)
         self.resetWeeks()
-        self.everyMonthOutlet.setOn(true, animated: true)
+        self.everyMonthOutlet.setOn(true, animated: false)
         self.resetMonths()
         self.angleImageView.image = UIImage(named: "parallel")
         self.angleOutlet.selectedSegmentIndex = 0
         self.angleAction(self)
         self.scrollView.addSubview(self.angleImageView)
-        self.holidaysSwitch.setOn(true, animated: true)
+        self.holidaysSwitch.setOn(true, animated: false)
         self.holidaysLabel.text = "Enforced on holidays"
         self.holidaysLabel.textColor = UIColor.white
         self.vehicleType.selectedSegmentIndex = 0
@@ -1552,10 +1556,6 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         scrollView.contentSize = CGSize(width: self.view.frame.width, height: 1600)
         curbView.contentSize = CGSize(width: self.view.frame.width/1.25, height: 360)
         //meterView.contentSize = CGSize(width: self.view.frame.width, height: 300)
-        if (self.loading != nil) {
-            self.loading.stopAnimating()
-            self.loading.removeFromSuperview()
-        }
     }
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -1568,11 +1568,13 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         super.viewDidLoad()
         self.createCentralViews()
         self.setupCentralViews()
+        self.activityDataCancel = ActivityData(size: CGSize(width: 100.0, height: 100.0) , message: "Cancelling restriction", messageFont: UIFont.boldSystemFont(ofSize: 15), messageSpacing: 5.0, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 2, displayTimeThreshold: 0, minimumDisplayTime: 5, backgroundColor: UIColor.clear, textColor: UIColor.white)
+        self.activityDataSaving = ActivityData(size: CGSize(width: 100.0, height: 100.0), message: "Saving restrictions", messageFont: UIFont.boldSystemFont(ofSize: 15), messageSpacing: 5.0, type: NVActivityIndicatorType.ballClipRotatePulse, color: UIColor.white, padding: 2, displayTimeThreshold: 0, minimumDisplayTime: 5, backgroundColor: UIColor.clear, textColor: UIColor.white)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name:NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name:NSNotification.Name.UIKeyboardWillHide, object: nil)
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         self.scrollView.addGestureRecognizer(tap)
-        // Do any additional setup after loading the view.
+        let frame = self.view.frame
     }
     
     @objc func dismissKeyboard() {

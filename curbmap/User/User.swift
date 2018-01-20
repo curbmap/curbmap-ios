@@ -36,7 +36,8 @@ class User {
         "hour": 0,
         "minute": 0,
         "limit": 0,
-        "distance": 0.0
+        "distance": 0.0,
+        "permit": "",
     ]
     init(username: String, password: String) {
         self.username = username

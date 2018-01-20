@@ -6,6 +6,8 @@ class DraggableAnnotationView: MGLAnnotationView {
     enum AnnotationType : Int {
         case photo = 0
         case line = 1
+        case photoNotDraggable = 2
+        case lineNotDraggable = 3
     }
     var callback: ((_ mapMarker: MapMarker?)->Void)!
     var type: AnnotationType!
