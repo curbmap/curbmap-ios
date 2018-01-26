@@ -37,6 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     let realm = try! Realm()
     var restrictions: [Restriction] = []
     var linesToDraw: [CurbmapPolyLine] = []
+    var photosToDraw: [MapMarker] = []
     let reachabilityManager = Alamofire.NetworkReachabilityManager(host: "www.google.com")
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -297,6 +298,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             if (!photo.uploaded) {
                 photosToSend.append(photo)
             }
+            let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: photo.latitude, longitude: photo.longitude))
+            M.heading = photo.heading
+            M.type = MapMarker.AnnotationType.photoNotDraggable
+            print(M)
+            self.photosToDraw.append(M)
+
         }
         if (mapController != nil) {
             mapController.triggerDrawLines()
@@ -367,6 +374,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             "session": self.user.get_session()
         ]
         Alamofire.upload(multipartFormData: { MultipartFormData in
+            MultipartFormData.append("\(Date())".data(using: String.Encoding.utf8)!, withName: "date")
             MultipartFormData.append(olc.data(using: String.Encoding.utf8)!, withName: "olc")
             MultipartFormData.append("\(heading)".data(using: String.Encoding.utf8)!, withName: "bearing")
             MultipartFormData.append(data, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
@@ -496,6 +504,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             try! self.realm.write {
                 self.realm.add(newImage)
             }
+            let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
+            M.type = MapMarker.AnnotationType.photoNotDraggable
+            M.heading = heading
+            self.photosToDraw.append(M)
         }
     }
     

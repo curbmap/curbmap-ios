@@ -29,8 +29,16 @@ class DraggableAnnotationView: MGLAnnotationView {
         let imageView = UIImageView(frame: frame)
         if (self.type == .photo) {
             imageView.image = UIImage(named: "photomarker")
-        } else {
+        } else if (self.type == .line){
             imageView.image = UIImage(named: "linemarker")
+        } else if (self.type == .photoNotDraggable) {
+            imageView.image = UIImage(named: "photomarkerN")
+            imageView.isOpaque = false
+            imageView.alpha = 0.8
+        } else {
+            imageView.image = UIImage(named: "linemarkerN")
+            imageView.isOpaque = false
+            imageView.alpha = 0.8
         }
         addSubview(imageView)
     }

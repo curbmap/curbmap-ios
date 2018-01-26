@@ -8,25 +8,18 @@
 
 import UIKit
 import UserNotifications
-import RxSwift
+import ReactiveSwift
+import ReactiveCocoa
 
 class AlarmUserNotification: NSObject, UNUserNotificationCenterDelegate {
     var timer: Timer!
     var timerController: AlarmViewController!
     var timerValue: Int = 0
-    private var _timerAllotted = PublishSubject<Int>()
-    var timerAllotted: Observable<Int>?
-    @objc func trigger_TimerAllottedUpdate(newtimerValue: Int) {
-        _timerAllotted.onNext(newtimerValue)
-        print("trigger called")
-    }
-    var timerIsRunning = Variable(false)
-
-    
+    var timerString = MutableProperty<String>("")
+    var timerIsRunning: Bool
     override init () {
+        timerIsRunning = false
         super.init()
-        timerAllotted = _timerAllotted.share(replay: 1, scope: .forever)
-        trigger_TimerAllottedUpdate(newtimerValue: 0)
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
@@ -55,16 +48,21 @@ class AlarmUserNotification: NSObject, UNUserNotificationCenterDelegate {
                         print("got notification")
                         let dateString = pendingNotification.content.body.split(separator: ":")[1].trimmingCharacters(in: [" "])
                         let date = Date(timeIntervalSince1970: Double(dateString)!)
-                        print("date: \(String(describing: date))")
                         let currentDate = Date()
                         let calendar = Calendar.current
                         if (currentDate < date) {
-                            print("current date less than ")
                             // set up a new timer and start updating it
                             let dateComponents = calendar.dateComponents(Set<Calendar.Component>([ .second]), from: currentDate, to: date)
                             self.timerValue = Int((dateComponents.second)!)
                             DispatchQueue.main.async {
-                                self.timerController.startTimer()
+                                if (self.timer == nil) {
+                                    self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.countDown), userInfo: nil, repeats: true)
+                                }
+                                self.timerController.timerLabel.reactive.text <~ self.timerString
+                                self.timerController.picker.isHidden = true
+                                self.timerController.timerLabel.isHidden = false
+                                self.timerController.startButton.setTitle("Cancel timer", for: .normal)
+                                self.timerIsRunning = true
                             }
                         }
                     }
@@ -72,4 +70,23 @@ class AlarmUserNotification: NSObject, UNUserNotificationCenterDelegate {
             }
         }
     }
+    @objc func countDown() {
+        self.timerValue -= 1
+        self.setRemainingTime(self.timerValue)
+        if (self.timerValue <= 0) {
+            self.timer.invalidate()
+            self.timer = nil
+            self.timerController.timerLabel.text = "Move your car now :-)"
+            self.timerController.timerLabel.adjustsFontSizeToFitWidth = true
+            self.timerController.timerLabel.numberOfLines = 0
+            self.timerController.timerLabel.textAlignment = .center
+         }
+    }
+    @objc func setRemainingTime(_ timeRemaining: Int) {        
+        let hours = Int(Double(timeRemaining) / 3600)
+        let minutes = Int(Double(timeRemaining).truncatingRemainder(dividingBy: 3600.0)/60)
+        let seconds = Int(Double(timeRemaining).truncatingRemainder(dividingBy: 3600.0).truncatingRemainder(dividingBy: 60.0))
+        self.timerString.swap(String(format:"%02d : %02d : %02d", hours, minutes, seconds))
+    }
+    
 }

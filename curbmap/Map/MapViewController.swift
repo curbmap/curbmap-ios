@@ -9,13 +9,13 @@
 import UIKit
 import MapKit
 import Alamofire
+import AlamofireImage
 import OpenLocationCode
 import Mapbox
 import Instructions
 import SnapKit
 import Photos
 import AVFoundation
-import RxCocoa
 import Mixpanel
 
 class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate, CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -43,6 +43,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     let lineMessages = ["Thank you for adding such a beautiful line. It's the best line. Nobody makes any better lines!"]
     let lineImages = ["greatline0"]
     let responseMessages = ["Yay!", "Excellent!", "I'm glad I helped", "I'd do it again!"]
+    var selectedLine: CurbmapPolyLine!
     @IBAction func alertAddLine(_ sender: Any) {
         self.alertCameraOrLineViewBG.removeFromSuperview()
         self.alertCameraOrLineViewBG = nil
@@ -138,7 +139,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             make.width.equalTo(alertCameraOrLineViewFG.snp.width).priority(1000)
             make.height.equalTo(alertCameraOrLineViewFG.snp.height).dividedBy(5.1).priority(1000)
         }
-
+        
     }
     func createAlertForCameraOrLineView() {
         guard self.alertCameraOrLineViewBG == nil else {
@@ -246,6 +247,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                     "username": self.appDelegate.user.get_username(),
                     "session": self.appDelegate.user.get_session()
                 ]
+                let maxDim = max(self.photoToPlace.size.width, self.photoToPlace.size.height)
+                let maxResizeDim = CGFloat(700.0)
+                let size = CGSize(width: maxResizeDim * (self.photoToPlace.size.width/maxDim), height: maxResizeDim * (self.photoToPlace.size.height/maxDim))
+                let tempSmallPhoto = self.photoToPlace.af_imageAspectScaled(toFit: size)
+                let smallImageData = UIImageJPEGRepresentation(tempSmallPhoto, 0.6)!
                 let imageData = UIImageJPEGRepresentation(self.photoToPlace, 1.0)!
                 let cgImgSource = CGImageSourceCreateWithData(imageData as CFData, nil)!
                 let uti:CFString = CGImageSourceGetType(cgImgSource)!
@@ -289,43 +295,44 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                                               properties: ["photo added": self.appDelegate.restrictions.count,
                                                            "on wifi": (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)!,
                                                            "olc": olc!])
-                if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! {
-                    let annotation = self.photoAnnotation!
-                    DispatchQueue.global(qos: .background).async {
-                        let localDataWithExif = (dataWithEXIF as Data)
-                        let localCoord = annotation.coordinate
-                        let localHeading = annotation.heading!
-                        Alamofire.upload(multipartFormData: { MultipartFormData in
-                            MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
-                            if let heading_magnitude = heading?.magnitude {
-                                MultipartFormData.append("\(heading_magnitude)".data(using: String.Encoding.utf8)!, withName: "bearing")
-                            }
-                            MultipartFormData.append(dataWithEXIF as Data, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-                        }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
-                            switch encodingResult {
-                            case .success(let upload, _, _):
-                                upload.responseJSON { response in
-                                    if let result = response.result.value {
-                                        if let success = result as? NSDictionary {
-                                            PHPhotoLibrary.shared().save(imageData: localDataWithExif, location: localCoord, heading: localHeading, appDelegate: self.appDelegate, completed: true)
-                                            return
-                                        }
-                                        
+                createThankYouAlert(isPhoto: true)
+                self.mapView.removeAnnotations([self.photoAnnotation!])
+                let annotation = self.photoAnnotation!
+                DispatchQueue.global(qos: .background).async {
+                    let localDataWithExif = (dataWithEXIF as Data)
+                    let localCoord = annotation.coordinate
+                    let localHeading = annotation.heading!
+                    Alamofire.upload(multipartFormData: { MultipartFormData in
+                        MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
+                        MultipartFormData.append(self.appDelegate.token!.data(using: .utf8)!, withName: "token")
+                        MultipartFormData.append("\(Date())".data(using: String.Encoding.utf8)!, withName: "date")
+                        print(Date())
+                        MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
+                        if let heading_magnitude = heading?.magnitude {
+                            MultipartFormData.append("\(heading_magnitude)".data(using: String.Encoding.utf8)!, withName: "bearing")
+                        }
+                        MultipartFormData.append(smallImageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+                    }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUploadText", method: .post, headers: headers, encodingCompletion: { encodingResult in
+                        switch encodingResult {
+                        case .success(let upload, _, _):
+                            upload.responseJSON { response in
+                                if let result = response.result.value {
+                                    if let success = result as? NSDictionary {
+                                        print("success")
                                     }
+                                    
                                 }
-                                break
-                            case .failure(let encodingError):
-                                print("failed to send \(encodingError.localizedDescription)")
-                                PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: self.photoAnnotation.coordinate, heading: self.photoAnnotation.heading, appDelegate: self.appDelegate, completed: false)
                             }
-                        })
-                    }
-                    self.cancelled()
-                    } else {
-                        PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: self.photoAnnotation.coordinate, heading: self.photoAnnotation.heading, appDelegate: self.appDelegate, completed: false)
-                        self.cancelled()
-                    }
+                            break
+                        case .failure(let encodingError):
+                            print("failed to send \(encodingError.localizedDescription)")
+                        }
+                    })
+                    PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: annotation.coordinate, heading: annotation.heading, appDelegate: self.appDelegate, completed: false)
+                    
                 }
+                self.cancelled()
+            }
         }
     }
     @IBAction func lineLooksGreat(_ sender: Any) {
@@ -378,7 +385,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     
     func mapView(_ mapView: MGLMapView, regionDidChangeAnimated animated: Bool) {
         var code: [Character] = try! OpenLocationCode.encode(latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude, codeLength: 10).filter { $0 != "+" }
-
+        
         let prefix = String(code[0...3])
         let middle = String(code[4...7])
         let suffix = String(code[8...9])
@@ -439,7 +446,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         ]
     }
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-       self.searchBarSearchButtonClicked(searchBar)
+        self.searchBarSearchButtonClicked(searchBar)
     }
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         //geocoder.cancelGeocode()
@@ -699,7 +706,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             make.width.equalTo(200).priority(1000.0)
             make.height.equalTo(50).priority(1000.0)
         }
-
+        
         return skipView.constraints
     }
     
@@ -720,7 +727,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
-
+    
     @objc func userPanned(_ gestureRecognizer: UIPanGestureRecognizer) {
         if (gestureRecognizer.state == UIGestureRecognizerState.ended) {
             self.trackUser = false
@@ -824,6 +831,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                 coordinatesArray.append(point.coordinate)
             }
             self.polyline = CurbmapPolyLine(coordinates: coordinatesArray, count: UInt(coordinatesArray.count))
+            self.polyline.color = UIColor.magenta
             self.mapView.add(self.polyline)
             self.lineLooksGreatButton.isHidden = false
             self.lineCancelButton.isHidden = false
@@ -940,7 +948,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.appDelegate.user.set_location(location: manager.location!)
         }
     }
-
+    
     func mapView(_ mapView: MGLMapView, viewFor annotation: MGLAnnotation) -> MGLAnnotationView? {
         // This example is only concerned with point annotations.
         guard annotation is MapMarker else {
@@ -963,9 +971,12 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             } else {
                 return DraggableAnnotationView(reuseIdentifier: "draggablePhotoPoint", size: 50, type: .photo)
             }
+        } else if (ann.type == .lineNotDraggable){
+            let View = DraggableAnnotationView(reuseIdentifier: "undraggableLine", size: 50, type: .lineNotDraggable)
+            View.isDraggable = false
+            return View
         } else {
-            print("adding this kind of annotation")
-            let View = DraggableAnnotationView(reuseIdentifier: "undragable", size: 50, type: .line)
+            let View = DraggableAnnotationView(reuseIdentifier: "undraggablePhoto", size: 50, type: .photoNotDraggable)
             View.isDraggable = false
             return View
         }
@@ -995,11 +1006,21 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     
     func triggerDrawLines() {
+        let overlays = self.mapView.overlays
+        self.mapView.removeOverlays(overlays)
+        if let annotations = self.mapView.annotations {
+            self.mapView.removeAnnotations(annotations)
+        }
         self.mapView.addOverlays(self.appDelegate.linesToDraw)
+        self.mapView.addAnnotations(self.appDelegate.photosToDraw)
     }
     
     func mapView(_ mapView: MGLMapView, lineWidthForPolylineAnnotation annotation: MGLPolyline) -> CGFloat {
-        return 2.0
+        if (annotation == self.selectedLine) {
+            return 4.0
+        } else {
+            return 2.0
+        }
     }
     func mapView(_ mapView: MGLMapView, alphaForShapeAnnotation annotation: MGLShape) -> CGFloat {
         return 0.9
@@ -1021,21 +1042,24 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
 }
 extension PHPhotoLibrary {
     func save(imageData: Data, location: CLLocationCoordinate2D, heading: CLLocationDirection, appDelegate: AppDelegate, completed: Bool) {
+        print("XXX trying to save")
         var placeholder: PHObjectPlaceholder!
-            PHPhotoLibrary.shared().performChanges({
-                let request = PHAssetCreationRequest.forAsset()
-                request.addResource(with: .photo, data: imageData, options: .none)
-                request.location = CLLocation(latitude: location.latitude, longitude: location.longitude)
-                placeholder = request.placeholderForCreatedAsset
-            }, completionHandler: { (success, error) -> Void in
-                if let error = error {
-                    return
-                }
-                guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [placeholder.localIdentifier], options: nil).firstObject else {
-                    return
-                }
-                appDelegate.save_image_data(localIdentifier: placeholder.localIdentifier, heading: heading.magnitude, lat: location.latitude, lng: location.longitude, uploaded: completed)
+        PHPhotoLibrary.shared().performChanges({
+            let request = PHAssetCreationRequest.forAsset()
+            request.addResource(with: .photo, data: imageData, options: .none)
+            request.location = CLLocation(latitude: location.latitude, longitude: location.longitude)
+            placeholder = request.placeholderForCreatedAsset
+        }, completionHandler: { (success, error) -> Void in
+            if let error = error {
+                print("error saving XXX:"+error.localizedDescription)
+                return
             }
+            print("no error YYY")
+            guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [placeholder.localIdentifier], options: nil).firstObject else {
+                return
+            }
+            appDelegate.save_image_data(localIdentifier: placeholder.localIdentifier, heading: heading.magnitude, lat: location.latitude, lng: location.longitude, uploaded: completed)
+        }
         )
     }
     func load(identifier: String, appDelegate: AppDelegate, olc: String, heading: Double) {
@@ -1071,5 +1095,46 @@ extension String {
     }
 }
 
-
+//https://stackoverflow.com/a/45653305/6457440
+extension UIImage {
+    func resizeImage(_ dimension: CGFloat, opaque: Bool, contentMode: UIViewContentMode = .scaleAspectFit) -> UIImage {
+        var width: CGFloat
+        var height: CGFloat
+        var newImage: UIImage
+        
+        let size = self.size
+        let aspectRatio =  size.width/size.height
+        
+        switch contentMode {
+        case .scaleAspectFit:
+            if aspectRatio > 1 {                            // Landscape image
+                width = dimension
+                height = dimension / aspectRatio
+            } else {                                        // Portrait image
+                height = dimension
+                width = dimension * aspectRatio
+            }
+            
+        default:
+            fatalError("UIImage.resizeToFit(): FATAL: Unimplemented ContentMode")
+        }
+        
+        if #available(iOS 10.0, *) {
+            let renderFormat = UIGraphicsImageRendererFormat.default()
+            renderFormat.opaque = opaque
+            let renderer = UIGraphicsImageRenderer(size: CGSize(width: width, height: height), format: renderFormat)
+            newImage = renderer.image {
+                (context) in
+                self.draw(in: CGRect(x: 0, y: 0, width: width, height: height))
+            }
+        } else {
+            UIGraphicsBeginImageContextWithOptions(CGSize(width: width, height: height), opaque, 0)
+            self.draw(in: CGRect(x: 0, y: 0, width: width, height: height))
+            newImage = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
+        }
+        
+        return newImage
+    }
+}
 

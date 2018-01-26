@@ -2,12 +2,12 @@
 platform :ios, '11.1'
 
 pod 'Alamofire'
+pod 'AlamofireImage', '~> 3.3'
 pod 'KeychainAccess'
 pod "OpenLocationCode" 
 pod 'Mapbox-iOS-SDK', '~> 3.7'
-pod 'SwiftyCam', :git => 'https://github.com/Awalz/SwiftyCam.git', :branch => 'Swift4'
-pod 'RxSwift'
-pod 'RxCocoa'
+pod 'ReactiveSwift', '~> 3.0'
+pod 'ReactiveCocoa', '~> 7.0'
 pod 'SnapKit', '~> 4.0.0'
 pod 'Instructions', '~> 1.1.0'
 pod 'RealmSwift'

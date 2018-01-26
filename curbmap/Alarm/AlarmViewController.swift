@@ -9,15 +9,13 @@
 import UIKit
 import EventKit
 import UserNotifications
-import RxCocoa
-import RxSwift
 import SnapKit
+import ReactiveCocoa
+import ReactiveSwift
 
 class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var menuTableViewController: UITableViewController!
-    var disposeBag = DisposeBag()
-    var timer: Observable<Int>!
     var viewSize: CGSize!
     
     @IBOutlet weak var timerLabel: UILabel!
@@ -63,11 +61,9 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     @IBOutlet weak var picker: UIPickerView!
     @IBOutlet weak var startButton: UIButton!
     @IBAction func startPressed(_ sender: Any) {
-        if (appDelegate.notificationDelegate.timerIsRunning.value) {
+        if (appDelegate.notificationDelegate.timerIsRunning) {
             // stop the timer
-            appDelegate.notificationDelegate.timerIsRunning.value = false
-            self.timer = nil
-            self.disposeBag = DisposeBag()
+            appDelegate.notificationDelegate.timerIsRunning = false
             appDelegate.notificationDelegate.timerValue = 0
             appDelegate.removeNotifications()
             self.picker.isHidden = false
@@ -75,6 +71,10 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             self.startButton.setTitle("Start timer", for: .normal)
         } else {
             self.timerLabel.text = "Timer starting"
+            self.picker.isHidden = true
+            self.timerLabel.isHidden = false
+            self.startButton.setTitle("Cancel timer", for: .normal)
+            self.appDelegate.notificationDelegate.timerIsRunning = true
             // start the timer
             var hours = picker.selectedRow(inComponent: 0)
             if (hours >= 2 ) {
@@ -122,20 +122,13 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         }
     }
     
+    
     func startTimer() {
         self.picker.isHidden = true
         self.timerLabel.isHidden = false
         self.startButton.setTitle("Cancel timer", for: .normal)
-        print("start timer? \(self.appDelegate.notificationDelegate.timerIsRunning.value)")
-        guard self.appDelegate.notificationDelegate.timerIsRunning.value == false else { return }
-        self.appDelegate.notificationDelegate.timerIsRunning.value = true
-        self.timer = Observable<Int>.interval(1, scheduler: MainScheduler.instance)
-        self.timer.subscribe(onNext: { (sec) in
-            self.tick()
-        }).disposed(by: disposeBag)
-        self.appDelegate.notificationDelegate.timerAllotted?.asObservable().subscribe(onNext: { (newValue) in
-            self.setRemainingTime(newValue)
-        })
+        guard self.appDelegate.notificationDelegate.timerIsRunning == false else { return }
+        self.appDelegate.notificationDelegate.timerIsRunning = true
     }
     
     @objc func setupCentralViews(_ firstTime: Int) {
@@ -185,18 +178,6 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
         self.view.layoutIfNeeded()
     }
     
-    @objc func tick() {
-        print("Do we get called")
-        self.appDelegate.notificationDelegate.timerValue -= 1
-        self.appDelegate.notificationDelegate.trigger_TimerAllottedUpdate(newtimerValue: self.appDelegate.notificationDelegate.timerValue)
-        if (self.appDelegate.notificationDelegate.timerValue <= 0) {
-            //sound the alarm
-            self.disposeBag = DisposeBag()
-            self.appDelegate.notificationDelegate.timerIsRunning.value = false
-            self.timerLabel.text = "Timer finished :-("
-        }
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.picker.dataSource = self
@@ -236,8 +217,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        self.disposeBag = DisposeBag()
-        self.appDelegate.notificationDelegate.timerIsRunning.value = false
+        self.appDelegate.notificationDelegate.timerIsRunning = false
     }
     
     @objc func checkTimeLeft() {
@@ -245,15 +225,7 @@ class AlarmViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
             appDelegate.center.getPendingNotificationRequests(completionHandler: appDelegate.notificationDelegate.gotPendingNotification)
         }
     }
-    
-    @objc func setRemainingTime(_ timeRemaining: Int) {
-        let hours = Int(floor(Double(timeRemaining) / (60.0*60.0)))
-        let minutes = Int(floor((Double(timeRemaining) - (Double(hours) * (60.0*60.0))) / 60.0))
-        let seconds = Int(floor(Double(timeRemaining) - (Double(hours) * 60.0*60.0) - (Double(minutes) * 60.0)))
-        timerLabel.text = String(format:"%02d : %02d : %02d", hours, minutes, seconds)
-        self.timerLabel.isHidden = false
-    }
-    
+        
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.

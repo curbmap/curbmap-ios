@@ -1,5 +1,7 @@
 PODS:
   - Alamofire (4.6.0)
+  - AlamofireImage (3.3.0):
+    - Alamofire (~> 4.5)
   - Instructions (1.1.0)
   - KeychainAccess (3.1.0)
   - Mapbox-iOS-SDK (3.7.2)
@@ -10,62 +12,58 @@ PODS:
     - NVActivityIndicatorView/Presenter (= 4.1.1)
   - NVActivityIndicatorView/Presenter (4.1.1)
   - OpenLocationCode (0.0.5.2)
+  - ReactiveCocoa (7.0.1):
+    - ReactiveSwift (~> 3.0)
+  - ReactiveSwift (3.0.0):
+    - Result (~> 3.2)
   - Realm (3.0.2):
     - Realm/Headers (= 3.0.2)
   - Realm/Headers (3.0.2)
   - RealmSwift (3.0.2):
     - Realm (= 3.0.2)
-  - RxCocoa (4.1.0):
-    - RxSwift (~> 4.0)
-  - RxSwift (4.1.0)
+  - Result (3.2.4)
   - SnapKit (4.0.0)
-  - SwiftyCam (2.7.0)
 
 DEPENDENCIES:
   - Alamofire
+  - AlamofireImage (~> 3.3)
   - Instructions (~> 1.1.0)
   - KeychainAccess
   - Mapbox-iOS-SDK (~> 3.7)
   - Mixpanel-swift (from `https://github.com/mixpanel/mixpanel-swift.git`, branch `swift4`)
   - NVActivityIndicatorView
   - OpenLocationCode
+  - ReactiveCocoa (~> 7.0)
+  - ReactiveSwift (~> 3.0)
   - RealmSwift
-  - RxCocoa
-  - RxSwift
   - SnapKit (~> 4.0.0)
-  - SwiftyCam (from `https://github.com/Awalz/SwiftyCam.git`, branch `Swift4`)
 
 EXTERNAL SOURCES:
   Mixpanel-swift:
     :branch: swift4
     :git: https://github.com/mixpanel/mixpanel-swift.git
-  SwiftyCam:
-    :branch: Swift4
-    :git: https://github.com/Awalz/SwiftyCam.git
 
 CHECKOUT OPTIONS:
   Mixpanel-swift:
     :commit: a057763547eeac578e1effe05a4e26319c8197bd
     :git: https://github.com/mixpanel/mixpanel-swift.git
-  SwiftyCam:
-    :commit: 85d713d643159cda72db2f3e230777af50cded94
-    :git: https://github.com/Awalz/SwiftyCam.git
 
 SPEC CHECKSUMS:
   Alamofire: f41a599bd63041760b26d393ec1069d9d7b917f4
+  AlamofireImage: 2e784dc5d00f04903a52c1d169181469c805c3df
   Instructions: ff5738d6a637a46d1638a77d77261649f4da36a7
   KeychainAccess: 94c5540b32eabf7bc32bfb976a268e8ea05fd6da
   Mapbox-iOS-SDK: d882f53debc26649b728755df5b7a160d9086367
   Mixpanel-swift: 2cd7aac92ad4e9ba2957479c6e6db9b9170944bb
   NVActivityIndicatorView: 60109b9bf46efc2e71ab81453196ccdfdfeea870
   OpenLocationCode: 9fcfb120d9e11a91842b91e3517ab432a3c23c3b
+  ReactiveCocoa: a1b5d502d0d1534f9a72981a485b297b17127f83
+  ReactiveSwift: d9fe0db33c1aaabecb092e8de83cf52875c0de6f
   Realm: 6f23fd1f178a09342eac21bfa7c2bf4312a7a180
   RealmSwift: 695393add1b8f9d5fa75dd16e6355cf3935f71e2
-  RxCocoa: cc1fec49cdc8fabe645964de7c51c099a36c2aa8
-  RxSwift: 4219941c1244c88002901bd87a69d3aea9ae71f0
+  Result: d2d07204ce72856f1fd9130bbe42c35a7b0fea10
   SnapKit: a42d492c16e80209130a3379f73596c3454b7694
-  SwiftyCam: 7c826b73a5b208677aee29390582c771bf748661
 
-PODFILE CHECKSUM: 0b2eea2d517ed2cf84cdd2a58eaa172a322d612e
+PODFILE CHECKSUM: 6d32e7923c24300e0a282b390e2b4f36fb7cfdf3
 
 COCOAPODS: 1.4.0.beta.2
