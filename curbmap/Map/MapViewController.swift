@@ -302,10 +302,14 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                     let localDataWithExif = (dataWithEXIF as Data)
                     let localCoord = annotation.coordinate
                     let localHeading = annotation.heading!
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.timeStyle = .full
+                    dateFormatter.dateStyle = .full
+                    dateFormatter.timeZone = Calendar.current.timeZone
                     Alamofire.upload(multipartFormData: { MultipartFormData in
                         MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
                         MultipartFormData.append(self.appDelegate.token!.data(using: .utf8)!, withName: "token")
-                        MultipartFormData.append("\(Date())".data(using: String.Encoding.utf8)!, withName: "date")
+                        MultipartFormData.append("\(dateFormatter.string(from: Date()))".data(using: String.Encoding.utf8)!, withName: "date")
                         print(Date())
                         MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
                         if let heading_magnitude = heading?.magnitude {
