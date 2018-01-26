@@ -17,6 +17,8 @@ class MapMarker: MGLPointAnnotation {
     var tag: Int!
     var restrictions: [Restriction]!
     var inEffect: Bool!
+    var fromLibrary: Bool!
+    var identifier: String!
     enum AnnotationType : Int {
         case photo = 0
         case line = 1

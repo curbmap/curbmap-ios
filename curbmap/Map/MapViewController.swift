@@ -332,8 +332,13 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                             print("failed to send \(encodingError.localizedDescription)")
                         }
                     })
-                    PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: annotation.coordinate, heading: annotation.heading, appDelegate: self.appDelegate, completed: false)
-                    
+                    if (!self.photoAnnotation.fromLibrary) {
+                        PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: annotation.coordinate, heading: annotation.heading, appDelegate: self.appDelegate, completed: false)
+                    } else {
+                        if let identifier = self.photoAnnotation.identifier {
+                            self.appDelegate.save_image_data(localIdentifier: identifier, heading: annotation.heading.magnitude, lat: annotation.coordinate.latitude, lng: annotation.coordinate.longitude, uploaded: false)
+                        }
+                    }
                 }
                 self.cancelled()
             }
@@ -810,8 +815,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.picker.showsCameraControls = true
             self.picker.cameraOverlayView = UIView()
             self.picker.videoQuality = .typeHigh
+            self.photoAnnotation.fromLibrary = false
         } else if(action.title == "Library") {
             self.picker.sourceType = .photoLibrary
+            self.photoAnnotation.fromLibrary = true
         }
         self.present(self.picker, animated: true, completion: nil)
     }
@@ -843,6 +850,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        if let photoAsset = info[UIImagePickerControllerPHAsset] as? PHAsset {
+            self.photoAnnotation.identifier = photoAsset.localIdentifier
+        }
         if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             self.photoToPlace = pickedImage
             dismiss(animated: true, completion: nil)
@@ -1096,49 +1106,6 @@ extension Date {
 extension String {
     var dateFromISO8601: Date? {
         return Formatter.iso8601.date(from: self)   // "Mar 22, 2017, 10:22 AM"
-    }
-}
-
-//https://stackoverflow.com/a/45653305/6457440
-extension UIImage {
-    func resizeImage(_ dimension: CGFloat, opaque: Bool, contentMode: UIViewContentMode = .scaleAspectFit) -> UIImage {
-        var width: CGFloat
-        var height: CGFloat
-        var newImage: UIImage
-        
-        let size = self.size
-        let aspectRatio =  size.width/size.height
-        
-        switch contentMode {
-        case .scaleAspectFit:
-            if aspectRatio > 1 {                            // Landscape image
-                width = dimension
-                height = dimension / aspectRatio
-            } else {                                        // Portrait image
-                height = dimension
-                width = dimension * aspectRatio
-            }
-            
-        default:
-            fatalError("UIImage.resizeToFit(): FATAL: Unimplemented ContentMode")
-        }
-        
-        if #available(iOS 10.0, *) {
-            let renderFormat = UIGraphicsImageRendererFormat.default()
-            renderFormat.opaque = opaque
-            let renderer = UIGraphicsImageRenderer(size: CGSize(width: width, height: height), format: renderFormat)
-            newImage = renderer.image {
-                (context) in
-                self.draw(in: CGRect(x: 0, y: 0, width: width, height: height))
-            }
-        } else {
-            UIGraphicsBeginImageContextWithOptions(CGSize(width: width, height: height), opaque, 0)
-            self.draw(in: CGRect(x: 0, y: 0, width: width, height: height))
-            newImage = UIGraphicsGetImageFromCurrentImageContext()!
-            UIGraphicsEndImageContext()
-        }
-        
-        return newImage
     }
 }
 
