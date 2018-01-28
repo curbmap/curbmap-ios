@@ -15,6 +15,7 @@ import Mapbox
 import Instructions
 import SnapKit
 import Photos
+import AssetsLibrary
 import AVFoundation
 import Mixpanel
 
@@ -230,6 +231,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     @IBAction func doneWithLine(_ sender: Any) {
         createThankYouAlert(isPhoto: false)
         self.cancelLine(self)
+        self.triggerDrawLines()
         // show cute message
         
     }
@@ -334,13 +336,14 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                     })
                     if (!self.photoAnnotation.fromLibrary) {
                         PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: annotation.coordinate, heading: annotation.heading, appDelegate: self.appDelegate, completed: false)
+                        self.cancelled()
                     } else {
-                        if let identifier = self.photoAnnotation.identifier {
-                            self.appDelegate.save_image_data(localIdentifier: identifier, heading: annotation.heading.magnitude, lat: annotation.coordinate.latitude, lng: annotation.coordinate.longitude, uploaded: false)
-                        }
+                        let uuid = UUID().uuidString
+                        print(uuid)
+                        self.appDelegate.save_image_data(localIdentifier: uuid, heading: annotation.heading.magnitude, lat: annotation.coordinate.latitude, lng: annotation.coordinate.longitude, uploaded: false, data: dataWithEXIF as Data)
+                        self.cancelled()
                     }
                 }
-                self.cancelled()
             }
         }
     }
@@ -706,6 +709,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         coachMarkSkip.layer.cornerRadius = 0
         coachMarkSkip.backgroundColor = UIColor.darkGray
         self.coachMarksController.skipView = self.coachMarkSkip
+        self.triggerDrawLines()
     }
     
     func coachMarksController(_ coachMarksController: CoachMarksController, constraintsForSkipView skipView: UIView, inParent parentView: UIView) -> [NSLayoutConstraint]? {
@@ -815,10 +819,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.picker.showsCameraControls = true
             self.picker.cameraOverlayView = UIView()
             self.picker.videoQuality = .typeHigh
-            self.photoAnnotation.fromLibrary = false
         } else if(action.title == "Library") {
             self.picker.sourceType = .photoLibrary
-            self.photoAnnotation.fromLibrary = true
         }
         self.present(self.picker, animated: true, completion: nil)
     }
@@ -850,9 +852,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        if let photoAsset = info[UIImagePickerControllerPHAsset] as? PHAsset {
-            self.photoAnnotation.identifier = photoAsset.localIdentifier
-        }
         if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             self.photoToPlace = pickedImage
             dismiss(animated: true, completion: nil)
@@ -920,16 +919,18 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.addingLine = false
     }
     @objc func cancelled() {
-        self.cancelButton.isHidden = true
-        self.looksGreatButton.isHidden = true
-        self.zoomLevel = 15.0
-        if (self.appDelegate.user.settings["follow"] == "y"){
-            self.trackUser = true
+        DispatchQueue.main.async {
+            self.cancelButton.isHidden = true
+            self.looksGreatButton.isHidden = true
+            self.zoomLevel = 15.0
+            if (self.appDelegate.user.settings["follow"] == "y"){
+                self.trackUser = true
+            }
+            
+            self.movingPhotoAnnotation = false
+            self.photoAnnotation = nil
+            self.photoToPlace = nil
         }
-        
-        self.movingPhotoAnnotation = false
-        self.photoToPlace = nil
-        self.photoAnnotation = nil
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
@@ -1012,6 +1013,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             self.photoAnnotation.set_heading(heading: self.userHeading!)
         }
         self.photoAnnotation.type = .photo
+        if (self.picker.sourceType == .camera) {
+            self.photoAnnotation.fromLibrary = false
+        } else {
+            self.photoAnnotation.fromLibrary = true
+        }
         self.movingPhotoAnnotation = true
         self.mapView.addAnnotation(self.photoAnnotation)
         self.looksGreatButton.isHidden = false
@@ -1072,7 +1078,7 @@ extension PHPhotoLibrary {
             guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [placeholder.localIdentifier], options: nil).firstObject else {
                 return
             }
-            appDelegate.save_image_data(localIdentifier: placeholder.localIdentifier, heading: heading.magnitude, lat: location.latitude, lng: location.longitude, uploaded: completed)
+            appDelegate.save_image_data(localIdentifier: placeholder.localIdentifier, heading: heading.magnitude, lat: location.latitude, lng: location.longitude, uploaded: completed, data: nil)
         }
         )
     }

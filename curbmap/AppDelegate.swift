@@ -127,29 +127,68 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     func submitRestrictions() -> Bool {
         // store all restrictions to Realm
         var line: [[Double]] = []
+        var lineCoords: [CLLocationCoordinate2D] = []
         var lineString = ""
-        var newLine : [CurbmapPolyLine] = []
+        var newLine:CurbmapPolyLine!
         for i in 0..<self.mapController.line.count {
             line.append([self.mapController.line[i].coordinate.longitude, self.mapController.line[i].coordinate.latitude])
+            lineCoords.append(self.mapController.line[i].coordinate)
             lineString += String(self.mapController.line[i].coordinate.longitude) + "," + String(self.mapController.line[i].coordinate.latitude) + ","
         }
+        newLine = CurbmapPolyLine(coordinates: lineCoords, count: UInt(lineCoords.count))
         let lineStringEnd = lineString.index(lineString.startIndex, offsetBy: lineString.count-1)
         lineString = String(lineString[lineString.startIndex..<lineStringEnd]) // not including last ,
         
         let headers: HTTPHeaders = [
             "Content-Type": "application/json",
             "session": self.user.get_session(),
+            "username": self.user.get_username()
             ]
 
         var restrParams: [[String: Any]] = []
+        newLine.restrictions = restrictions
+        var typeCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        var permits: [String] = []
+        for r in newLine.restrictions {
+            if (r.isActiveNow()) {
+                typeCount[r.type] += 1
+            }
+            if (r.permit != nil) {
+                permits.append(r.permit!)
+            }
+        }
+        if (typeCount[6] > 0 || typeCount[8] > 0 || (typeCount[7] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+            newLine.color = UIColor.red
+        } else if (typeCount[10] > 0) {
+            newLine.color = UIColor.blue
+        } else if (typeCount[0] > 0 || typeCount[1] > 0) {
+            newLine.color = UIColor.green
+        } else if (typeCount[2] > 0 || (typeCount[4] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+            newLine.color = UIColor.gray
+        } else if (typeCount[3] > 0 || (typeCount[5] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+            newLine.color = UIColor.purple
+        } else if (typeCount[9] > 0) {
+            newLine.color = UIColor.brown
+        } else if (typeCount[11] > 0) {
+            newLine.color = UIColor.white
+        } else if (typeCount[12] > 0) {
+            newLine.color = UIColor.yellow
+        } else if (typeCount.max()! > 0){
+            newLine.color = UIColor.black
+        } else {
+            newLine.color = UIColor.clear
+        }
+        linesToDraw.append(newLine)
+        if (mapController != nil) {
+            mapController.triggerDrawLines()
+        }
         for r in restrictions {
             restrParams.append(r.asDictionary())
-            newLine[0].restrictions = restrictions
         }
         let parameters: Parameters = ["line": line,
                           "restrictions": restrParams]
         if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
-            Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+            Alamofire.request("https://abada979.ngrok.io/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                 guard self != nil else { return }
                 if var json = response.result.value as? [String: Any] {
                     if let success = json["success"] as? Int {
@@ -212,6 +251,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             for val in r.days {
                 x.days.append(val)
             }
+            print("YYYZZZyyy")
+            print(x.days)
+            print(r.days)
             for val in r.weeks {
                 x.weeks.append(val)
             }
@@ -253,6 +295,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             var typeCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
             var permits: [String] = []
             for r in line.restrictions {
+                print("XXX")
+                print(Array(r.days))
                 let R = Restriction(type: r.type, days: Array(r.days), weeks: Array(r.weeks), months: Array(r.months), from: r.start, to: r.end, angle: r.angle, holidays: r.holiday, vehicle: r.vehicle, side: r.side, limit: r.duration, cost: r.cost, per: r.per, permit: r.permit)
                 if (R.isActiveNow()) {
                     print(lineFloats)
@@ -294,7 +338,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         }
         let photos = realm.objects(Images.self)
         var photosToSend: [Images] = []
+        print(photos)
         for photo in photos {
+            print(photo)
             if (!photo.uploaded) {
                 photosToSend.append(photo)
             }
@@ -360,7 +406,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     if let olc = try? OpenLocationCode.encode(latitude: image.latitude, longitude: image.longitude, codeLength: 12) {
                         // this function was an extesion to PHPhotoLibrary which
                         // calls uploadPhoto when image is retrieved
-                        PHPhotoLibrary.shared().load(identifier: image.localIdentifier, appDelegate: self, olc: olc, heading: image.heading)
+                        if (image.data != nil) {
+                            self.uploadPhoto(data: image.data, identifier: image.localIdentifier, olc: olc, heading: image.heading)
+                        } else {
+                            PHPhotoLibrary.shared().load(identifier: image.localIdentifier, appDelegate: self, olc: olc, heading: image.heading)
+                        }
                     }
                 }
             }
@@ -391,6 +441,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                                     return
                                 }
                                 try! self.realm.write {
+                                    foundImage.data = nil
                                     foundImage.uploaded = true
                                 }
                             }
@@ -421,9 +472,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                 }
             } else {
                 NetworkManager.shared.startNetworkReachabilityObserver()
+                self.getLinesAndPhotos()
             }
         } catch _ {
             print("cannot get username")
+            NetworkManager.shared.startNetworkReachabilityObserver()
+            self.getLinesAndPhotos()
         }
     }
     
@@ -493,7 +547,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         
     }
     
-    @objc func save_image_data(localIdentifier: String, heading: Double, lat:  Double, lng: Double, uploaded: Bool) {
+    @objc func save_image_data(localIdentifier: String, heading: Double, lat:  Double, lng: Double, uploaded: Bool, data: Data?) {
         DispatchQueue.main.async {
             let newImage = Images()
             newImage.localIdentifier = localIdentifier
@@ -501,6 +555,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             newImage.latitude = lat
             newImage.longitude = lng
             newImage.uploaded = uploaded
+            if (data != nil) {
+                newImage.data = data
+            }
             try! self.realm.write {
                 self.realm.add(newImage)
             }
@@ -508,6 +565,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             M.type = MapMarker.AnnotationType.photoNotDraggable
             M.heading = heading
             self.photosToDraw.append(M)
+            if (self.mapController != nil) {
+                self.mapController.triggerDrawLines()
+            }
+
         }
     }
     
@@ -692,6 +753,7 @@ class Images: Object {
     @objc dynamic var longitude: Double = 0.0
     @objc dynamic var latitude: Double = 0.0
     @objc dynamic var uploaded: Bool = false
+    var data: Data!
 }
 
 class Settings : Object {

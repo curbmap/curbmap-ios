@@ -65,6 +65,9 @@ class Restriction : CustomStringConvertible {
         if (!self.days[weekday]) {
             return false
         }
+        print(days)
+        print("weekday: \(weekday)")
+
         if (week < 4 && !self.weeks[week]) {
             return false
         }

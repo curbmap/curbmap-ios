@@ -121,6 +121,7 @@ class User {
         
         var full_dictionary: [String: Any] = ["success": false]
         Alamofire.request("https://curbmap.com/login", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
+            print(response)
             guard self != nil else { return }
             if var json = response.result.value as? [String: Any] {
                 if let cookie = HTTPCookieStorage.shared.cookies?[0] {

@@ -391,7 +391,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         }
         var days = [true, true, true, true, true, true, true]
         if (!self.daysSwitchOutlet.isOn) {
-            days = [self.sunSwitchOutlet.isOn, self.monSwitchOutlet.isOn, self.tueSwitchOutlet.isOn, self.wedSwitchOutlet.isOn, self.thuSwitchOutlet.isOn, self.friSwitchOutlet.isOn, self.satSwitchOutlet.isOn]
+            days = [self.monSwitchOutlet.isOn, self.tueSwitchOutlet.isOn, self.wedSwitchOutlet.isOn, self.thuSwitchOutlet.isOn, self.friSwitchOutlet.isOn, self.satSwitchOutlet.isOn, self.sunSwitchOutlet.isOn]
         }
         var weeks = [true, true, true, true]
         if (!self.everyWeekSwitchOutlet.isOn) {
