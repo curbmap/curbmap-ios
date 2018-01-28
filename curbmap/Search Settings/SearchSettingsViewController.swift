@@ -18,10 +18,6 @@ class SearchSettingsViewController: UIViewController {
         self.appDelegate.saveSearchSettings(limit: self.timeLimitField.text!, distance: self.timeLimitField.text!, date: self.timePicker.calendar.dateComponents([.minute, .hour, .day, .month, .year, .weekday], from: self.timePicker.date))
         self.navigationController?.popViewController(animated: true)
     }
-    @IBOutlet weak var timeLimitSlider: UISlider!
-    @IBAction func timeLimitSliderChanged(_ sender: Any) {
-        self.timeLimitField.text = String(Int(self.timeLimitSlider.value))
-    }
     @IBOutlet weak var timeLimitField: UITextField!
     @IBAction func timeLimitFieldChanged(_ sender: Any) {
         var value = Int(timeLimitField.text!)!
@@ -29,14 +25,9 @@ class SearchSettingsViewController: UIViewController {
             value = 15
         }
         self.timeLimitField.text = String(value)
-        self.timeLimitSlider.setValue(Float(value), animated: true)
     }
     
     
-    @IBOutlet weak var distanceLimitSlider: UISlider!
-    @IBAction func distanceLimitSliderChanged(_ sender: Any) {
-        self.distanceLimitField.text = String(format: "%03.2f", self.distanceLimitSlider.value)
-    }
     @IBOutlet weak var distanceLimitField: UITextField!
     
     @IBAction func distanceLimitFieldChanged(_ sender: Any) {
@@ -45,7 +36,6 @@ class SearchSettingsViewController: UIViewController {
             value = 0.1
         }
         self.distanceLimitField.text = String(format: "%03.2f", value)
-        self.distanceLimitSlider.setValue(value, animated: true)
     }
     @IBOutlet weak var distanceUnit: UILabel!
     @IBOutlet weak var timePicker: UIDatePicker!
@@ -79,8 +69,7 @@ class SearchSettingsViewController: UIViewController {
             let minute = self.appDelegate.user.searchSettings["minute"] as! Int
             let nextDate = getNext(weekday, hour, minute, considerToday: true)
             self.timePicker.setDate(nextDate, animated: true)
-            self.timeLimitSlider.setValue(Float(self.appDelegate.user.searchSettings["limit"] as! Int), animated: true)
-            self.distanceLimitSlider.setValue(self.appDelegate.user.searchSettings["distance"] as! Float, animated: true)
+            
         }
     }
 
