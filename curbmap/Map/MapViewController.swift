@@ -251,10 +251,13 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                 ]
                 let maxDim = max(self.photoToPlace.size.width, self.photoToPlace.size.height)
                 let maxResizeDim = CGFloat(700.0)
+                let lgMaxResizeDim = CGFloat(2000.0)
                 let size = CGSize(width: maxResizeDim * (self.photoToPlace.size.width/maxDim), height: maxResizeDim * (self.photoToPlace.size.height/maxDim))
+                let lg_size = CGSize(width: lgMaxResizeDim * (self.photoToPlace.size.width/maxDim), height: lgMaxResizeDim * (self.photoToPlace.size.height/maxDim))
                 let tempSmallPhoto = self.photoToPlace.af_imageAspectScaled(toFit: size)
+                let tempLargePhoto = self.photoToPlace.af_imageAspectScaled(toFit: lg_size)
                 let smallImageData = UIImageJPEGRepresentation(tempSmallPhoto, 0.6)!
-                let imageData = UIImageJPEGRepresentation(self.photoToPlace, 1.0)!
+                let imageData = UIImageJPEGRepresentation(tempLargePhoto, 0.8)!
                 let cgImgSource = CGImageSourceCreateWithData(imageData as CFData, nil)!
                 let uti:CFString = CGImageSourceGetType(cgImgSource)!
                 let dataWithEXIF: NSMutableData = NSMutableData(data: imageData)
@@ -334,15 +337,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
                             print("failed to send \(encodingError.localizedDescription)")
                         }
                     })
-                    if (!self.photoAnnotation.fromLibrary) {
-                        PHPhotoLibrary.shared().save(imageData: dataWithEXIF as Data, location: annotation.coordinate, heading: annotation.heading, appDelegate: self.appDelegate, completed: false)
-                        self.cancelled()
-                    } else {
-                        let uuid = UUID().uuidString
-                        print(uuid)
-                        self.appDelegate.save_image_data(localIdentifier: uuid, heading: annotation.heading.magnitude, lat: annotation.coordinate.latitude, lng: annotation.coordinate.longitude, uploaded: false, data: dataWithEXIF as Data)
-                        self.cancelled()
-                    }
+                    PhotoHandler.sharedInstance.save(data: localDataWithExif, olc: olc!, heading: annotation.heading)
+                    self.cancelled()
                 }
             }
         }
@@ -1060,38 +1056,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         }
     }
 }
-extension PHPhotoLibrary {
-    func save(imageData: Data, location: CLLocationCoordinate2D, heading: CLLocationDirection, appDelegate: AppDelegate, completed: Bool) {
-        print("XXX trying to save")
-        var placeholder: PHObjectPlaceholder!
-        PHPhotoLibrary.shared().performChanges({
-            let request = PHAssetCreationRequest.forAsset()
-            request.addResource(with: .photo, data: imageData, options: .none)
-            request.location = CLLocation(latitude: location.latitude, longitude: location.longitude)
-            placeholder = request.placeholderForCreatedAsset
-        }, completionHandler: { (success, error) -> Void in
-            if let error = error {
-                print("error saving XXX:"+error.localizedDescription)
-                return
-            }
-            print("no error YYY")
-            guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [placeholder.localIdentifier], options: nil).firstObject else {
-                return
-            }
-            appDelegate.save_image_data(localIdentifier: placeholder.localIdentifier, heading: heading.magnitude, lat: location.latitude, lng: location.longitude, uploaded: completed, data: nil)
-        }
-        )
-    }
-    func load(identifier: String, appDelegate: AppDelegate, olc: String, heading: Double) {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil).firstObject else { return }
-        PHImageManager.default().requestImageData(for: asset, options: nil, resultHandler: { (data: Data?, localIdentifier: String?, orientation: UIImageOrientation, info: [AnyHashable: Any]?) -> Void in
-            if let data = data {
-                appDelegate.uploadPhoto(data: data, identifier: identifier, olc: olc, heading: heading)
-            }
-        })
-    }
-    
-}
+
 // :- Date -: https://stackoverflow.com/questions/28016578/swift-how-to-create-a-date-time-stamp-and-format-as-iso-8601-rfc-3339-utc-tim
 extension Formatter {
     static let iso8601: DateFormatter = {

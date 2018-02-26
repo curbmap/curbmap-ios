@@ -107,7 +107,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     @objc func removeNotifications() {
         center.removePendingNotificationRequests(withIdentifiers: ["CurbmapAlarmLocalNotification"])
     }
-
+    
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("Failed to register: \(error)")
@@ -143,8 +143,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             "Content-Type": "application/json",
             "session": self.user.get_session(),
             "username": self.user.get_username()
-            ]
-
+        ]
+        
         var restrParams: [[String: Any]] = []
         newLine.restrictions = restrictions
         var typeCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -186,9 +186,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             restrParams.append(r.asDictionary())
         }
         let parameters: Parameters = ["line": line,
-                          "restrictions": restrParams]
+                                      "restrictions": restrParams]
         if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
-            Alamofire.request("https://abada979.ngrok.io/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+            Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                 guard self != nil else { return }
                 if var json = response.result.value as? [String: Any] {
                     if let success = json["success"] as? Int {
@@ -231,11 +231,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             return
         }
         try! realm.write {
-                settings.day = date.weekday!
-                settings.hour = date.hour!
-                settings.minute = date.minute!
-                settings.distance = Float(distance)!
-                settings.limit = Int(limit)!
+            settings.day = date.weekday!
+            settings.hour = date.hour!
+            settings.minute = date.minute!
+            settings.distance = Float(distance)!
+            settings.limit = Int(limit)!
         }
     }
     func storeRestrsInRealm(_ sentSuccessfully: Bool, _ id: String?, _ lineString: String) {
@@ -338,18 +338,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         }
         let photos = realm.objects(Images.self)
         var photosToSend: [Images] = []
-        print(photos)
         for photo in photos {
-            print(photo)
             if (!photo.uploaded) {
                 photosToSend.append(photo)
             }
-            let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: photo.latitude, longitude: photo.longitude))
+            do {
+                let codeArea = try OpenLocationCode.decode(code: photo.olc)
+            let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: codeArea.LatLng().latitude, longitude: codeArea.LatLng().longitude))
             M.heading = photo.heading
             M.type = MapMarker.AnnotationType.photoNotDraggable
-            print(M)
             self.photosToDraw.append(M)
-
+            } catch(let error) {
+                print(error);
+            }
         }
         if (mapController != nil) {
             mapController.triggerDrawLines()
@@ -373,12 +374,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     let parameters: Parameters = [
                         "line": lineStruct,
                         "restrictions": restrictionArray
-                        ]
+                    ]
                     print(parameters)
                     let headers: HTTPHeaders = [
                         "Content-Type": "application/json",
                         "session": self.user.get_session(),
-                    ]
+                        ]
                     Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                         guard self != nil else { return }
                         if var json = response.result.value as? [String: Any] {
@@ -397,67 +398,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                             // do nothing, try later ???
                         }
                     }
-
+                    
                 }
             }
             if (photos.count > 0) {
-                // get the image and upload it!
-                for image in photos {
-                    if let olc = try? OpenLocationCode.encode(latitude: image.latitude, longitude: image.longitude, codeLength: 12) {
-                        // this function was an extesion to PHPhotoLibrary which
-                        // calls uploadPhoto when image is retrieved
-                        if (image.data != nil) {
-                            self.uploadPhoto(data: image.data, identifier: image.localIdentifier, olc: olc, heading: image.heading)
-                        } else {
-                            PHPhotoLibrary.shared().load(identifier: image.localIdentifier, appDelegate: self, olc: olc, heading: image.heading)
-                        }
-                    }
-                }
+                PhotoHandler.sharedInstance.upload(photos)
             }
         }
     }
     @objc func uploadPhoto(data: Data, identifier: String, olc: String, heading: Double) {
-        // do something
-        let headers = [
-            "Content-Type": "application/x-www-form-urlencoded",
-            "username": self.user.get_username(),
-            "session": self.user.get_session()
-        ]
-        Alamofire.upload(multipartFormData: { MultipartFormData in
-            MultipartFormData.append("\(Date())".data(using: String.Encoding.utf8)!, withName: "date")
-            MultipartFormData.append(olc.data(using: String.Encoding.utf8)!, withName: "olc")
-            MultipartFormData.append("\(heading)".data(using: String.Encoding.utf8)!, withName: "bearing")
-            MultipartFormData.append(data, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-        }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
-            switch encodingResult {
-            case .success(let upload, _, _):
-                upload.responseJSON { response in
-                    if let result = response.result.value {
-                        print(response)
-                        if let success = result as? NSDictionary {
-                            if ((success["success"]! as! Bool) == true) {
-                                
-                                guard let foundImage = self.realm.objects(Images.self).filter("localIdentifier == \"\(identifier)\"").first else {
-                                    return
-                                }
-                                try! self.realm.write {
-                                    foundImage.data = nil
-                                    foundImage.uploaded = true
-                                }
-                            }
-                            return
-                        }
-                        
-                    }
-                }
-                break
-            case .failure(let encodingError):
-                print("failed to send \(encodingError.localizedDescription)")
-            }
-        })
-
-        print("here in upload photo for \(identifier) with olc \(olc)")
-        
     }
     @objc func getUser() {
         do {
@@ -547,59 +496,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         
     }
     
-    @objc func save_image_data(localIdentifier: String, heading: Double, lat:  Double, lng: Double, uploaded: Bool, data: Data?) {
-        DispatchQueue.main.async {
-            let newImage = Images()
-            newImage.localIdentifier = localIdentifier
-            newImage.heading = heading
-            newImage.latitude = lat
-            newImage.longitude = lng
-            newImage.uploaded = uploaded
-            if (data != nil) {
-                newImage.data = data
-            }
-            try! self.realm.write {
-                self.realm.add(newImage)
-            }
-            let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
-            M.type = MapMarker.AnnotationType.photoNotDraggable
-            M.heading = heading
-            self.photosToDraw.append(M)
-            if (self.mapController != nil) {
-                self.mapController.triggerDrawLines()
-            }
-
-        }
-    }
-    
-    @objc func find_image_data(_ localIdentifier: String) -> [String: Any]? {
-        let file_searched = realm.objects(Images.self).filter("localIdentifer == \(localIdentifier)").first
-        if let file_found = file_searched {
-            return [
-                "heading": file_found.heading,
-                "latitude": file_found.latitude,
-                "longitude": file_found.longitude,
-                "uploaded": file_found.uploaded
-            ]
-        } else {
-            return nil
-        }
-    }
-
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
     }
-
+    
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
     }
-
+    
     func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
     }
-
+    
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         
@@ -612,6 +522,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     @objc func finishedLogin(_ result: Int) {
         if (result == 1) {
             print("Successfully logged in")
+            let protectionSpace = URLProtectionSpace.init(host: "curbmap.com",
+                                                          port: 50003,
+                                                          protocol: "https",
+                                                          realm: nil,
+                                                          authenticationMethod: nil)
+            
+            let userCredential = URLCredential(user: user.get_username(),
+                                               password: user.get_password(),
+                                               persistence: .permanent)
+            
+            URLCredentialStorage.shared.setDefaultCredential(userCredential, for: protectionSpace)
+            
             NetworkManager.shared.startNetworkReachabilityObserver()
             self.getLinesAndPhotos()
         } else {
@@ -719,8 +641,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
-
+    
+    
 }
 class Lines : Object {
     @objc dynamic var line: String!
@@ -747,14 +669,6 @@ class RestrictionType : Object {
     @objc dynamic var holiday: Bool = true
 }
 
-class Images: Object {
-    @objc dynamic var localIdentifier: String = ""
-    @objc dynamic var heading: Double = 0.0
-    @objc dynamic var longitude: Double = 0.0
-    @objc dynamic var latitude: Double = 0.0
-    @objc dynamic var uploaded: Bool = false
-    var data: Data!
-}
 
 class Settings : Object {
     @objc dynamic var mapstyle: String = "d"

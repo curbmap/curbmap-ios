@@ -31,6 +31,7 @@
 		D55127F9200ABFA800860069 /* ContributionCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D55127F7200ABFA800860069 /* ContributionCell.xib */; };
 		D55B6E1F1FF9ABC5001C9337 /* UIContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */; };
 		D55B6E241FFA06BE001C9337 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */; };
+		D58F3B2F204395D30046A7DC /* PhotoHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58F3B2E204395D30046A7DC /* PhotoHandler.swift */; };
 		D59487FB1FD7350A008822A7 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FA1FD7350A008822A7 /* User.swift */; };
 		D59488001FD7368D008822A7 /* CurbmapPolyLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FD1FD7368D008822A7 /* CurbmapPolyLine.swift */; };
 		D59488011FD7368D008822A7 /* MapMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59487FE1FD7368D008822A7 /* MapMarker.swift */; };
@@ -106,6 +107,7 @@
 		D55127F7200ABFA800860069 /* ContributionCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ContributionCell.xib; sourceTree = "<group>"; };
 		D55B6E1E1FF9ABC4001C9337 /* UIContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIContainerView.swift; sourceTree = "<group>"; };
 		D55B6E231FFA06BE001C9337 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
+		D58F3B2E204395D30046A7DC /* PhotoHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoHandler.swift; sourceTree = "<group>"; };
 		D59487FA1FD7350A008822A7 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		D59487FD1FD7368D008822A7 /* CurbmapPolyLine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurbmapPolyLine.swift; sourceTree = "<group>"; };
 		D59487FE1FD7368D008822A7 /* MapMarker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapMarker.swift; sourceTree = "<group>"; };
@@ -189,6 +191,15 @@
 				D55127DC200A144B00860069 /* NetworkManager.swift */,
 			);
 			path = General;
+			sourceTree = "<group>";
+		};
+		D58F3B2D2043959E0046A7DC /* Photo */ = {
+			isa = PBXGroup;
+			children = (
+				D58F3B2E204395D30046A7DC /* PhotoHandler.swift */,
+			);
+			name = Photo;
+			path = "New Group";
 			sourceTree = "<group>";
 		};
 		D59487F91FD734EB008822A7 /* User */ = {
@@ -304,6 +315,7 @@
 		D5D4192D1FC7B04E0052849D /* curbmap */ = {
 			isa = PBXGroup;
 			children = (
+				D58F3B2D2043959E0046A7DC /* Photo */,
 				D594940B200D655700709328 /* Search Settings */,
 				D55127D62009B5B000860069 /* README.md */,
 				D55B6E221FFA06A7001C9337 /* General */,
@@ -714,6 +726,7 @@
 				D50F8D41200499B20029E4FF /* TimeDelegateData.swift in Sources */,
 				D59488151FD7CA5C008822A7 /* GeneralMenuCell.swift in Sources */,
 				D5BF303C2001F5F2007E8147 /* MapBoxExtended.swift in Sources */,
+				D58F3B2F204395D30046A7DC /* PhotoHandler.swift in Sources */,
 				D59488011FD7368D008822A7 /* MapMarker.swift in Sources */,
 				D59488111FD7C745008822A7 /* UserCell.swift in Sources */,
 				D5D4192F1FC7B04E0052849D /* AppDelegate.swift in Sources */,
