@@ -19,12 +19,59 @@ class PhotoHandler: NSObject {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     // singleton
     public static let sharedInstance = PhotoHandler()
-    func updatePhoto(_ photo: Images) {
-        DispatchQueue.main.async {
-            try! self.appDelegate.realm.write {
-                photo.uploaded = true
-            }
+    
+    // MARK: - Attaching GPS EXIF dictionary to image
+    // Attached EXIF data for GPS location and heading to rescaled larger photo with max dim 2000px
+    // Resizes to smaller photo with maximum dim 700px
+    func attachExif(photo: UIImage, annotation: MapMarker, heading_magnitude: Double, olc: String) -> (small: Data, large: Data) {
+        let maxDim = max(photo.size.width, photo.size.height)
+        let maxResizeDim = CGFloat(700.0)
+        let lgMaxResizeDim = CGFloat(2000.0)
+        let size = CGSize(width: maxResizeDim * (photo.size.width/maxDim), height: maxResizeDim * (photo.size.height/maxDim))
+        let lg_size = CGSize(width: lgMaxResizeDim * (photo.size.width/maxDim), height: lgMaxResizeDim * (photo.size.height/maxDim))
+        let tempSmallPhoto = photo.af_imageAspectScaled(toFit: size)
+        let tempLargePhoto = photo.af_imageAspectScaled(toFit: lg_size)
+        let smallImageData = UIImageJPEGRepresentation(tempSmallPhoto, 0.6)!
+        let imageData = UIImageJPEGRepresentation(tempLargePhoto, 0.8)!
+        let cgImgSource = CGImageSourceCreateWithData(imageData as CFData, nil)!
+        let uti:CFString = CGImageSourceGetType(cgImgSource)!
+        let dataWithEXIF: NSMutableData = NSMutableData(data: imageData)
+        let destination: CGImageDestination = CGImageDestinationCreateWithData((dataWithEXIF as CFMutableData), uti, 1, nil)!
+        
+        let imageProperties = CGImageSourceCopyPropertiesAtIndex(cgImgSource, 0, nil)! as NSDictionary
+        let mutable: NSMutableDictionary = imageProperties.mutableCopy() as! NSMutableDictionary
+        let EXIFDictionary: NSMutableDictionary = (mutable[kCGImagePropertyExifDictionary as String] as? NSMutableDictionary)!
+        let GPSDictionary: NSMutableDictionary = NSMutableDictionary()
+        GPSDictionary.setValue(NSNumber(floatLiteral: fabs(annotation.coordinate.latitude)), forKey: kCGImagePropertyGPSLatitude as String)
+        GPSDictionary.setValue(NSNumber(floatLiteral: fabs(annotation.coordinate.latitude)), forKey: kCGImagePropertyGPSLatitude as String)
+        GPSDictionary.setValue(NSNumber(floatLiteral: fabs(annotation.coordinate.latitude)), forKey: kCGImagePropertyGPSDestLatitude as String)
+        if (annotation.coordinate.latitude > 0) {
+            GPSDictionary.setValue( "N", forKey: kCGImagePropertyGPSLatitudeRef as String)
+            GPSDictionary.setValue( "N", forKey: kCGImagePropertyGPSDestLatitudeRef as String)
+            // north
+        } else {
+            // south
+            GPSDictionary.setValue( "S", forKey: kCGImagePropertyGPSLatitudeRef as String)
+            GPSDictionary.setValue( "S", forKey: kCGImagePropertyGPSDestLatitudeRef as String)
         }
+        GPSDictionary.setValue( NSNumber(floatLiteral: fabs(annotation.coordinate.longitude)), forKey: kCGImagePropertyGPSLongitude as String)
+        GPSDictionary.setValue( NSNumber(floatLiteral: fabs(annotation.coordinate.longitude)), forKey: kCGImagePropertyGPSDestLongitude as String)
+        if (annotation.coordinate.longitude < 0) {
+            // W
+            GPSDictionary.setValue( "W", forKey: kCGImagePropertyGPSLongitudeRef as String)
+            GPSDictionary.setValue( "W", forKey: kCGImagePropertyGPSDestLongitudeRef as String)
+        } else {
+            // E
+            GPSDictionary.setValue( "E", forKey: kCGImagePropertyGPSLongitudeRef as String)
+            GPSDictionary.setValue( "E", forKey: kCGImagePropertyGPSDestLongitudeRef as String)
+        }
+        GPSDictionary.setValue(NSNumber(floatLiteral: heading_magnitude), forKey: kCGImagePropertyGPSDestBearing as String)
+        GPSDictionary.setValue("N", forKey: kCGImagePropertyGPSDestBearingRef as String)
+        mutable.setValue(EXIFDictionary, forKey: kCGImagePropertyExifDictionary as String)
+        mutable.setValue(GPSDictionary, forKey: kCGImagePropertyGPSDictionary as String)
+        CGImageDestinationAddImageFromSource(destination, cgImgSource, 0, (mutable as CFDictionary))
+        CGImageDestinationFinalize(destination)
+        return(small: smallImageData, large: dataWithEXIF as Data);
     }
     
     func save(data: Data, olc: String, heading: CLLocationDirection) {
@@ -55,21 +102,19 @@ class PhotoHandler: NSObject {
             }
         }
     }
+
+    // just a wrapper so I can make upload async sub-tasks
     func upload(_ photos: [Images]){
-        print("Photos:", photos.count)
-        for image in photos {
-            print(image)
-        }
         for image in photos {
             self.upload(photo: image)
         }
     }
     
     func upload(photo: Images){
-        // do something
+        // Gets the data out of the db in main async, but will send the data
+        // to the server in background
         DispatchQueue.main.async {
-            let imageData = photo.data as! Data
-            let image = UIImage(data:imageData, scale: 1.0)
+            let imageData = photo.data
             let imageOLC = photo.olc
             let imageHeading = photo.heading
             self.sendImage(imageData: imageData, imageOLC: imageOLC, imageHeading: imageHeading, photo: photo)
@@ -106,6 +151,51 @@ class PhotoHandler: NSObject {
                     print("failed to send \(encodingError.localizedDescription)")
                 }
             })
+        }
+    }
+    
+    func sendImage(imageData: Data, imageOLC: String, imageHeading: Double, token: String) {
+        DispatchQueue.global(qos: .background).async {
+            let headers = [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "username": self.appDelegate.user.get_username(),
+                "session": self.appDelegate.user.get_session()
+            ]
+            let dateFormatter = DateFormatter()
+            dateFormatter.timeStyle = .full
+            dateFormatter.dateStyle = .full
+            dateFormatter.timeZone = Calendar.current.timeZone
+            Alamofire.upload(multipartFormData: { MultipartFormData in
+                MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
+                MultipartFormData.append(token.data(using: .utf8)!, withName: "token")
+                MultipartFormData.append("\(dateFormatter.string(from: Date()))".data(using: String.Encoding.utf8)!, withName: "date")
+                MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
+                MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
+                MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+            }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUploadText", method: .post, headers: headers, encodingCompletion: { encodingResult in
+                switch encodingResult {
+                case .success(let upload, _, _):
+                    upload.responseJSON { response in
+                        if let result = response.result.value {
+                            if let success = result as? NSDictionary {
+                                print("success")
+                            }
+                            
+                        }
+                    }
+                    break
+                case .failure(let encodingError):
+                    print("failed to send \(encodingError.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func updatePhoto(_ photo: Images) {
+        DispatchQueue.main.async {
+            try! self.appDelegate.realm.write {
+                photo.uploaded = true
+            }
         }
     }
 }

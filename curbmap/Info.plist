@@ -37,11 +37,6 @@
 	<array>
 		<string>MKDirectionsModeCar</string>
 	</array>
-	<key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-    </dict>
 	<key>NSCameraUsageDescription</key>
 	<string>We can only take sign photos if you agree.</string>
 	<key>NSLocationAlwaysUsageDescription</key>

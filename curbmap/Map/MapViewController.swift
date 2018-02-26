@@ -242,104 +242,21 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         self.looksGreatButton.isEnabled = false
         if (self.photoAnnotation != nil) {
             let olc = try? OpenLocationCode.encode(latitude: self.photoAnnotation.coordinate.latitude, longitude: self.photoAnnotation.coordinate.longitude, codeLength: 12)
-            let heading = self.photoAnnotation.heading
+            var heading_magnitude = 0.0
+            if let heading = self.photoAnnotation.heading {
+                heading_magnitude = heading.magnitude
+            }
             if (olc != nil) {
-                let headers = [
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "username": self.appDelegate.user.get_username(),
-                    "session": self.appDelegate.user.get_session()
-                ]
-                let maxDim = max(self.photoToPlace.size.width, self.photoToPlace.size.height)
-                let maxResizeDim = CGFloat(700.0)
-                let lgMaxResizeDim = CGFloat(2000.0)
-                let size = CGSize(width: maxResizeDim * (self.photoToPlace.size.width/maxDim), height: maxResizeDim * (self.photoToPlace.size.height/maxDim))
-                let lg_size = CGSize(width: lgMaxResizeDim * (self.photoToPlace.size.width/maxDim), height: lgMaxResizeDim * (self.photoToPlace.size.height/maxDim))
-                let tempSmallPhoto = self.photoToPlace.af_imageAspectScaled(toFit: size)
-                let tempLargePhoto = self.photoToPlace.af_imageAspectScaled(toFit: lg_size)
-                let smallImageData = UIImageJPEGRepresentation(tempSmallPhoto, 0.6)!
-                let imageData = UIImageJPEGRepresentation(tempLargePhoto, 0.8)!
-                let cgImgSource = CGImageSourceCreateWithData(imageData as CFData, nil)!
-                let uti:CFString = CGImageSourceGetType(cgImgSource)!
-                let dataWithEXIF: NSMutableData = NSMutableData(data: imageData)
-                let destination: CGImageDestination = CGImageDestinationCreateWithData((dataWithEXIF as CFMutableData), uti, 1, nil)!
-                
-                let imageProperties = CGImageSourceCopyPropertiesAtIndex(cgImgSource, 0, nil)! as NSDictionary
-                let mutable: NSMutableDictionary = imageProperties.mutableCopy() as! NSMutableDictionary
-                let EXIFDictionary: NSMutableDictionary = (mutable[kCGImagePropertyExifDictionary as String] as? NSMutableDictionary)!
-                let GPSDictionary: NSMutableDictionary = NSMutableDictionary()
-                GPSDictionary.setValue(NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.latitude)), forKey: kCGImagePropertyGPSLatitude as String)
-                GPSDictionary.setValue(NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.latitude)), forKey: kCGImagePropertyGPSLatitude as String)
-                GPSDictionary.setValue(NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.latitude)), forKey: kCGImagePropertyGPSDestLatitude as String)
-                if (self.photoAnnotation.coordinate.latitude > 0) {
-                    GPSDictionary.setValue( "N", forKey: kCGImagePropertyGPSLatitudeRef as String)
-                    GPSDictionary.setValue( "N", forKey: kCGImagePropertyGPSDestLatitudeRef as String)
-                    // north
-                } else {
-                    // south
-                    GPSDictionary.setValue( "S", forKey: kCGImagePropertyGPSLatitudeRef as String)
-                    GPSDictionary.setValue( "S", forKey: kCGImagePropertyGPSDestLatitudeRef as String)
-                }
-                GPSDictionary.setValue( NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.longitude)), forKey: kCGImagePropertyGPSLongitude as String)
-                GPSDictionary.setValue( NSNumber(floatLiteral: fabs(self.photoAnnotation.coordinate.longitude)), forKey: kCGImagePropertyGPSDestLongitude as String)
-                if (self.photoAnnotation.coordinate.longitude < 0) {
-                    // W
-                    GPSDictionary.setValue( "W", forKey: kCGImagePropertyGPSLongitudeRef as String)
-                    GPSDictionary.setValue( "W", forKey: kCGImagePropertyGPSDestLongitudeRef as String)
-                } else {
-                    // E
-                    GPSDictionary.setValue( "E", forKey: kCGImagePropertyGPSLongitudeRef as String)
-                    GPSDictionary.setValue( "E", forKey: kCGImagePropertyGPSDestLongitudeRef as String)
-                }
-                GPSDictionary.setValue(NSNumber(floatLiteral: self.photoAnnotation.heading.magnitude), forKey: kCGImagePropertyGPSDestBearing as String)
-                GPSDictionary.setValue("N", forKey: kCGImagePropertyGPSDestBearingRef as String)
-                mutable.setValue(EXIFDictionary, forKey: kCGImagePropertyExifDictionary as String)
-                mutable.setValue(GPSDictionary, forKey: kCGImagePropertyGPSDictionary as String)
-                CGImageDestinationAddImageFromSource(destination, cgImgSource, 0, (mutable as CFDictionary))
-                CGImageDestinationFinalize(destination)
+                let imagesTuple = PhotoHandler.sharedInstance.attachExif(photo: self.photoToPlace, annotation: self.photoAnnotation, heading_magnitude: heading_magnitude, olc: olc!)
+                PhotoHandler.sharedInstance.sendImage(imageData: imagesTuple.small, imageOLC: olc!, imageHeading: heading_magnitude, token: self.appDelegate.token!)
                 Mixpanel.mainInstance().track(event: "double_tapped_photo",
                                               properties: ["photo added": self.appDelegate.restrictions.count,
                                                            "on wifi": (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)!,
                                                            "olc": olc!])
                 createThankYouAlert(isPhoto: true)
                 self.mapView.removeAnnotations([self.photoAnnotation!])
-                let annotation = self.photoAnnotation!
-                DispatchQueue.global(qos: .background).async {
-                    let localDataWithExif = (dataWithEXIF as Data)
-                    let localCoord = annotation.coordinate
-                    let localHeading = annotation.heading!
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.timeStyle = .full
-                    dateFormatter.dateStyle = .full
-                    dateFormatter.timeZone = Calendar.current.timeZone
-                    Alamofire.upload(multipartFormData: { MultipartFormData in
-                        MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
-                        MultipartFormData.append(self.appDelegate.token!.data(using: .utf8)!, withName: "token")
-                        MultipartFormData.append("\(dateFormatter.string(from: Date()))".data(using: String.Encoding.utf8)!, withName: "date")
-                        print(Date())
-                        MultipartFormData.append(olc!.data(using: String.Encoding.utf8)!, withName: "olc")
-                        if let heading_magnitude = heading?.magnitude {
-                            MultipartFormData.append("\(heading_magnitude)".data(using: String.Encoding.utf8)!, withName: "bearing")
-                        }
-                        MultipartFormData.append(smallImageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-                    }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUploadText", method: .post, headers: headers, encodingCompletion: { encodingResult in
-                        switch encodingResult {
-                        case .success(let upload, _, _):
-                            upload.responseJSON { response in
-                                if let result = response.result.value {
-                                    if let success = result as? NSDictionary {
-                                        print("success")
-                                    }
-                                    
-                                }
-                            }
-                            break
-                        case .failure(let encodingError):
-                            print("failed to send \(encodingError.localizedDescription)")
-                        }
-                    })
-                    PhotoHandler.sharedInstance.save(data: localDataWithExif, olc: olc!, heading: annotation.heading)
-                    self.cancelled()
-                }
+                PhotoHandler.sharedInstance.save(data: imagesTuple.large, olc: olc!, heading: heading_magnitude)
+                self.cancelled()
             }
         }
     }
