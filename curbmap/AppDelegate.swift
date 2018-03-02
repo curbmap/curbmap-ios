@@ -39,7 +39,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     var linesToDraw: [CurbmapPolyLine] = []
     var photosToDraw: [MapMarker] = []
     let reachabilityManager = Alamofire.NetworkReachabilityManager(host: "www.google.com")
-    
+    // let res_host = "https://27e0c8fb.ngrok.io"
+    let res_host = "https://curbmap.com:50003"
+    // let auth_host = "https://6b890315.ngrok.io"
+    let auth_host = "https://curbmap.com"
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         center.delegate = notificationDelegate
@@ -188,7 +191,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         let parameters: Parameters = ["line": line,
                                       "restrictions": restrParams]
         if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
-            Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+            Alamofire.request(self.res_host+"/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                 guard self != nil else { return }
                 if var json = response.result.value as? [String: Any] {
                     if let success = json["success"] as? Int {
@@ -380,7 +383,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                         "Content-Type": "application/json",
                         "session": self.user.get_session(),
                         ]
-                    Alamofire.request("https://curbmap.com:50003/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+                    Alamofire.request(self.res_host+"/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
                         guard self != nil else { return }
                         if var json = response.result.value as? [String: Any] {
                             if let success = json["success"] as? Int {
@@ -417,6 +420,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     user.set_username(username: username_token!)
                     user.set_password(password: password_token!)
                     user.set_remember(remember: true)
+                    user.set_auth(host: self.auth_host)
+                    user.set_res(host: self.res_host)
                     user.login(callback: self.finishedLogin)
                 }
             } else {
@@ -622,7 +627,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             "username": self.user.get_username(),
             "session": self.user.get_session()
         ]
-        Alamofire.request("https://curbmap.com/getMyLines", method: .get, headers: headers).responseJSON { [weak self] response in
+        Alamofire.request(self.res_host+"/getMyLines", method: .get, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }
             if var json = response.result.value as? [String: Any] {
                 if json.keys.contains("success") {

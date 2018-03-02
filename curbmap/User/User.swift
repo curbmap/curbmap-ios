@@ -16,6 +16,8 @@ class User {
     let keychain = Keychain(service: "com.curbmap.keys")
     var username: String
     var password: String
+    var res_host = "https://curbmap.com:50003"
+    var auth_host = "https://curbmap.com"
     var email: String
     var loggedIn: Bool = false
     var remember: Bool = false
@@ -88,6 +90,12 @@ class User {
     func get_username() -> String {
         return self.username
     }
+    func set_auth(host: String){
+        self.auth_host = host;
+    }
+    func set_res(host: String) {
+        self.res_host = host;
+    }
     func set_password(password: String) -> Void {
         self.password = password
     }
@@ -120,7 +128,7 @@ class User {
         ]
         
         var full_dictionary: [String: Any] = ["success": false]
-        Alamofire.request("https://curbmap.com/login", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
+        Alamofire.request(self.auth_host+"/login", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }
             if var json = response.result.value as? [String: Any] {
                 if let cookie = HTTPCookieStorage.shared.cookies?[0] {
@@ -157,7 +165,7 @@ class User {
         ]
         
         var full_dictionary: [String: Any] = ["success": false]
-        Alamofire.request("https://curbmap.com/signup", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
+        Alamofire.request(self.auth_host+"/signup", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }
             if var json = response.result.value as? [String: Int] {
                 callback(json["success"]!)
@@ -166,7 +174,7 @@ class User {
     }
     func logout(callback: @escaping ()->Void) -> Void {
         self.use_cookie_in_request()
-        Alamofire.request("https://curbmap.com/logout", method: .post, parameters: ["X":"y"]).responseJSON { [weak self] response in
+        Alamofire.request(self.auth_host+"/logout", method: .post, parameters: ["X":"y"]).responseJSON { [weak self] response in
             print(response)
             if var json = response.result.value as? [String: Bool] {
                 print(json["success"])
@@ -195,7 +203,7 @@ class User {
             "password": old_pass,
             "newpassword": new_pass
         ]
-        Alamofire.request("https://curbmap.com/changepassword", method: .post, parameters: parameters, headers: headers).responseJSON { response in
+        Alamofire.request(self.auth_host+"/changepassword", method: .post, parameters: parameters, headers: headers).responseJSON { response in
             if let json = response.result.value as? [String: Int] {
                 print(json)
                 callback(json["success"]!)
@@ -208,7 +216,7 @@ class User {
         let headers = [
             "session": self.get_session()
         ]
-        Alamofire.request("https://curbmap.com/resetpassword", method: .post, headers: headers).response { response in
+        Alamofire.request(self.auth_host+"/resetpassword", method: .post, headers: headers).response { response in
             print(response)
             callback()
         }

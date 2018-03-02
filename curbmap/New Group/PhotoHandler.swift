@@ -132,7 +132,7 @@ class PhotoHandler: NSObject {
                 MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
                 MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
                 MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
-            } , usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
+            } , usingThreshold:UInt64.init(), to: self.appDelegate.res_host+"/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
                 switch encodingResult {
                 case .success(let upload, _, _):
                     upload.responseJSON { response in
@@ -169,10 +169,11 @@ class PhotoHandler: NSObject {
                 MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
                 MultipartFormData.append(token.data(using: .utf8)!, withName: "token")
                 MultipartFormData.append("\(dateFormatter.string(from: Date()))".data(using: String.Encoding.utf8)!, withName: "date")
+                MultipartFormData.append((TimeZone.current.abbreviation() ?? "").data(using: String.Encoding.utf8)!, withName: "timezone")
                 MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
                 MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
                 MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-            }, usingThreshold:UInt64.init(), to: "https://curbmap.com:50003/imageUploadText", method: .post, headers: headers, encodingCompletion: { encodingResult in
+            }, usingThreshold:UInt64.init(), to: self.appDelegate.res_host+"/imageUploadText", method: .post, headers: headers, encodingCompletion: { encodingResult in
                 switch encodingResult {
                 case .success(let upload, _, _):
                     upload.responseJSON { response in
