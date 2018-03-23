@@ -238,6 +238,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
     
     @IBOutlet weak var looksGreatButton: UIButton!
     @IBOutlet weak var lineLooksGreatButton: UIButton!
+    
     @IBAction func looksGreat(_ sender: Any) {
         self.looksGreatButton.isEnabled = false
         if (self.photoAnnotation != nil) {
@@ -248,7 +249,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
             }
             if (olc != nil) {
                 let imagesTuple = PhotoHandler.sharedInstance.attachExif(photo: self.photoToPlace, annotation: self.photoAnnotation, heading_magnitude: heading_magnitude, olc: olc!)
-                PhotoHandler.sharedInstance.sendImage(imageData: imagesTuple.small, imageOLC: olc!, imageHeading: heading_magnitude, token: self.appDelegate.token!)
+                PhotoHandler.sharedInstance.sendText(imageData: imagesTuple.small, imageOLC: olc!, imageHeading: heading_magnitude, token: self.appDelegate.token!, retries: 0, retriesMax: 4)
                 Mixpanel.mainInstance().track(event: "double_tapped_photo",
                                               properties: ["photo added": self.appDelegate.restrictions.count,
                                                            "on wifi": (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)!,
@@ -360,8 +361,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MGLMapView
         print(String(codePlus))
         let codeArea = try? OpenLocationCode.decode(code: String(codePlus))
         let headers = [
-            "session": appDelegate.user.get_session(),
-            "username": appDelegate.user.get_username()
+            "token": appDelegate.user.get_token(),
         ]
         let parameters = [
             "lat1": (codeArea?.latitudeHigh)!,

@@ -14,17 +14,18 @@ import Mixpanel
 
 class User {
     let keychain = Keychain(service: "com.curbmap.keys")
-    var username: String
-    var password: String
+    var username: String = "curbmaptest"
+    var password: String = "TestCurbm@p1"
     var res_host = "https://curbmap.com:50003"
     var auth_host = "https://curbmap.com"
+    //var auth_host = "https://b48f78ca.ngrok.io"
     var email: String
     var loggedIn: Bool = false
     var remember: Bool = false
-    var session: String
+    var token: String?
+    var exp_date: Date
     var score: Int64
     var badge: String
-    var cookie: [String: Any]!
     var currentLocation: CLLocation!
     var settings: [String: String] = [
         "mapstyle": "d",
@@ -47,18 +48,9 @@ class User {
         self.loggedIn = false
         self.badge = "beginner"
         self.score = 0
-        self.session = ""
+        self.token = ""
+        self.exp_date = Date()
         self.email = ""
-    }
-    func set_cookie(_ cookie : HTTPCookie, _ url: URL ) {
-        self.cookie = ["cookie" : cookie, "url": url]
-    }
-    func use_cookie_in_request() {
-       print(self.cookie)
-        if (isLoggedIn() && self.cookie != nil){
-            Alamofire.SessionManager.default.session.configuration.httpCookieStorage?.setCookies([self.cookie["cookie"] as! HTTPCookie], for: (self.cookie["url"] as! URL), mainDocumentURL: nil)
-            
-        }
     }
     func set_location(location: CLLocation) {
         self.currentLocation = location
@@ -78,23 +70,17 @@ class User {
     func get_score() -> Int64 {
         return self.score
     }
-    func set_session(session: String) {
-        self.session = session
+    func set_exp_date(date: Date) {
+        self.exp_date = date
     }
-    func get_session() -> String {
-        return self.session
+    func get_exp_date() -> Date {
+        return self.exp_date
     }
     func set_username(username: String) {
         self.username = username
     }
     func get_username() -> String {
         return self.username
-    }
-    func set_auth(host: String){
-        self.auth_host = host;
-    }
-    func set_res(host: String) {
-        self.res_host = host;
     }
     func set_password(password: String) -> Void {
         self.password = password
@@ -111,7 +97,22 @@ class User {
     func get_email() -> String {
         return self.email
     }
-    
+    func set_token(token: String?) -> Void {
+        self.token = token;
+    }
+    func get_token() -> String? {
+        if (Date() < self.exp_date) {
+            return self.token
+        } else {
+            self.update_token()
+            return nil
+        }
+    }
+    func update_token() -> Void {
+        self.login(callback: updated_token)
+    }
+    func updated_token(result: Int) {
+    }
     // MARK: - Login
     func login(callback: @escaping (_ result: Int)->Void) -> Void {
         let parameters = [
@@ -131,21 +132,16 @@ class User {
         Alamofire.request(self.auth_host+"/login", method: .post, parameters: parameters, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }
             if var json = response.result.value as? [String: Any] {
-                if let cookie = HTTPCookieStorage.shared.cookies?[0] {
-                    if (json.keys.contains("success")) {
-                        let URL = response.request?.url
-                        self?.set_cookie(cookie, URL!)
-                        if (json["success"] as! Int == 1) {
-                            full_dictionary = json
-                            Mixpanel.mainInstance().identify(
-                                distinctId: Mixpanel.mainInstance().distinctId)
-                            Mixpanel.mainInstance().people.set(properties: ["$name": (self?.get_username())!])
-
-                            self?.runDict(full_dictionary: full_dictionary, callback: callback)
-                        } else {
-                            // got error
-                            callback(json["success"] as! Int)
-                        }
+                if (json.keys.contains("success")) {
+                    if (json["success"] as! Int == 1) {
+                        full_dictionary = json
+                        Mixpanel.mainInstance().identify(
+                            distinctId: Mixpanel.mainInstance().distinctId)
+                        Mixpanel.mainInstance().people.set(properties: ["$name": (self?.get_username())!])
+                        self?.runDict(full_dictionary: full_dictionary, callback: callback)
+                    } else {
+                        // got error
+                        callback(json["success"] as! Int)
                     }
                 }
             }
@@ -172,51 +168,64 @@ class User {
             }
         }
     }
-    func logout(callback: @escaping ()->Void) -> Void {
-        self.use_cookie_in_request()
-        Alamofire.request(self.auth_host+"/logout", method: .post, parameters: ["X":"y"]).responseJSON { [weak self] response in
-            print(response)
-            if var json = response.result.value as? [String: Bool] {
-                print(json["success"])
-                if (json["success"] == true) {
-                    print("succes")
-                    self?.loggedIn = false
-                    self?.set_badge(badge: "")
-                    self?.set_username(username: "curbmaptest")
-                    self?.set_session(session: "x")
-                    self?.set_score(score: 0)
-                    self?.set_password(password: "")
-                    self?.set_remember(remember: false)
-                    try? self?.keychain.removeAll()
-                    callback()
+    func logout(callback: @escaping (Int)->Void, retries: Int, retriesMax: Int) -> Void {
+        if let token = self.get_token() {
+            print("TOKEN: \(token)")
+            let headers = [
+                "Authorization": "Bearer \(token)"
+            ]
+            Alamofire.request(self.auth_host+"/logout", method: .post, parameters: ["X":"y"], headers: headers).responseJSON { [weak self] response in
+                if var json = response.result.value as? [String: Bool] {
+                    if (json["success"] == true) {
+                        self?.loggedIn = false
+                        self?.set_badge(badge: "")
+                        self?.set_username(username: "curbmaptest")
+                        self?.set_password(password: "TestCurbm@p1")
+                        self?.set_token(token: nil)
+                        self?.set_remember(remember: false)
+                        try? self?.keychain.removeAll()
+                        self?.login(callback: callback) // log back in as test user
+                    }
                 }
+            }
+        } else {
+            // retry with backoff and max retries
+            if (retries + 1 < retriesMax) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(retries), execute: {
+                    self.logout(callback: callback, retries: retries + 1, retriesMax: retriesMax)
+                })
             }
         }
     }
-    func changePassword(old_pass: String, new_pass: String, callback: @escaping (Int)->Void) -> Void {
-        print("changing password")
-        let headers = [
-            "session": self.get_session()
-        ]
-        let parameters = [
-            "username": self.get_username(),
-            "password": old_pass,
-            "newpassword": new_pass
-        ]
-        Alamofire.request(self.auth_host+"/changepassword", method: .post, parameters: parameters, headers: headers).responseJSON { response in
-            if let json = response.result.value as? [String: Int] {
-                print(json)
-                callback(json["success"]!)
+    func changePassword(old_pass: String, new_pass: String, callback: @escaping (Int)->Void, retries: Int, retriesMax: Int) -> Void {
+        if let token = self.get_token() {
+            let headers = [
+                "Authorization": "Bearer \(token)"
+            ]
+            let parameters = [
+                "username": self.get_username(),
+                "password": old_pass,
+                "newpassword": new_pass
+            ]
+            Alamofire.request(self.auth_host+"/changepassword", method: .post, parameters: parameters, headers: headers).responseJSON { response in
+                if let json = response.result.value as? [String: Int] {
+                    print(json)
+                    callback(json["success"]!)
+                }
+            }
+        } else {
+            // retry with backoff and max retries
+            if (retries + 1 < retriesMax) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(retries), execute: {
+                    self.changePassword(old_pass: old_pass, new_pass: new_pass, callback: callback, retries: retries + 1, retriesMax: retriesMax)
+                })
             }
         }
     }
     
-    func resetPassword(callback: @escaping ()->Void) -> Void {
-        print("resetting password")
-        let headers = [
-            "session": self.get_session()
-        ]
-        Alamofire.request(self.auth_host+"/resetpassword", method: .post, headers: headers).response { response in
+    func resetPassword(callback: @escaping ()->Void, username: String) -> Void {
+        let parameters = ["username": username]
+        Alamofire.request(self.auth_host+"/resetpassword", method: .post, parameters: parameters).response { response in
             print(response)
             callback()
         }
@@ -225,7 +234,8 @@ class User {
     func runDict(full_dictionary: [String: Any], callback: (_ result: Int)->Void) {
         self.set_badge(badge: full_dictionary["badge"] as! String)
         self.set_score(score: (Int64)((full_dictionary["score"] as! NSString).intValue))
-        self.set_session(session: full_dictionary["session"] as! String)
+        self.set_token(token: full_dictionary["token"] as? String)
+        self.set_exp_date(date: Calendar.current.date(byAdding: .day, value: 1, to: Date())!);
         self.set_email(email: full_dictionary["email"] as! String)
         self.loggedIn = true
         callback(1)

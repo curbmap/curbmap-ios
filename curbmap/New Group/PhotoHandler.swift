@@ -117,78 +117,95 @@ class PhotoHandler: NSObject {
             let imageData = photo.data
             let imageOLC = photo.olc
             let imageHeading = photo.heading
-            self.sendImage(imageData: imageData, imageOLC: imageOLC, imageHeading: imageHeading, photo: photo)
+            self.sendImage(imageData: imageData, imageOLC: imageOLC, imageHeading: imageHeading, photo: photo, retries: 0, retriesMax: 4)
         }
     }
     
-    func sendImage(imageData: Data, imageOLC: String, imageHeading: Double, photo: Images) {
-        DispatchQueue.global(qos: .background).async {
-            let headers = [
-                "Content-Type": "application/x-www-form-urlencoded",
-                "username": self.appDelegate.user.get_username(),
-                "session": self.appDelegate.user.get_session()
-            ]
-            Alamofire.upload(multipartFormData: { MultipartFormData in
-                MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-                MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
-                MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
-            } , usingThreshold:UInt64.init(), to: self.appDelegate.res_host+"/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
-                switch encodingResult {
-                case .success(let upload, _, _):
-                    upload.responseJSON { response in
-                        if let result = response.result.value {
-                            if let success = result as? NSDictionary {
-                                if ((success["success"]! as! Bool) == true) {
-                                    self.updatePhoto(photo)
+    func sendImage(imageData: Data, imageOLC: String, imageHeading: Double, photo: Images, retries: Int, retriesMax: Int) {
+        if let token = self.appDelegate.user.get_token() {
+            DispatchQueue.global(qos: .background).async {
+                let headers = [
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": "Bearer \(token)"
+                ]
+                Alamofire.upload(multipartFormData: { MultipartFormData in
+                    MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+                    MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
+                    MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
+                } , usingThreshold:UInt64.init(), to: self.appDelegate.res_host+"/imageUpload", method: .post, headers: headers, encodingCompletion: { encodingResult in
+                    switch encodingResult {
+                    case .success(let upload, _, _):
+                        upload.responseJSON { response in
+                            if let result = response.result.value {
+                                if let success = result as? NSDictionary {
+                                    if ((success["success"]! as! Bool) == true) {
+                                        self.updatePhoto(photo)
+                                    }
+                                    return
                                 }
-                                return
+                                
                             }
-                            
                         }
+                        break
+                    case .failure(let encodingError):
+                        print("failed to send \(encodingError.localizedDescription)")
                     }
-                    break
-                case .failure(let encodingError):
-                    print("failed to send \(encodingError.localizedDescription)")
-                }
-            })
+                })
+            }
+        } else {
+            // retry with backoff and max retries
+            if (retries + 1 < retriesMax) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(retries), execute: {
+                    self.sendImage(imageData: imageData, imageOLC: imageOLC, imageHeading: imageHeading, photo: photo, retries: retries + 1, retriesMax: retriesMax)
+                })
+            }
         }
+
     }
     
-    func sendImage(imageData: Data, imageOLC: String, imageHeading: Double, token: String) {
-        DispatchQueue.global(qos: .background).async {
-            let headers = [
-                "Content-Type": "application/x-www-form-urlencoded",
-                "username": self.appDelegate.user.get_username(),
-                "session": self.appDelegate.user.get_session()
-            ]
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeStyle = .full
-            dateFormatter.dateStyle = .full
-            dateFormatter.timeZone = Calendar.current.timeZone
-            Alamofire.upload(multipartFormData: { MultipartFormData in
-                MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
-                MultipartFormData.append(token.data(using: .utf8)!, withName: "token")
-                MultipartFormData.append("\(dateFormatter.string(from: Date()))".data(using: String.Encoding.utf8)!, withName: "date")
-                MultipartFormData.append((TimeZone.current.abbreviation() ?? "").data(using: String.Encoding.utf8)!, withName: "timezone")
-                MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
-                MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
-                MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
-            }, usingThreshold:UInt64.init(), to: self.appDelegate.res_host+"/imageUploadText", method: .post, headers: headers, encodingCompletion: { encodingResult in
-                switch encodingResult {
-                case .success(let upload, _, _):
-                    upload.responseJSON { response in
-                        if let result = response.result.value {
-                            if let success = result as? NSDictionary {
-                                print("success")
+    func sendText(imageData: Data, imageOLC: String, imageHeading: Double, token: String, retries: Int, retriesMax: Int) {
+        if let token = self.appDelegate.user.get_token() {
+            DispatchQueue.global(qos: .background).async {
+                let headers = [
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": "Bearer \(token)"
+                ]
+                let dateFormatter = DateFormatter()
+                dateFormatter.timeStyle = .full
+                dateFormatter.dateStyle = .full
+                dateFormatter.timeZone = Calendar.current.timeZone
+                Alamofire.upload(multipartFormData: { MultipartFormData in
+                    MultipartFormData.append("ios".data(using: String.Encoding.utf8)!, withName: "device")
+                    MultipartFormData.append(token.data(using: .utf8)!, withName: "token")
+                    MultipartFormData.append("\(dateFormatter.string(from: Date()))".data(using: String.Encoding.utf8)!, withName: "date")
+                    MultipartFormData.append((TimeZone.current.abbreviation() ?? "").data(using: String.Encoding.utf8)!, withName: "timezone")
+                    MultipartFormData.append(imageOLC.data(using: String.Encoding.utf8)!, withName: "olc")
+                    MultipartFormData.append("\(imageHeading)".data(using: String.Encoding.utf8)!, withName: "bearing")
+                    MultipartFormData.append(imageData, withName: "image", fileName: "\(Date().iso8601).jpg", mimeType: "image/jpeg")
+                }, usingThreshold:UInt64.init(), to: self.appDelegate.res_host+"/imageUploadText", method: .post, headers: headers as! HTTPHeaders, encodingCompletion: { encodingResult in
+                    switch encodingResult {
+                    case .success(let upload, _, _):
+                        upload.responseJSON { response in
+                            if let result = response.result.value {
+                                if let success = result as? NSDictionary {
+                                    print("success")
+                                }
+                                
                             }
-                            
                         }
+                        break
+                    case .failure(let encodingError):
+                        print("failed to send \(encodingError.localizedDescription)")
                     }
-                    break
-                case .failure(let encodingError):
-                    print("failed to send \(encodingError.localizedDescription)")
-                }
-            })
+                })
+            }
+        } else {
+            // retry with backoff and max retries
+            if (retries + 1 < retriesMax) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(retries), execute: {
+                    self.sendText(imageData: imageData, imageOLC: imageOLC, imageHeading: imageHeading, token: token, retries: retries + 1, retriesMax: retriesMax)
+                })
+            }
         }
     }
     
@@ -196,6 +213,7 @@ class PhotoHandler: NSObject {
         DispatchQueue.main.async {
             try! self.appDelegate.realm.write {
                 photo.uploaded = true
+                photo.data = Data() // empty the file contents, no longer needed
             }
         }
     }

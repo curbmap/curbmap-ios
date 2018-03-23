@@ -36,8 +36,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.setupCentralViews(2)
         appDelegate.user.set_username(username: username.text!)
         appDelegate.user.set_password(password: password.text!)
-        appDelegate.user.set_auth(host: self.appDelegate.auth_host)
-        appDelegate.user.set_res(host: self.appDelegate.res_host)
         // load
         let size = self.viewSize.width/4
         let frame = CGRect(x: self.view.center.x-size/2, y: self.view.center.y-size/2, width: size, height: size)

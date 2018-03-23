@@ -18,11 +18,11 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var menuButtonOutlet: UIButton!
     @IBAction func logoutPressed(_ sender: Any) {
-        self.appDelegate.user.logout(callback: self.finishedLogout)
+        self.appDelegate.user.logout(callback: self.finishedLogout, retries: 0, retriesMax: 3)
     }
-    @objc func finishedLogout() {
+    @objc func finishedLogout(_ result: Int) {
         self.tableView.reloadData()
-        print("Logged out")
+        print("Logged out: \(result)")
     }
     var tableView: UITableView!
     @IBOutlet weak var mapstyleLabel: UILabel!

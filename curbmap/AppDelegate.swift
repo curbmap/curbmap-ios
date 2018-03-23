@@ -127,98 +127,106 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         return self.restrictions.popLast()
     }
     
-    func submitRestrictions() -> Bool {
-        // store all restrictions to Realm
-        var line: [[Double]] = []
-        var lineCoords: [CLLocationCoordinate2D] = []
-        var lineString = ""
-        var newLine:CurbmapPolyLine!
-        for i in 0..<self.mapController.line.count {
-            line.append([self.mapController.line[i].coordinate.longitude, self.mapController.line[i].coordinate.latitude])
-            lineCoords.append(self.mapController.line[i].coordinate)
-            lineString += String(self.mapController.line[i].coordinate.longitude) + "," + String(self.mapController.line[i].coordinate.latitude) + ","
-        }
-        newLine = CurbmapPolyLine(coordinates: lineCoords, count: UInt(lineCoords.count))
-        let lineStringEnd = lineString.index(lineString.startIndex, offsetBy: lineString.count-1)
-        lineString = String(lineString[lineString.startIndex..<lineStringEnd]) // not including last ,
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json",
-            "session": self.user.get_session(),
-            "username": self.user.get_username()
-        ]
-        
-        var restrParams: [[String: Any]] = []
-        newLine.restrictions = restrictions
-        var typeCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        var permits: [String] = []
-        for r in newLine.restrictions {
-            if (r.isActiveNow()) {
-                typeCount[r.type] += 1
+    func submitRestrictions(retries: Int, retriesMax: Int) -> Bool {
+        if let token = self.user.get_token() {
+            // store all restrictions to Realm
+            var line: [[Double]] = []
+            var lineCoords: [CLLocationCoordinate2D] = []
+            var lineString = ""
+            var newLine:CurbmapPolyLine!
+            for i in 0..<self.mapController.line.count {
+                line.append([self.mapController.line[i].coordinate.longitude, self.mapController.line[i].coordinate.latitude])
+                lineCoords.append(self.mapController.line[i].coordinate)
+                lineString += String(self.mapController.line[i].coordinate.longitude) + "," + String(self.mapController.line[i].coordinate.latitude) + ","
             }
-            if (r.permit != nil) {
-                permits.append(r.permit!)
-            }
-        }
-        if (typeCount[6] > 0 || typeCount[8] > 0 || (typeCount[7] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
-            newLine.color = UIColor.red
-        } else if (typeCount[10] > 0) {
-            newLine.color = UIColor.blue
-        } else if (typeCount[0] > 0 || typeCount[1] > 0) {
-            newLine.color = UIColor.green
-        } else if (typeCount[2] > 0 || (typeCount[4] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
-            newLine.color = UIColor.gray
-        } else if (typeCount[3] > 0 || (typeCount[5] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
-            newLine.color = UIColor.purple
-        } else if (typeCount[9] > 0) {
-            newLine.color = UIColor.brown
-        } else if (typeCount[11] > 0) {
-            newLine.color = UIColor.white
-        } else if (typeCount[12] > 0) {
-            newLine.color = UIColor.yellow
-        } else if (typeCount.max()! > 0){
-            newLine.color = UIColor.black
-        } else {
-            newLine.color = UIColor.clear
-        }
-        linesToDraw.append(newLine)
-        if (mapController != nil) {
-            mapController.triggerDrawLines()
-        }
-        for r in restrictions {
-            restrParams.append(r.asDictionary())
-        }
-        let parameters: Parameters = ["line": line,
-                                      "restrictions": restrParams]
-        if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
-            Alamofire.request(self.res_host+"/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
-                guard self != nil else { return }
-                if var json = response.result.value as? [String: Any] {
-                    if let success = json["success"] as? Int {
-                        if (success == 1) {
-                            // put restrictions in realm as complete
-                            self?.storeRestrsInRealm(true, json["line_id"] as? String, lineString)
-                            self?.mapController.doneWithLine(self?.mapController)
-                        } else {
-                            // put the restrictions in realm for later
-                            self?.storeRestrsInRealm(false, nil, lineString)
-                            self?.mapController.cancelLine(self?.mapController)
-                        }
-                    }
-                } else {
-                    self?.storeRestrsInRealm(false, nil, lineString)
-                    self?.mapController.cancelLine(self?.mapController)
-                    // put the restrictions in the realm for later
+            newLine = CurbmapPolyLine(coordinates: lineCoords, count: UInt(lineCoords.count))
+            let lineStringEnd = lineString.index(lineString.startIndex, offsetBy: lineString.count-1)
+            lineString = String(lineString[lineString.startIndex..<lineStringEnd]) // not including last ,
+            
+            let headers: HTTPHeaders = [
+                "Content-Type": "application/json",
+                "Authorization": "Bearer \(token)"
+            ]
+            
+            var restrParams: [[String: Any]] = []
+            newLine.restrictions = restrictions
+            var typeCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+            var permits: [String] = []
+            for r in newLine.restrictions {
+                if (r.isActiveNow()) {
+                    typeCount[r.type] += 1
+                }
+                if (r.permit != nil) {
+                    permits.append(r.permit!)
                 }
             }
+            if (typeCount[6] > 0 || typeCount[8] > 0 || (typeCount[7] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+                newLine.color = UIColor.red
+            } else if (typeCount[10] > 0) {
+                newLine.color = UIColor.blue
+            } else if (typeCount[0] > 0 || typeCount[1] > 0) {
+                newLine.color = UIColor.green
+            } else if (typeCount[2] > 0 || (typeCount[4] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+                newLine.color = UIColor.gray
+            } else if (typeCount[3] > 0 || (typeCount[5] > 0 && !permits.contains(self.user.searchSettings["permit"] as! String))) {
+                newLine.color = UIColor.purple
+            } else if (typeCount[9] > 0) {
+                newLine.color = UIColor.brown
+            } else if (typeCount[11] > 0) {
+                newLine.color = UIColor.white
+            } else if (typeCount[12] > 0) {
+                newLine.color = UIColor.yellow
+            } else if (typeCount.max()! > 0){
+                newLine.color = UIColor.black
+            } else {
+                newLine.color = UIColor.clear
+            }
+            linesToDraw.append(newLine)
+            if (mapController != nil) {
+                mapController.triggerDrawLines()
+            }
+            for r in restrictions {
+                restrParams.append(r.asDictionary())
+            }
+            let parameters: Parameters = ["line": line,
+                                          "restrictions": restrParams]
+            if (NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n") {
+                Alamofire.request(self.res_host+"/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+                    guard self != nil else { return }
+                    if var json = response.result.value as? [String: Any] {
+                        if let success = json["success"] as? Int {
+                            if (success == 1) {
+                                // put restrictions in realm as complete
+                                self?.storeRestrsInRealm(true, json["line_id"] as? String, lineString)
+                                self?.mapController.doneWithLine(self?.mapController)
+                            } else {
+                                // put the restrictions in realm for later
+                                self?.storeRestrsInRealm(false, nil, lineString)
+                                self?.mapController.cancelLine(self?.mapController)
+                            }
+                        }
+                    } else {
+                        self?.storeRestrsInRealm(false, nil, lineString)
+                        self?.mapController.cancelLine(self?.mapController)
+                        // put the restrictions in the realm for later
+                    }
+                }
+            } else {
+                // put it in the db to try to upload later
+                self.storeRestrsInRealm(false, nil, lineString)
+                self.mapController.cancelLine(self.mapController)
+            }
+            //mapController.findClosestLine(begin, end)
+            return false
         } else {
-            // put it in the db to try to upload later
-            self.storeRestrsInRealm(false, nil, lineString)
-            self.mapController.cancelLine(self.mapController)
+            // retry with backoff and max retries
+            if (retries + 1 < retriesMax) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(retries), execute: {
+                    return self.submitRestrictions(retries: retries + 1, retriesMax: retriesMax)
+                })
+            }
+            return false
         }
-        //mapController.findClosestLine(begin, end)
-        return false
-        
     }
     func saveSearchSettings(limit: String, distance: String, date: DateComponents){
         guard let settings = realm.objects(SearchSettings.self).first else {
@@ -347,10 +355,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
             }
             do {
                 let codeArea = try OpenLocationCode.decode(code: photo.olc)
-            let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: codeArea.LatLng().latitude, longitude: codeArea.LatLng().longitude))
-            M.heading = photo.heading
-            M.type = MapMarker.AnnotationType.photoNotDraggable
-            self.photosToDraw.append(M)
+                let M = MapMarker(coordinate: CLLocationCoordinate2D(latitude: codeArea.LatLng().latitude, longitude: codeArea.LatLng().longitude))
+                M.heading = photo.heading
+                M.type = MapMarker.AnnotationType.photoNotDraggable
+                self.photosToDraw.append(M)
             } catch(let error) {
                 print(error);
             }
@@ -358,58 +366,65 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
         if (mapController != nil) {
             mapController.triggerDrawLines()
         }
-        uploadIfOnWifi(lines: linesToSend, photos: photosToSend)
+        uploadIfOnWifi(lines: linesToSend, photos: photosToSend, retries: 0, retriesMax: 4)
     }
-    func uploadIfOnWifi(lines: [Lines], photos: [Images]) {
-        if ((NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n")) {
-            if (lines.count > 0) {
-                for line in lines {
-                    let lineFloats = line.line!.split(separator: ",").map{Double($0)!}
-                    var lineStruct : [[Double]] = []
-                    for i in stride(from: 0, to: lineFloats.count, by: 2) {
-                        lineStruct.append([lineFloats[i], lineFloats[i+1]])
-                    }
-                    var restrictionArray: [[String: Any]] = []
-                    for r in line.restrictions {
-                        let R = Restriction(type: r.type, days: Array(r.days), weeks: Array(r.weeks), months: Array(r.months), from: r.start, to: r.end, angle: r.angle, holidays: r.holiday, vehicle: r.vehicle, side: r.side, limit: r.duration, cost: r.cost, per: r.per, permit: r.permit)
-                        restrictionArray.append(R.asDictionary())
-                    }
-                    let parameters: Parameters = [
-                        "line": lineStruct,
-                        "restrictions": restrictionArray
-                    ]
-                    print(parameters)
-                    let headers: HTTPHeaders = [
-                        "Content-Type": "application/json",
-                        "session": self.user.get_session(),
-                        ]
-                    Alamofire.request(self.res_host+"/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
-                        guard self != nil else { return }
-                        if var json = response.result.value as? [String: Any] {
-                            if let success = json["success"] as? Int {
-                                if (success == 1) {
-                                    // put restrictions in realm as complete
-                                    try! self?.realm.write {
-                                        line.uploaded = true
-                                        line.id = json["line_id"] as? String
-                                    }
-                                } else {
-                                    // do nothing, try later ???
-                                }
-                            }
-                        } else {
-                            // do nothing, try later ???
+    func uploadIfOnWifi(lines: [Lines], photos: [Images], retries: Int, retriesMax: Int) {
+        if let token = self.user.get_token() {
+            if ((NetworkReachabilityManager()?.isReachableOnEthernetOrWiFi)! || (self.user.settings["offline"] == "n")) {
+                if (lines.count > 0) {
+                    for line in lines {
+                        let lineFloats = line.line!.split(separator: ",").map{Double($0)!}
+                        var lineStruct : [[Double]] = []
+                        for i in stride(from: 0, to: lineFloats.count, by: 2) {
+                            lineStruct.append([lineFloats[i], lineFloats[i+1]])
                         }
+                        var restrictionArray: [[String: Any]] = []
+                        for r in line.restrictions {
+                            let R = Restriction(type: r.type, days: Array(r.days), weeks: Array(r.weeks), months: Array(r.months), from: r.start, to: r.end, angle: r.angle, holidays: r.holiday, vehicle: r.vehicle, side: r.side, limit: r.duration, cost: r.cost, per: r.per, permit: r.permit)
+                            restrictionArray.append(R.asDictionary())
+                        }
+                        let parameters: Parameters = [
+                            "line": lineStruct,
+                            "restrictions": restrictionArray
+                        ]
+                        print(parameters)
+                        let headers: HTTPHeaders = [
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer \(token)"
+                            ]
+                        Alamofire.request(self.res_host+"/addLine", method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { [weak self] response in
+                            guard self != nil else { return }
+                            if var json = response.result.value as? [String: Any] {
+                                if let success = json["success"] as? Int {
+                                    if (success == 1) {
+                                        // put restrictions in realm as complete
+                                        try! self?.realm.write {
+                                            line.uploaded = true
+                                            line.id = json["line_id"] as? String
+                                        }
+                                    } else {
+                                        // do nothing, try later ???
+                                    }
+                                }
+                            } else {
+                                // do nothing, try later ???
+                            }
+                        }
+                        
                     }
-                    
+                }
+                if (photos.count > 0) {
+                    PhotoHandler.sharedInstance.upload(photos)
                 }
             }
-            if (photos.count > 0) {
-                PhotoHandler.sharedInstance.upload(photos)
+        } else {
+            // retry with backoff and max retries
+            if (retries + 1 < retriesMax) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(retries), execute: {
+                    self.uploadIfOnWifi(lines: lines, photos: photos, retries: retries + 1, retriesMax: retriesMax)
+                })
             }
         }
-    }
-    @objc func uploadPhoto(data: Data, identifier: String, olc: String, heading: Double) {
     }
     @objc func getUser() {
         do {
@@ -420,8 +435,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
                     user.set_username(username: username_token!)
                     user.set_password(password: password_token!)
                     user.set_remember(remember: true)
-                    user.set_auth(host: self.auth_host)
-                    user.set_res(host: self.res_host)
                     user.login(callback: self.finishedLogin)
                 }
             } else {
@@ -624,8 +637,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioPlayerDelegate {
     func getLineContributions() -> [LineContributions]? {
         let headers : HTTPHeaders = [
             "Content-Type": "application/x-www-form-urlencoded",
-            "username": self.user.get_username(),
-            "session": self.user.get_session()
+            "token": self.user.get_token()!
         ]
         Alamofire.request(self.res_host+"/getMyLines", method: .get, headers: headers).responseJSON { [weak self] response in
             guard self != nil else { return }

@@ -37,7 +37,7 @@ class MenuTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if (appDelegate.user.isLoggedIn()) {
+        if (appDelegate.user.isLoggedIn() && appDelegate.user.username != "curbmaptest") {
             return 5
         } else {
             return 6
@@ -45,7 +45,7 @@ class MenuTableViewController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if (appDelegate.user.isLoggedIn()) {
+        if (appDelegate.user.isLoggedIn() && appDelegate.user.username != "curbmaptest") {
             if (indexPath.row == appDelegate.windowLocation && indexPath.row == 0) {
                 print("shouldn't be here")
             } else if(indexPath.row == appDelegate.windowLocation && indexPath.row == 1) {
@@ -169,7 +169,7 @@ class MenuTableViewController: UITableViewController {
         }
     }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if (appDelegate.user.isLoggedIn()) {
+        if (appDelegate.user.isLoggedIn() && appDelegate.user.username != "curbmaptest") {
             if (indexPath.row == 0) {
                 return 100;
             } else {
@@ -180,7 +180,7 @@ class MenuTableViewController: UITableViewController {
         }
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if (appDelegate.user.isLoggedIn()) {
+        if (appDelegate.user.isLoggedIn() && appDelegate.user.username != "curbmaptest") {
             if (indexPath.row == 0) {
                 let userCell = tableView.dequeueReusableCell(withIdentifier: "UserCell") as! UserCell
                 userCell.username.text = appDelegate.user.username

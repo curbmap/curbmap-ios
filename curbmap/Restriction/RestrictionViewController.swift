@@ -41,7 +41,7 @@ class RestrictionViewController: UIViewController, UIScrollViewDelegate, UIGestu
         do {
             let added = try self.addCurrentRestriction()
             if (added == true) {
-                self.appDelegate.submitRestrictions()
+                self.appDelegate.submitRestrictions(retries: 0, retriesMax: 3)
                 Mixpanel.mainInstance().track(event: "double_tapped_line", properties: ["number of restrictions added": self.appDelegate.restrictions.count])
 
                 self.navigationController?.popViewController(animated: true)
